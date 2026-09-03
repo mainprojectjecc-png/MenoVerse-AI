@@ -1,0 +1,93 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap');
+
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:FILL,wght@0..1,100..700&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  /* MenoVerse Colors */
+  --color-primary: #6B705C;
+  --color-primary-container: #B7B7A4;
+  --color-on-primary-container: #3F4238;
+
+  --color-secondary: #A5A58D;
+  --color-secondary-container: #DDBEA9;
+  --color-on-secondary-container: #6B4D3C;
+
+  --color-tertiary: #CB997E;
+
+  --color-background: #F0EAD6;
+  --color-surface: #FAF7F0;
+  --color-surface-container: #F4F1E8;
+  --color-surface-container-high: #EBE7D9;
+
+  --color-on-surface: #3F3D35;
+  --color-on-surface-variant: #6B695E;
+
+  --color-outline: #A8A596;
+  --color-outline-variant: #D1CEC0;
+
+  --color-risk-high: #BC6C4D;
+  --color-risk-low: #84A59D;
+
+  --color-lavender-mist: #E7E4D5;
+  --color-plum-deep: #3F3D35;
+
+  /* Fonts */
+  --font-headline: "Playfair Display", serif;
+  --font-body: "Plus Jakarta Sans", sans-serif;
+
+  /* Border Radius */
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
+
+  /* Spacing */
+  --spacing-gutter: 20px;
+  --spacing-margin-mobile: 24px;
+  --spacing-margin-desktop: 64px;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: #F0EAD6;
+  color: #3F3D35;
+  font-family: "Plus Jakarta Sans", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.material-symbols-outlined {
+  font-family: "Material Symbols Outlined";
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-feature-settings: "liga";
+  -webkit-font-feature-settings: "liga";
+  -webkit-font-smoothing: antialiased;
+}
+
+.soft-shadow {
+box-shadow: 0 10px 30px -10px rgba(107, 112, 92, 0.15);
+}
+
+.glass-warm {
+ background: rgba(255, 251, 240, 0.6);
+  backdrop-filter: blur(12px);
+border: 1px solid rgba(255, 255, 255, 0.3);
+}
