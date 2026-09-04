@@ -1,23 +1,23 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr, Field
 from datetime import date
 
 class UserOut(BaseModel):
     UserID: int
     Name: str
     Age: int
-    Email: str
+    Email: EmailStr
 
     class Config:
         from_attributes = True
 
 class UserCreate(BaseModel):
     Name: str
-    Age: int
-    Email: str
-    Password: str
+    Age: int = Field(..., gt=0, lt=120)
+    Email: EmailStr
+    Password: str = Field(..., min_length=6)
 
 class UserLogin(BaseModel):
-    Email: str
+    Email: EmailStr
     Password: str
 
 class CycleCreate(BaseModel):
