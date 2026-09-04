@@ -26,11 +26,6 @@ app.add_middleware(
 def home():
     return {"message": "MenoVerse AI Backend Running"}
 
-
-@app.get("/")
-def home():
-    return {"message": "MenoVerse AI Backend Running"}
-
 @app.get("/users", response_model=List[UserOut])
 def get_users(db: Session = Depends(get_db)):
     return db.query(User).all()
@@ -166,3 +161,23 @@ def delete_recommendation(recommendation_id: int, db: Session = Depends(get_db))
     db.delete(existing)
     db.commit()
     return {"message": "Recommendation deleted successfully"}
+
+@app.put("/riskassessment/{risk_id}", response_model=RiskAssessmentOut)
+def update_risk(risk_id: int, risk: RiskAssessmentCreate, db: Session = Depends(get_db)):
+    existing = db.query(RiskAssessment).filter(RiskAssessment.RiskID == risk_id).first()
+    if not existing:
+        raise HTTPException(status_code=404, detail="Risk assessment not found")
+    for key, value in risk.dict().items():
+        setattr(existing, key, value)
+    db.commit()
+    db.refresh(existing)
+    return existing
+
+@app.delete("/riskassessment/{risk_id}")
+def delete_risk(risk_id: int, db: Session = Depends(get_db)):
+    existing = db.query(RiskAssessment).filter(RiskAssessment.RiskID == risk_id).first()
+    if not existing:
+        raise HTTPException(status_code=404, detail="Risk assessment not found")
+    db.delete(existing)
+    db.commit()
+    return {"message": "Risk assessment deleted successfully"}
