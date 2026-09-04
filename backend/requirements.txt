@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+sqlalchemy
+pyodbc
+passlib[bcrypt]
+pandas
+openpyxl
+joblib
+scikit-learn

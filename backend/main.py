@@ -8,9 +8,10 @@ from models import User, Cycle, Symptom, RiskAssessment, Recommendation
 from schemas import (
     UserOut, UserCreate, UserLogin, CycleCreate, CycleOut,
     SymptomCreate, SymptomOut, RiskAssessmentCreate, RiskAssessmentOut,
-    RecommendationCreate, RecommendationOut
+    RecommendationCreate, RecommendationOut, PredictionCreate, PredictionOut
 )
 from auth import hash_password, verify_password
+from ml_predictor import predict_risk
 
 app = FastAPI()
 
@@ -25,6 +26,22 @@ app.add_middleware(
 @app.get("/")
 def home():
     return {"message": "MenoVerse AI Backend Running"}
+
+
+@app.post("/predict", response_model=PredictionOut)
+def predict(payload: PredictionCreate):
+    try:
+        risk_level, confidence = predict_risk(payload.dict())
+    except FileNotFoundError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
+    except (KeyError, ValueError, TypeError) as error:
+        raise HTTPException(status_code=422, detail=f"Invalid prediction input: {error}") from error
+
+    return {
+        "risk_level": risk_level,
+        "confidence": round(confidence, 4),
+        "message": "This result is a screening estimate and is not a medical diagnosis.",
+    }
 
 
 @app.get("/")
