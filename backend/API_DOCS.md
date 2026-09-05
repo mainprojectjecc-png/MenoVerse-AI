@@ -81,3 +81,44 @@ Deletes a recommendation.
 - All endpoints validate input automatically (bad emails, invalid ages, etc. return 422 errors)
 - Passwords are hashed with bcrypt before storage
 - Full interactive testing available at /docs (Swagger UI)
+## AI Prediction
+
+### POST /predict
+Runs the trained Random Forest model on survey responses, saves the result to RiskAssessment, and returns it.
+
+Body (all 16 fields required):
+```json
+{
+  "UserID": int,
+  "Age_Group": "Over 55" | "35-45" | "46-55",
+  "Weight_kg": number,
+  "Menstrual_Cycle_Regular": "No" | "Yes" | "Completely over",
+  "Avg_Menstrual_Cycle_Length": "More than 35 days" | "21–28 days" | "Not regular" | "Less than 21 days",
+  "Hot_Flashes": "Mild" | "Severe",
+  "Night_Sweats": "Mild" | "Severe",
+  "Sleep_Disturbances": "Mild" | "Severe",
+  "Fatigue": "Mild" | "Severe",
+  "Anxiety": "Mild" | "Severe",
+  "Headaches": "Mild" | "Severe",
+  "Heart_Palpitations": "Mild" | "Severe",
+  "Exercise_Yoga_Frequency": "Never" | "1-2 days" | "Weekly" | "Daily",
+  "Avg_Sleep_Duration": "Less than 5 hours" | "5-6 hours" | "7-8 hours" | "More than 8 hours",
+  "Stress_Level": number (1-5),
+  "Diagnosed_Conditions": "None of the Above" | condition name (e.g. "PCOS", "Diabetes", "Hypertension"),
+  "Family_History_Early_Menopause": "No" | "Yes"
+}
+```
+
+Returns:
+```json
+{
+  "RiskLevel": "Low" | "Moderate" | "High",
+  "Confidence": float (0-1),
+  "SavedRiskID": int
+}
+```
+
+Notes:
+- All text values must match exactly (case-sensitive) — these are fixed categories the model was trained on, not free text.
+- Weight_kg and Stress_Level must be numbers, everything else is text.
+- The result is automatically saved to the RiskAssessment table under the given UserID.
