@@ -15,22 +15,47 @@ from sklearn.metrics import (
     confusion_matrix
 )
 
+
+# ============================================================
+# PATHS
+# ============================================================
+
+# Folder containing this Python file
+SCRIPT_DIR = Path(__file__).resolve().parent
+
+# Dataset is one folder above ml, inside dataset
+DATASET_PATH = (
+    SCRIPT_DIR.parent
+    / "dataset"
+    / "menopause_survey_random2.xlsx"
+)
+
+
 # ============================================================
 # 1. LOAD DATASET
 # ============================================================
 
-script_dir = Path(__file__).resolve().parent
-file_path = script_dir / "menopause_survey_random2.xlsx"
+print("Looking for dataset at:")
+print(DATASET_PATH)
 
-if not file_path.exists() or file_path.stat().st_size == 0:
+if not DATASET_PATH.exists():
     raise FileNotFoundError(
-        f"Dataset is missing or empty: {file_path}. "
-        "Place a valid menopause_survey_random2.xlsx file in the ml folder."
+        f"Dataset not found: {DATASET_PATH}\n"
+        "Make sure menopause_survey_random2.xlsx is inside the dataset folder."
     )
 
-df = pd.read_excel(file_path)
+if DATASET_PATH.stat().st_size == 0:
+    raise FileNotFoundError(
+        f"Dataset is empty: {DATASET_PATH}"
+    )
 
+print("\nLoading dataset...")
+
+df = pd.read_excel(DATASET_PATH)
+
+print("Dataset loaded successfully!")
 print("Dataset shape:", df.shape)
+
 print("\nColumns:")
 print(df.columns.tolist())
 
@@ -39,44 +64,102 @@ print(df.columns.tolist())
 # 2. CLEAN COLUMN NAMES
 # ============================================================
 
-df.columns = df.columns.str.strip()
+df.columns = df.columns.astype(str).str.strip()
+
+print("\nCleaned columns:")
+print(df.columns.tolist())
 
 
 # ============================================================
-# 3. CREATE PROTOTYPE SCREENING LABEL
+# 3. CHECK REQUIRED COLUMNS
+# ============================================================
+
+required_columns = [
+    "Age Group",
+    "Weight (kg)",
+    "Menstrual Cycle Regular?",
+    "Avg Menstrual Cycle Length",
+    "Hot Flashes",
+    "Night Sweats",
+    "Sleep Disturbances",
+    "Fatigue",
+    "Anxiety",
+    "Headaches",
+    "Heart Palpitations",
+    "Exercise/Yoga Frequency",
+    "Avg Sleep Duration",
+    "Stress Level",
+    "Diagnosed Conditions",
+    "Family History of Early Menopause?"
+]
+
+missing_columns = [
+    column for column in required_columns
+    if column not in df.columns
+]
+
+if missing_columns:
+    print("\nERROR: The following columns are missing:")
+    for column in missing_columns:
+        print("-", column)
+
+    raise KeyError(
+        "\nPlease check the column names in your Excel file."
+    )
+
+
+# ============================================================
+# 4. CREATE PROTOTYPE SCREENING LABEL
 # ============================================================
 
 def calculate_risk(row):
 
     score = 0
 
+    # --------------------------------------------------------
     # Age
+    # --------------------------------------------------------
+
     age = str(row["Age Group"]).lower()
 
     if "45" in age or "55" in age or "over 55" in age:
         score += 2
+
     elif "35" in age:
         score += 1
 
+
+    # --------------------------------------------------------
     # Menstrual cycle regularity
+    # --------------------------------------------------------
+
     cycle_regular = str(
         row["Menstrual Cycle Regular?"]
-    ).lower()
+    ).lower().strip()
 
     if cycle_regular == "no":
         score += 2
 
-    # Cycle length
+
+    # --------------------------------------------------------
+    # Menstrual cycle length
+    # --------------------------------------------------------
+
     cycle_length = str(
         row["Avg Menstrual Cycle Length"]
     ).lower()
 
     if "more than 35" in cycle_length:
         score += 2
+
     elif "29" in cycle_length:
         score += 1
 
+
+    # --------------------------------------------------------
     # Symptoms
+    # --------------------------------------------------------
+
     symptoms = [
         "Hot Flashes",
         "Night Sweats",
@@ -97,15 +180,23 @@ def calculate_risk(row):
         elif "moderate" in value:
             score += 1
 
+
+    # --------------------------------------------------------
     # Family history
+    # --------------------------------------------------------
+
     family = str(
         row["Family History of Early Menopause?"]
-    ).lower()
+    ).lower().strip()
 
     if family == "yes":
         score += 1
 
-    # Convert score to risk category
+
+    # --------------------------------------------------------
+    # Convert score into risk category
+    # --------------------------------------------------------
+
     if score >= 8:
         return "High"
 
@@ -116,17 +207,21 @@ def calculate_risk(row):
         return "Low"
 
 
+# Create risk label
 df["Perimenopause_Risk"] = df.apply(
     calculate_risk,
     axis=1
 )
 
+
 print("\nRisk distribution:")
-print(df["Perimenopause_Risk"].value_counts())
+print(
+    df["Perimenopause_Risk"].value_counts()
+)
 
 
 # ============================================================
-# 4. SELECT FEATURES
+# 5. SELECT FEATURES
 # ============================================================
 
 features = [
@@ -154,7 +249,7 @@ y = df["Perimenopause_Risk"]
 
 
 # ============================================================
-# 5. IDENTIFY DATA TYPES
+# 6. IDENTIFY DATA TYPES
 # ============================================================
 
 categorical_features = X.select_dtypes(
@@ -165,6 +260,7 @@ numerical_features = X.select_dtypes(
     include=["int64", "float64"]
 ).columns.tolist()
 
+
 print("\nCategorical features:")
 print(categorical_features)
 
@@ -173,23 +269,28 @@ print(numerical_features)
 
 
 # ============================================================
-# 6. PREPROCESSING
+# 7. PREPROCESSING
 # ============================================================
 
 numeric_pipeline = Pipeline(
     steps=[
         (
             "imputer",
-            SimpleImputer(strategy="median")
+            SimpleImputer(
+                strategy="median"
+            )
         )
     ]
 )
+
 
 categorical_pipeline = Pipeline(
     steps=[
         (
             "imputer",
-            SimpleImputer(strategy="most_frequent")
+            SimpleImputer(
+                strategy="most_frequent"
+            )
         ),
         (
             "encoder",
@@ -199,6 +300,7 @@ categorical_pipeline = Pipeline(
         )
     ]
 )
+
 
 preprocessor = ColumnTransformer(
     transformers=[
@@ -217,7 +319,7 @@ preprocessor = ColumnTransformer(
 
 
 # ============================================================
-# 7. RANDOM FOREST
+# 8. RANDOM FOREST MODEL
 # ============================================================
 
 random_forest = RandomForestClassifier(
@@ -229,7 +331,7 @@ random_forest = RandomForestClassifier(
 
 
 # ============================================================
-# 8. COMPLETE ML PIPELINE
+# 9. COMPLETE ML PIPELINE
 # ============================================================
 
 model = Pipeline(
@@ -247,7 +349,7 @@ model = Pipeline(
 
 
 # ============================================================
-# 9. TRAIN / TEST SPLIT
+# 10. TRAIN / TEST SPLIT
 # ============================================================
 
 X_train, X_test, y_train, y_test = train_test_split(
@@ -258,33 +360,38 @@ X_train, X_test, y_train, y_test = train_test_split(
     stratify=y
 )
 
+
 print("\nTraining samples:", len(X_train))
 print("Testing samples:", len(X_test))
 
 
 # ============================================================
-# 10. TRAIN MODEL
+# 11. TRAIN MODEL
 # ============================================================
 
-print("\nTraining Random Forest...")
+print("\n================================")
+print("TRAINING RANDOM FOREST")
+print("================================")
 
 model.fit(
     X_train,
     y_train
 )
 
-print("Training completed!")
+print("Training completed successfully!")
 
 
 # ============================================================
-# 11. PREDICTION
+# 12. PREDICTION
 # ============================================================
+
+print("\nMaking predictions...")
 
 y_pred = model.predict(X_test)
 
 
 # ============================================================
-# 12. EVALUATION
+# 13. EVALUATION
 # ============================================================
 
 accuracy = accuracy_score(
@@ -320,26 +427,55 @@ print(
 
 
 # ============================================================
-# 13. SAVE MODEL
+# 14. SAVE TRAINED MODEL
 # ============================================================
+
+MODEL_PATH = (
+    SCRIPT_DIR
+    / "random_forest_model.pkl"
+)
 
 joblib.dump(
     model,
-    script_dir / "random_forest_model.pkl"
+    MODEL_PATH
 )
 
-print("\nModel saved as:")
-print("random_forest_model.pkl")
+print("\n================================")
+print("MODEL SAVED")
+print("================================")
+
+print(
+    f"Model saved at:\n{MODEL_PATH}"
+)
 
 
 # ============================================================
-# 14. SAVE LABELED DATASET
+# 15. SAVE LABELED DATASET
 # ============================================================
+
+LABELED_DATASET_PATH = (
+    SCRIPT_DIR
+    / "menopause_dataset_with_risk.xlsx"
+)
 
 df.to_excel(
-    script_dir / "menopause_dataset_with_risk.xlsx",
+    LABELED_DATASET_PATH,
     index=False
 )
 
-print("\nLabeled dataset saved as:")
-print("menopause_dataset_with_risk.xlsx")
+print("\n================================")
+print("LABELED DATASET SAVED")
+print("================================")
+
+print(
+    f"Dataset saved at:\n{LABELED_DATASET_PATH}"
+)
+
+
+# ============================================================
+# 16. COMPLETE
+# ============================================================
+
+print("\n================================")
+print("ML TRAINING COMPLETED!")
+print("================================")
