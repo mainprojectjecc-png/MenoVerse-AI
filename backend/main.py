@@ -8,8 +8,9 @@ from models import User, Cycle, Symptom, RiskAssessment, Recommendation
 from schemas import (
     UserOut, UserCreate, UserLogin, CycleCreate, CycleOut,
     SymptomCreate, SymptomOut, RiskAssessmentCreate, RiskAssessmentOut,
-    RecommendationCreate, RecommendationOut
+    RecommendationCreate, RecommendationOut, PredictInput
 )
+from ml_predictor import predict_risk
 from auth import hash_password, verify_password
 
 app = FastAPI()
@@ -181,3 +182,25 @@ def delete_risk(risk_id: int, db: Session = Depends(get_db)):
     db.delete(existing)
     db.commit()
     return {"message": "Risk assessment deleted successfully"}
+@app.post("/predict")
+def predict(data: PredictInput, db: Session = Depends(get_db)):
+    try:
+        risk_level, confidence = predict_risk(data.dict())
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    new_risk = RiskAssessment(
+        UserID=data.UserID,
+        RiskScore=confidence,
+        RiskLevel=risk_level,
+        Explanation=f"AI-predicted {risk_level} risk based on survey responses (confidence: {confidence:.2f})"
+    )
+    db.add(new_risk)
+    db.commit()
+    db.refresh(new_risk)
+
+    return {
+        "RiskLevel": risk_level,
+        "Confidence": confidence,
+        "SavedRiskID": new_risk.RiskID
+    }

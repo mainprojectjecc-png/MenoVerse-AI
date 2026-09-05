@@ -68,3 +68,22 @@ class RecommendationOut(RecommendationCreate):
     RecommendationID: int
     class Config:
         from_attributes = True
+
+class PredictInput(BaseModel):
+    UserID: int
+    Age_Group: str
+    Weight_kg: float
+    Menstrual_Cycle_Regular: str
+    Avg_Menstrual_Cycle_Length: str
+    Hot_Flashes: str
+    Night_Sweats: str
+    Sleep_Disturbances: str
+    Fatigue: str
+    Anxiety: str
+    Headaches: str
+    Heart_Palpitations: str
+    Exercise_Yoga_Frequency: str
+    Avg_Sleep_Duration: str
+    Stress_Level: int
+    Diagnosed_Conditions: str
+    Family_History_Early_Menopause: str
