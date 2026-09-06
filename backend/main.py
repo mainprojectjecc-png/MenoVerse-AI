@@ -4,11 +4,12 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from database import get_db
-from models import User, Cycle, Symptom, RiskAssessment, Recommendation
+from models import User, Cycle, Symptom, RiskAssessment, Recommendation, VoiceJournal
 from schemas import (
     UserOut, UserCreate, UserLogin, CycleCreate, CycleOut,
     SymptomCreate, SymptomOut, RiskAssessmentCreate, RiskAssessmentOut,
-    RecommendationCreate, RecommendationOut, PredictInput
+    RecommendationCreate, RecommendationOut, PredictInput,
+    VoiceJournalCreate, VoiceJournalOut
 )
 from ml_predictor import predict_risk
 from auth import hash_password, verify_password
@@ -204,3 +205,35 @@ def predict(data: PredictInput, db: Session = Depends(get_db)):
         "Confidence": confidence,
         "SavedRiskID": new_risk.RiskID
     }
+
+@app.post("/voicejournal", response_model=VoiceJournalOut)
+def create_journal(entry: VoiceJournalCreate, db: Session = Depends(get_db)):
+    new_entry = VoiceJournal(**entry.dict())
+    db.add(new_entry)
+    db.commit()
+    db.refresh(new_entry)
+    return new_entry
+
+@app.get("/voicejournal/{user_id}", response_model=List[VoiceJournalOut])
+def get_journals(user_id: int, db: Session = Depends(get_db)):
+    return db.query(VoiceJournal).filter(VoiceJournal.UserID == user_id).all()
+
+@app.put("/voicejournal/{journal_id}", response_model=VoiceJournalOut)
+def update_journal(journal_id: int, entry: VoiceJournalCreate, db: Session = Depends(get_db)):
+    existing = db.query(VoiceJournal).filter(VoiceJournal.JournalID == journal_id).first()
+    if not existing:
+        raise HTTPException(status_code=404, detail="Journal entry not found")
+    for key, value in entry.dict().items():
+        setattr(existing, key, value)
+    db.commit()
+    db.refresh(existing)
+    return existing
+
+@app.delete("/voicejournal/{journal_id}")
+def delete_journal(journal_id: int, db: Session = Depends(get_db)):
+    existing = db.query(VoiceJournal).filter(VoiceJournal.JournalID == journal_id).first()
+    if not existing:
+        raise HTTPException(status_code=404, detail="Journal entry not found")
+    db.delete(existing)
+    db.commit()
+    return {"message": "Journal entry deleted successfully"}

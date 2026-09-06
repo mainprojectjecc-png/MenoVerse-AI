@@ -87,3 +87,14 @@ class PredictInput(BaseModel):
     Stress_Level: int
     Diagnosed_Conditions: str
     Family_History_Early_Menopause: str
+
+class VoiceJournalCreate(BaseModel):
+    UserID: int
+    EntryDate: date
+    Content: str | None = None
+    AudioURL: str | None = None
+
+class VoiceJournalOut(VoiceJournalCreate):
+    JournalID: int
+    class Config:
+        from_attributes = True

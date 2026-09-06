@@ -55,3 +55,13 @@ class Recommendation(Base):
     ExercisePlan = Column("ExercisePlan", String)
     YogaPlan = Column("YogaPlan", String)
     LifestyleTips = Column("LifestyleTips", String)
+
+class VoiceJournal(Base):
+    __tablename__ = "VoiceJournal"
+    __table_args__ = {"schema": "dbo"}
+
+    JournalID = Column("JournalID", Integer, primary_key=True, index=True)
+    UserID = Column("UserID", Integer)
+    EntryDate = Column("EntryDate", Date)
+    Content = Column("Content", String)
+    AudioURL = Column("AudioURL", String)
