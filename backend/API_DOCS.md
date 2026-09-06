@@ -114,7 +114,14 @@ Returns:
 {
   "RiskLevel": "Low" | "Moderate" | "High",
   "Confidence": float (0-1),
-  "SavedRiskID": int
+  "SavedRiskID": int,
+  "SavedRecommendationID": int,
+  "Recommendation": {
+    "DietPlan": string,
+    "ExercisePlan": string,
+    "YogaPlan": string,
+    "LifestyleTips": string
+  }
 }
 ```
 
@@ -122,3 +129,35 @@ Notes:
 - All text values must match exactly (case-sensitive) — these are fixed categories the model was trained on, not free text.
 - Weight_kg and Stress_Level must be numbers, everything else is text.
 - The result is automatically saved to the RiskAssessment table under the given UserID.
+
+
+## Voice Journal
+
+### POST /voicejournal
+Creates a new journal entry (text or audio reference).
+Body: { "UserID", "EntryDate", "Content", "AudioURL" }
+
+### GET /voicejournal/{user_id}
+Returns all journal entries for a given user.
+
+### PUT /voicejournal/{journal_id}
+Updates an existing journal entry.
+
+### DELETE /voicejournal/{journal_id}
+Deletes a journal entry.
+
+## Project Status Summary
+
+### Completed
+- Full authentication: register/login with bcrypt password hashing
+- Full CRUD (Create/Read/Update/Delete) on: Users (partial), Cycles, Symptoms, RiskAssessment, Recommendation, VoiceJournal — 25 endpoints total
+- /predict — runs the trained ML model on 16 survey inputs, automatically saves both a RiskAssessment AND a matching Recommendation in one call
+- Input validation (email format, age range, password length) via Pydantic
+- CORS configured for frontend integration
+- Database backed up
+- Manually tested via Swagger UI for every endpoint
+
+### Known Limitations
+- **No session/token authentication (JWT).** Login confirms credentials but does not issue a token, and endpoints do not verify that a request is coming from an authenticated user. This was deferred to avoid disrupting in-progress frontend work, and should be addressed before final production deployment.
+- **Model accuracy is 67.95%**, with a known weakness on the "Low" risk category due to class imbalance in the training dataset (13 "Low" examples vs. 228 "High"). The model currently cannot correctly predict "Low" risk cases.
+- **Users table has partial CRUD** — no endpoint yet to update or delete a user's own profile (e.g., change name/email, or a password reset flow).
