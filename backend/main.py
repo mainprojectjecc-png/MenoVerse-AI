@@ -14,28 +14,70 @@ from schemas import (
 from ml_predictor import predict_risk
 from auth import hash_password, verify_password
 
-def generate_recommendation(risk_level: str) -> dict:
+def generate_recommendation(risk_level: str, data: dict) -> dict:
+    diet_tips = []
+    exercise_tips = []
+    yoga_tips = []
+    lifestyle_tips = []
+
     if risk_level == "High":
-        return {
-            "DietPlan": "Increase calcium, vitamin D, and phytoestrogen-rich foods (soy, flaxseed); reduce caffeine and alcohol",
-            "ExercisePlan": "30 minutes moderate exercise 4-5x/week, including strength training for bone health",
-            "YogaPlan": "Daily restorative yoga or meditation, focus on stress-reduction poses",
-            "LifestyleTips": "Prioritize 7-8 hours sleep, consider consulting a gynecologist for symptom management"
-        }
+        diet_tips.append("Increase calcium, vitamin D, and phytoestrogen-rich foods (soy, flaxseed)")
+        lifestyle_tips.append("Consider consulting a gynecologist for symptom management")
     elif risk_level == "Moderate":
-        return {
-            "DietPlan": "Balanced diet with calcium-rich foods, moderate caffeine intake",
-            "ExercisePlan": "30 minutes moderate exercise 3x/week",
-            "YogaPlan": "Yoga or stretching 2-3x/week",
-            "LifestyleTips": "Maintain consistent sleep schedule, monitor symptoms over time"
-        }
+        diet_tips.append("Maintain a calcium-rich, balanced diet")
     else:
-        return {
-            "DietPlan": "Maintain a balanced, nutrient-rich diet",
-            "ExercisePlan": "Regular exercise 2-3x/week for general wellness",
-            "YogaPlan": "Optional yoga or light stretching",
-            "LifestyleTips": "Continue healthy habits, monitor for any new symptoms"
-        }
+        diet_tips.append("Maintain a balanced, nutrient-rich diet")
+
+    if data.get("Hot_Flashes") == "Severe":
+        diet_tips.append("Reduce caffeine, alcohol, and spicy foods which can trigger hot flashes")
+        lifestyle_tips.append("Dress in layers and keep your environment cool")
+
+    if data.get("Night_Sweats") == "Severe":
+        lifestyle_tips.append("Use breathable bedding and sleepwear to manage night sweats")
+
+    if data.get("Sleep_Disturbances") == "Severe" or data.get("Avg_Sleep_Duration") in ["Less than 5 hours", "5-6 hours"]:
+        lifestyle_tips.append("Prioritize 7-8 hours of sleep with a consistent bedtime routine")
+        yoga_tips.append("Try gentle bedtime yoga or breathing exercises to improve sleep")
+
+    if data.get("Anxiety") == "Severe":
+        yoga_tips.append("Daily meditation or restorative yoga to manage anxiety")
+
+    if data.get("Stress_Level", 0) >= 4:
+        yoga_tips.append("Practice stress-reduction techniques like deep breathing or mindfulness")
+
+    if data.get("Fatigue") == "Severe":
+        diet_tips.append("Include iron-rich foods and stay hydrated to combat fatigue")
+
+    if data.get("Headaches") == "Severe":
+        lifestyle_tips.append("Track headache triggers and stay well-hydrated; consult a doctor if frequent")
+
+    if data.get("Heart_Palpitations") == "Severe":
+        lifestyle_tips.append("Severe heart palpitations warrant medical evaluation — please consult a doctor")
+
+    if data.get("Exercise_Yoga_Frequency") == "Never":
+        exercise_tips.append("Start with 15-20 minutes of light walking 3x/week")
+    else:
+        exercise_tips.append("Continue regular exercise, aim for 30 minutes 3-5x/week including strength training")
+
+    if data.get("Family_History_Early_Menopause") == "Yes":
+        lifestyle_tips.append("Given family history, monitor symptoms closely and discuss with a doctor")
+
+    if data.get("Diagnosed_Conditions") not in ["None of the Above", None]:
+        lifestyle_tips.append(f"Coordinate with your doctor regarding {data.get('Diagnosed_Conditions')} and menopause symptom overlap")
+
+    if not exercise_tips:
+        exercise_tips.append("Regular exercise 2-3x/week for general wellness")
+    if not yoga_tips:
+        yoga_tips.append("Optional yoga or light stretching")
+    if not lifestyle_tips:
+        lifestyle_tips.append("Continue healthy habits, monitor for any new symptoms")
+
+    return {
+        "DietPlan": "; ".join(diet_tips),
+        "ExercisePlan": "; ".join(exercise_tips),
+        "YogaPlan": "; ".join(yoga_tips),
+        "LifestyleTips": "; ".join(lifestyle_tips)
+    }
 
 app = FastAPI()
 
@@ -223,7 +265,7 @@ def predict(data: PredictInput, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_risk)
 
-    rec_content = generate_recommendation(risk_level)
+    rec_content = generate_recommendation(risk_level, data.dict())
     new_rec = Recommendation(
         UserID=data.UserID,
         DietPlan=rec_content["DietPlan"],
