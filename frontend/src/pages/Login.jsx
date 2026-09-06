@@ -1,20 +1,31 @@
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
+import api from "../api/axios"
 
 export default function Login() {
   const navigate = useNavigate()
   const [showPass, setShowPass] = useState(false)
   const [form, setForm] = useState({ email: "", password: "" })
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
+    setError("")
     setLoading(true)
-    setTimeout(() => {
-      setLoading(false)
-      localStorage.setItem("user", JSON.stringify({ email: form.email }))
+    try {
+      const res = await api.post("/login", {
+        Email: form.email,
+        Password: form.password,
+      })
+      localStorage.setItem("user", JSON.stringify(res.data))
       navigate("/dashboard")
-    }, 1000)
+    } catch (err) {
+      const message = err.response?.data?.detail || "Login failed. Please check your credentials."
+      setError(message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -31,7 +42,6 @@ export default function Login() {
         <h2 className="font-['Playfair_Display'] text-[40px] font-bold text-[#535845] mb-2">MenoVerse</h2>
         <div className="w-12 h-[2px] bg-[#6b705c]/30 mx-auto rounded-full mb-8"></div>
 
-        {/* MIDDLE-AGED WOMAN 45 YEARS - REALISTIC, FLAT */}
         <div className="w-28 h-28 mb-8 rounded-full overflow-hidden bg-[#eee8d4] border-4 border-white">
           <img
             src="https://images.unsplash.com/photo-1551836022-deb4988cc6c0?w=300&h=300&fit=crop&crop=face&auto=format"
@@ -63,6 +73,10 @@ export default function Login() {
             <div className="flex justify-end">
               <button type="button" className="text-[12px] text-[#5f604b] font-medium">Forgot Password?</button>
             </div>
+
+            {error && (
+              <p className="text-center text-[14px] text-[#BC6C4D] font-medium">{error}</p>
+            )}
 
             <button disabled={loading} type="submit" className="w-full bg-[#535845] text-white py-4 rounded-xl text-[14px] font-semibold flex items-center justify-center gap-2">
               {loading? <span className="material-symbols-outlined animate-spin text-[20px]">sync</span> : <>Sign In <span className="material-symbols-outlined text-[20px]">arrow_forward</span></>}
