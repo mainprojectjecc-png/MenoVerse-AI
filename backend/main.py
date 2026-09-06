@@ -14,6 +14,29 @@ from schemas import (
 from ml_predictor import predict_risk
 from auth import hash_password, verify_password
 
+def generate_recommendation(risk_level: str) -> dict:
+    if risk_level == "High":
+        return {
+            "DietPlan": "Increase calcium, vitamin D, and phytoestrogen-rich foods (soy, flaxseed); reduce caffeine and alcohol",
+            "ExercisePlan": "30 minutes moderate exercise 4-5x/week, including strength training for bone health",
+            "YogaPlan": "Daily restorative yoga or meditation, focus on stress-reduction poses",
+            "LifestyleTips": "Prioritize 7-8 hours sleep, consider consulting a gynecologist for symptom management"
+        }
+    elif risk_level == "Moderate":
+        return {
+            "DietPlan": "Balanced diet with calcium-rich foods, moderate caffeine intake",
+            "ExercisePlan": "30 minutes moderate exercise 3x/week",
+            "YogaPlan": "Yoga or stretching 2-3x/week",
+            "LifestyleTips": "Maintain consistent sleep schedule, monitor symptoms over time"
+        }
+    else:
+        return {
+            "DietPlan": "Maintain a balanced, nutrient-rich diet",
+            "ExercisePlan": "Regular exercise 2-3x/week for general wellness",
+            "YogaPlan": "Optional yoga or light stretching",
+            "LifestyleTips": "Continue healthy habits, monitor for any new symptoms"
+        }
+
 app = FastAPI()
 
 app.add_middleware(
@@ -200,10 +223,24 @@ def predict(data: PredictInput, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_risk)
 
+    rec_content = generate_recommendation(risk_level)
+    new_rec = Recommendation(
+        UserID=data.UserID,
+        DietPlan=rec_content["DietPlan"],
+        ExercisePlan=rec_content["ExercisePlan"],
+        YogaPlan=rec_content["YogaPlan"],
+        LifestyleTips=rec_content["LifestyleTips"]
+    )
+    db.add(new_rec)
+    db.commit()
+    db.refresh(new_rec)
+
     return {
         "RiskLevel": risk_level,
         "Confidence": confidence,
-        "SavedRiskID": new_risk.RiskID
+        "SavedRiskID": new_risk.RiskID,
+        "SavedRecommendationID": new_rec.RecommendationID,
+        "Recommendation": rec_content
     }
 
 @app.post("/voicejournal", response_model=VoiceJournalOut)
