@@ -129,6 +129,7 @@ Notes:
 - All text values must match exactly (case-sensitive) — these are fixed categories the model was trained on, not free text.
 - Weight_kg and Stress_Level must be numbers, everything else is text.
 - The result is automatically saved to the RiskAssessment table under the given UserID.
+- Recommendations are now personalized based on the individual's specific symptoms (hot flashes, sleep, anxiety, stress level, headaches, heart palpitations, exercise habits, etc.) — not just the overall risk category.
 
 
 ## Voice Journal
