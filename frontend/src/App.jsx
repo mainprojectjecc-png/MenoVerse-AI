@@ -1,25 +1,113 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
-import Dashboard from "./pages/Dashboard"
-import CycleTracking from "./pages/CycleTracking"
-import Symptoms from "./pages/Symptoms"
-import Insights from "./pages/Insights"
-import Login from "./pages/Login"
-import Register from "./pages/Register"
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+
+import Layout from "./components/Layout";
+
+import Dashboard from "./pages/Dashboard";
+import CycleTracking from "./pages/CycleTracking";
+import Symptoms from "./pages/Symptoms";
+import Journal from "./pages/VoiceJournal";
+import Insights from "./pages/Insights";
+import Nutrition from "./pages/Nutrition";
+import Exercise from "./pages/Exercise";
+import Profile from "./pages/Profile";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/cycle" element={<CycleTracking />} />
-        <Route path="/symptoms" element={<Symptoms />} />
-        <Route path="/insights" element={<Insights />} />
+
+        {/* ================================
+            COMMON LAYOUT
+        ================================= */}
+
+        <Route element={<Layout />}>
+
+          {/* Dashboard */}
+          <Route
+            path="/dashboard"
+            element={<Dashboard />}
+          />
+
+          {/* Cycle Tracking */}
+          <Route
+            path="/cycle"
+            element={<CycleTracking />}
+          />
+
+          {/* Symptoms */}
+          <Route
+            path="/symptoms"
+            element={<Symptoms />}
+          />
+
+          {/* Voice Journal */}
+          <Route
+            path="/journal"
+            element={<Journal />}
+          />
+
+          {/* Insights */}
+          <Route
+            path="/insights"
+            element={<Insights />}
+          />
+
+          {/* Nutrition */}
+          <Route
+            path="/nutrition"
+            element={<Nutrition />}
+          />
+
+          {/* Exercise */}
+          <Route
+            path="/exercise"
+            element={<Exercise />}
+          />
+
+          {/* Profile */}
+          <Route
+            path="/profile"
+            element={<Profile />}
+          />
+
+        </Route>
+
+        {/* ================================
+            DEFAULT ROUTE
+        ================================= */}
+
+        <Route
+          path="/"
+          element={
+            <Navigate
+              to="/dashboard"
+              replace
+            />
+          }
+        />
+
+        {/* ================================
+            404 ROUTE
+        ================================= */}
+
+        <Route
+          path="*"
+          element={
+            <Navigate
+              to="/dashboard"
+              replace
+            />
+          }
+        />
+
       </Routes>
     </BrowserRouter>
-  )
+  );
 }
 
-export default App
+export default App;
