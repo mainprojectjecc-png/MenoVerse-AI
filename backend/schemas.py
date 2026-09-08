@@ -1,23 +1,23 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr, Field
 from datetime import date
 
 class UserOut(BaseModel):
     UserID: int
     Name: str
     Age: int
-    Email: str
+    Email: EmailStr
 
     class Config:
         from_attributes = True
 
 class UserCreate(BaseModel):
     Name: str
-    Age: int
-    Email: str
-    Password: str
+    Age: int = Field(..., gt=0, lt=120)
+    Email: EmailStr
+    Password: str = Field(..., min_length=6)
 
 class UserLogin(BaseModel):
-    Email: str
+    Email: EmailStr
     Password: str
 
 class CycleCreate(BaseModel):
@@ -66,5 +66,35 @@ class RecommendationCreate(BaseModel):
 
 class RecommendationOut(RecommendationCreate):
     RecommendationID: int
+    class Config:
+        from_attributes = True
+
+class PredictInput(BaseModel):
+    UserID: int
+    Age_Group: str
+    Weight_kg: float
+    Menstrual_Cycle_Regular: str
+    Avg_Menstrual_Cycle_Length: str
+    Hot_Flashes: str
+    Night_Sweats: str
+    Sleep_Disturbances: str
+    Fatigue: str
+    Anxiety: str
+    Headaches: str
+    Heart_Palpitations: str
+    Exercise_Yoga_Frequency: str
+    Avg_Sleep_Duration: str
+    Stress_Level: int
+    Diagnosed_Conditions: str
+    Family_History_Early_Menopause: str
+
+class VoiceJournalCreate(BaseModel):
+    UserID: int
+    EntryDate: date
+    Content: str | None = None
+    AudioURL: str | None = None
+
+class VoiceJournalOut(VoiceJournalCreate):
+    JournalID: int
     class Config:
         from_attributes = True
