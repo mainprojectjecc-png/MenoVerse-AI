@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 
 function ToggleRow({
   label,
@@ -100,6 +101,12 @@ function PrivacyLink({ icon, label }) {
 
 
 export default function Profile() {
+  const navigate = useNavigate()
+
+  function handleLogout() {
+    localStorage.removeItem("user")
+    navigate("/login", { replace: true })
+  }
 
   return (
     <div className="min-h-screen bg-[#F0EAD6]">
@@ -449,7 +456,9 @@ export default function Profile() {
 
           <div className="flex justify-center gap-6 mt-4">
 
-            <button className="text-risk-high text-sm font-semibold hover:underline">
+            <button 
+              onClick={handleLogout}
+              className="text-risk-high text-sm font-semibold hover:underline">
               Log Out
             </button>
 

@@ -10,19 +10,6 @@ export default function Register() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
-  const getStrength = (p) => {
-    if (!p) return 0
-    let s = 0
-    if (p.length > 5) s++
-    if (p.length > 8) s++
-    if (/[A-Z]/.test(p)) s++
-    if (/[0-9]/.test(p)) s++
-    return s
-  }
-  const strength = getStrength(form.password)
-  const strengthPercent = (strength / 4) * 100
-  const strengthColor = strength < 2? "bg-[#BC6C4D]" : strength < 3? "bg-[#e8c547]" : "bg-[#84A59D]"
-
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError("")
@@ -45,7 +32,15 @@ export default function Register() {
       localStorage.setItem("user", JSON.stringify(res.data))
       navigate("/dashboard")
     } catch (err) {
-      const message = err.response?.data?.detail || "Registration failed. Please try again."
+      const detail = err.response?.data?.detail
+      let message = "Registration failed. Please try again."
+
+      if (typeof detail === "string") {
+        message = detail
+      } else if (Array.isArray(detail) && detail.length > 0) {
+        message = detail.map((d) => d.msg).join(", ")
+      }
+
       setError(message)
     } finally {
       setLoading(false)

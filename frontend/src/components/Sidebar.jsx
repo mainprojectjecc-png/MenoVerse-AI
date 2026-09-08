@@ -2,6 +2,7 @@ import { Link, useLocation } from "react-router-dom"
 
 const navLinks = [
   { to: "/dashboard", icon: "home", label: "Dashboard" },
+  { to: "/assessment", icon: "fact_check", label: "Assessment" },
   { to: "/cycle", icon: "calendar_month", label: "Cycle Tracking" },
   { to: "/symptoms", icon: "edit_note", label: "Symptoms" },
   { to: "/journal", icon: "mic", label: "Voice Journal" },
