@@ -1,13 +1,22 @@
 from pathlib import Path
+
 import joblib
 import pandas as pd
 
-MODEL_PATH = Path(__file__).resolve().parent / "random_forest_model.pkl"
+
+MODEL_PATH = (
+    Path(__file__).resolve().parent / "random_forest_model.pkl"
+)
+
 
 def predict_risk(values: dict) -> tuple[str, float]:
     if not MODEL_PATH.exists():
-        raise FileNotFoundError(f"ML model not found at {MODEL_PATH}")
+        raise FileNotFoundError(
+            f"ML model not found at {MODEL_PATH}"
+        )
+
     model = joblib.load(MODEL_PATH)
+
     model_input = pd.DataFrame([{
         "Age Group": values["Age_Group"],
         "Weight (kg)": values["Weight_kg"],
@@ -24,9 +33,15 @@ def predict_risk(values: dict) -> tuple[str, float]:
         "Avg Sleep Duration": values["Avg_Sleep_Duration"],
         "Stress Level": values["Stress_Level"],
         "Diagnosed Conditions": values["Diagnosed_Conditions"],
-        "Family History of Early Menopause?": values["Family_History_Early_Menopause"],
+        "Family History of Early Menopause?": values[
+            "Family_History_Early_Menopause"
+        ],
     }])
+
     prediction = model.predict(model_input)[0]
+
     probabilities = model.predict_proba(model_input)[0]
+
     confidence = float(max(probabilities))
+
     return str(prediction), confidence
