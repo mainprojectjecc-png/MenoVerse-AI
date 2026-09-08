@@ -2,6 +2,9 @@ import { Link } from "react-router-dom"
 import StatCard from "../components/StatCard"
 
 function Dashboard() {
+  const stored = localStorage.getItem("user")
+  const firstName = stored ? JSON.parse(stored).Name?.split(" ")[0] : "there"
+
   return (
     <div className="min-h-screen bg-background text-on-surface pb-24 md:pb-0">
 
@@ -11,7 +14,7 @@ function Dashboard() {
         {/* GREETING */}
         <section className="mb-12">
           <h2 className="font-headline-xl text-headline-xl text-plum-deep mb-3">
-            Good morning, Sarah.
+            Good morning, {firstName}.
           </h2>
 
           <p className="text-on-surface-variant flex items-center gap-2 font-medium">
