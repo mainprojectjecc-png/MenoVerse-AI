@@ -17,6 +17,7 @@ from schemas import (
     UserOut,
     UserCreate,
     UserLogin,
+    Token,
     CycleCreate,
     CycleOut,
     SymptomCreate,
@@ -31,7 +32,7 @@ from schemas import (
 )
 
 from ml_predictor import predict_risk
-from auth import hash_password, verify_password
+from auth import hash_password, verify_password, get_current_user, create_access_token
 
 
 # --------------------------------------------------
@@ -211,9 +212,11 @@ def home():
 # --------------------------------------------------
 
 @app.get("/users", response_model=List[UserOut])
-def get_users(db: Session = Depends(get_db)):
+def get_users(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     return db.query(User).all()
-
 
 # --------------------------------------------------
 # REGISTER
@@ -254,7 +257,7 @@ def register(
 # LOGIN
 # --------------------------------------------------
 
-@app.post("/login")
+@app.post("/login", response_model=Token)
 def login(
     credentials: UserLogin,
     db: Session = Depends(get_db)
@@ -274,11 +277,14 @@ def login(
             detail="Invalid email or password"
         )
 
+    token = create_access_token(user.UserID, user.Email)
+
     return {
-        "message": "Login successful",
-        "UserID": user.UserID,
-        "Name": user.Name,
-    }
+    "access_token": token,
+    "token_type": "bearer",
+    "UserID": user.UserID,
+    "Name": user.Name,
+}
 
 
 # --------------------------------------------------
@@ -288,9 +294,13 @@ def login(
 @app.post("/cycles", response_model=CycleOut)
 def create_cycle(
     cycle: CycleCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    new_cycle = Cycle(**cycle.dict())
+    data = cycle.dict()
+    data["UserID"] = current_user.UserID
+
+    new_cycle = Cycle(**data)
 
     db.add(new_cycle)
     db.commit()
@@ -298,12 +308,18 @@ def create_cycle(
 
     return new_cycle
 
-
 @app.get("/cycles/{user_id}", response_model=List[CycleOut])
 def get_cycles(
     user_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
+    if user_id != current_user.UserID:
+        raise HTTPException(
+            status_code=403,
+            detail="Not authorized to access this user's cycles"
+        )
+
     return (
         db.query(Cycle)
         .filter(Cycle.UserID == user_id)
@@ -315,7 +331,8 @@ def get_cycles(
 def update_cycle(
     cycle_id: int,
     cycle: CycleCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     existing = (
         db.query(Cycle)
@@ -329,8 +346,15 @@ def update_cycle(
             detail="Cycle not found"
         )
 
+    if existing.UserID != current_user.UserID:
+        raise HTTPException(
+            status_code=403,
+            detail="Not authorized to modify this cycle"
+        )
+
     for key, value in cycle.dict().items():
-        setattr(existing, key, value)
+        if key != "UserID":
+            setattr(existing, key, value)
 
     db.commit()
     db.refresh(existing)
@@ -341,7 +365,8 @@ def update_cycle(
 @app.delete("/cycles/{cycle_id}")
 def delete_cycle(
     cycle_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     existing = (
         db.query(Cycle)
@@ -355,13 +380,18 @@ def delete_cycle(
             detail="Cycle not found"
         )
 
+    if existing.UserID != current_user.UserID:
+        raise HTTPException(
+            status_code=403,
+            detail="Not authorized to delete this cycle"
+        )
+
     db.delete(existing)
     db.commit()
 
     return {
         "message": "Cycle deleted successfully"
     }
-
 
 # --------------------------------------------------
 # SYMPTOMS
@@ -370,9 +400,13 @@ def delete_cycle(
 @app.post("/symptoms", response_model=SymptomOut)
 def create_symptom(
     symptom: SymptomCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    new_symptom = Symptom(**symptom.dict())
+    data = symptom.dict()
+    data["UserID"] = current_user.UserID
+
+    new_symptom = Symptom(**data)
 
     db.add(new_symptom)
     db.commit()
@@ -384,20 +418,27 @@ def create_symptom(
 @app.get("/symptoms/{user_id}", response_model=List[SymptomOut])
 def get_symptoms(
     user_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
+    if user_id != current_user.UserID:
+        raise HTTPException(
+            status_code=403,
+            detail="Not authorized to access this user's symptoms"
+        )
+
     return (
         db.query(Symptom)
         .filter(Symptom.UserID == user_id)
         .all()
     )
 
-
 @app.put("/symptoms/{symptom_id}", response_model=SymptomOut)
 def update_symptom(
     symptom_id: int,
     symptom: SymptomCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     existing = (
         db.query(Symptom)
@@ -411,19 +452,26 @@ def update_symptom(
             detail="Symptom not found"
         )
 
+    if existing.UserID != current_user.UserID:
+        raise HTTPException(
+            status_code=403,
+            detail="Not authorized to modify this symptom"
+        )
+
     for key, value in symptom.dict().items():
-        setattr(existing, key, value)
+        if key != "UserID":
+            setattr(existing, key, value)
 
     db.commit()
     db.refresh(existing)
 
     return existing
 
-
 @app.delete("/symptoms/{symptom_id}")
 def delete_symptom(
     symptom_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     existing = (
         db.query(Symptom)
@@ -435,6 +483,12 @@ def delete_symptom(
         raise HTTPException(
             status_code=404,
             detail="Symptom not found"
+        )
+
+    if existing.UserID != current_user.UserID:
+        raise HTTPException(
+            status_code=403,
+            detail="Not authorized to delete this symptom"
         )
 
     db.delete(existing)
@@ -444,20 +498,20 @@ def delete_symptom(
         "message": "Symptom deleted successfully"
     }
 
-
 # --------------------------------------------------
 # RISK ASSESSMENT
 # --------------------------------------------------
 
-@app.post(
-    "/riskassessment",
-    response_model=RiskAssessmentOut
-)
+@app.post("/riskassessment", response_model=RiskAssessmentOut)
 def create_risk(
     risk: RiskAssessmentCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    new_risk = RiskAssessment(**risk.dict())
+    data = risk.dict()
+    data["UserID"] = current_user.UserID
+
+    new_risk = RiskAssessment(**data)
 
     db.add(new_risk)
     db.commit()
@@ -465,15 +519,18 @@ def create_risk(
 
     return new_risk
 
-
-@app.get(
-    "/riskassessment/{user_id}",
-    response_model=List[RiskAssessmentOut]
-)
+@app.get("/risk/{user_id}", response_model=List[RiskAssessmentOut])
 def get_risk(
     user_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
+    if user_id != current_user.UserID:
+        raise HTTPException(
+            status_code=403,
+            detail="Not authorized to access this user's risk data"
+        )
+
     return (
         db.query(RiskAssessment)
         .filter(RiskAssessment.UserID == user_id)
@@ -481,14 +538,12 @@ def get_risk(
     )
 
 
-@app.put(
-    "/riskassessment/{risk_id}",
-    response_model=RiskAssessmentOut
-)
+@app.put("/riskassessment/{risk_id}", response_model=RiskAssessmentOut)
 def update_risk(
     risk_id: int,
     risk: RiskAssessmentCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     existing = (
         db.query(RiskAssessment)
@@ -502,8 +557,15 @@ def update_risk(
             detail="Risk assessment not found"
         )
 
+    if existing.UserID != current_user.UserID:
+        raise HTTPException(
+            status_code=403,
+            detail="Not authorized to modify this risk assessment"
+        )
+
     for key, value in risk.dict().items():
-        setattr(existing, key, value)
+        if key != "UserID":
+            setattr(existing, key, value)
 
     db.commit()
     db.refresh(existing)
@@ -514,7 +576,8 @@ def update_risk(
 @app.delete("/riskassessment/{risk_id}")
 def delete_risk(
     risk_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     existing = (
         db.query(RiskAssessment)
@@ -528,13 +591,18 @@ def delete_risk(
             detail="Risk assessment not found"
         )
 
+    if existing.UserID != current_user.UserID:
+        raise HTTPException(
+            status_code=403,
+            detail="Not authorized to delete this risk assessment"
+        )
+
     db.delete(existing)
     db.commit()
 
     return {
         "message": "Risk assessment deleted successfully"
     }
-
 
 # --------------------------------------------------
 # ML RISK PREDICTION
@@ -543,8 +611,16 @@ def delete_risk(
 @app.post("/predict")
 def predict(
     data: PredictInput,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
+    # Make sure users can only predict for themselves
+    if data.UserID != current_user.UserID:
+        raise HTTPException(
+            status_code=403,
+            detail="Not authorized to create a prediction for this user"
+        )
+
     try:
         risk_level, confidence = predict_risk(
             data.dict()
@@ -564,7 +640,7 @@ def predict(
 
     # Save risk assessment
     new_risk = RiskAssessment(
-        UserID=data.UserID,
+        UserID=current_user.UserID,
         RiskScore=confidence,
         RiskLevel=risk_level,
         Explanation=(
@@ -586,7 +662,7 @@ def predict(
 
     # Save recommendation
     new_rec = Recommendation(
-        UserID=data.UserID,
+        UserID=current_user.UserID,
         DietPlan=rec_content["DietPlan"],
         ExercisePlan=rec_content["ExercisePlan"],
         YogaPlan=rec_content["YogaPlan"],
@@ -602,23 +678,23 @@ def predict(
         "Confidence": confidence,
         "SavedRiskID": new_risk.RiskID,
         "SavedRecommendationID": new_rec.RecommendationID,
-        "Recommendation": rec_content,
+        "Recommendation": rec_content
     }
-
 
 # --------------------------------------------------
 # RECOMMENDATIONS
 # --------------------------------------------------
 
-@app.post(
-    "/recommendation",
-    response_model=RecommendationOut
-)
+@app.post("/recommendation", response_model=RecommendationOut)
 def create_recommendation(
     rec: RecommendationCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    new_rec = Recommendation(**rec.dict())
+    data = rec.dict()
+    data["UserID"] = current_user.UserID
+
+    new_rec = Recommendation(**data)
 
     db.add(new_rec)
     db.commit()
@@ -633,8 +709,15 @@ def create_recommendation(
 )
 def get_recommendation(
     user_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
+    if user_id != current_user.UserID:
+        raise HTTPException(
+            status_code=403,
+            detail="Not authorized to access this user's recommendation data"
+        )
+
     return (
         db.query(Recommendation)
         .filter(Recommendation.UserID == user_id)
@@ -649,13 +732,13 @@ def get_recommendation(
 def update_recommendation(
     recommendation_id: int,
     rec: RecommendationCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     existing = (
         db.query(Recommendation)
         .filter(
-            Recommendation.RecommendationID
-            == recommendation_id
+            Recommendation.RecommendationID == recommendation_id
         )
         .first()
     )
@@ -666,8 +749,15 @@ def update_recommendation(
             detail="Recommendation not found"
         )
 
+    if existing.UserID != current_user.UserID:
+        raise HTTPException(
+            status_code=403,
+            detail="Not authorized to modify this recommendation"
+        )
+
     for key, value in rec.dict().items():
-        setattr(existing, key, value)
+        if key != "UserID":
+            setattr(existing, key, value)
 
     db.commit()
     db.refresh(existing)
@@ -678,13 +768,13 @@ def update_recommendation(
 @app.delete("/recommendation/{recommendation_id}")
 def delete_recommendation(
     recommendation_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     existing = (
         db.query(Recommendation)
         .filter(
-            Recommendation.RecommendationID
-            == recommendation_id
+            Recommendation.RecommendationID == recommendation_id
         )
         .first()
     )
@@ -693,6 +783,12 @@ def delete_recommendation(
         raise HTTPException(
             status_code=404,
             detail="Recommendation not found"
+        )
+
+    if existing.UserID != current_user.UserID:
+        raise HTTPException(
+            status_code=403,
+            detail="Not authorized to delete this recommendation"
         )
 
     db.delete(existing)
@@ -707,15 +803,16 @@ def delete_recommendation(
 # VOICE JOURNAL
 # --------------------------------------------------
 
-@app.post(
-    "/voicejournal",
-    response_model=VoiceJournalOut
-)
+@app.post("/voicejournal", response_model=VoiceJournalOut)
 def create_journal(
     entry: VoiceJournalCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    new_entry = VoiceJournal(**entry.dict())
+    data = entry.dict()
+    data["UserID"] = current_user.UserID
+
+    new_entry = VoiceJournal(**data)
 
     db.add(new_entry)
     db.commit()
@@ -730,8 +827,15 @@ def create_journal(
 )
 def get_journals(
     user_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
+    if user_id != current_user.UserID:
+        raise HTTPException(
+            status_code=403,
+            detail="Not authorized to access this user's journal"
+        )
+
     return (
         db.query(VoiceJournal)
         .filter(VoiceJournal.UserID == user_id)
@@ -746,13 +850,12 @@ def get_journals(
 def update_journal(
     journal_id: int,
     entry: VoiceJournalCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     existing = (
         db.query(VoiceJournal)
-        .filter(
-            VoiceJournal.JournalID == journal_id
-        )
+        .filter(VoiceJournal.JournalID == journal_id)
         .first()
     )
 
@@ -762,8 +865,15 @@ def update_journal(
             detail="Journal entry not found"
         )
 
+    if existing.UserID != current_user.UserID:
+        raise HTTPException(
+            status_code=403,
+            detail="Not authorized to modify this journal entry"
+        )
+
     for key, value in entry.dict().items():
-        setattr(existing, key, value)
+        if key != "UserID":
+            setattr(existing, key, value)
 
     db.commit()
     db.refresh(existing)
@@ -774,13 +884,12 @@ def update_journal(
 @app.delete("/voicejournal/{journal_id}")
 def delete_journal(
     journal_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     existing = (
         db.query(VoiceJournal)
-        .filter(
-            VoiceJournal.JournalID == journal_id
-        )
+        .filter(VoiceJournal.JournalID == journal_id)
         .first()
     )
 
@@ -788,6 +897,12 @@ def delete_journal(
         raise HTTPException(
             status_code=404,
             detail="Journal entry not found"
+        )
+
+    if existing.UserID != current_user.UserID:
+        raise HTTPException(
+            status_code=403,
+            detail="Not authorized to delete this journal entry"
         )
 
     db.delete(existing)

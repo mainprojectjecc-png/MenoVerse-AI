@@ -27,10 +27,16 @@ class UserLogin(BaseModel):
     Email: EmailStr
     Password: str
 
-
+class Token(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    UserID: int
+    Name: str
 # --------------------------------------------------
 # CYCLE
 # --------------------------------------------------
+
+
 
 class CycleCreate(BaseModel):
     UserID: int
