@@ -1,9 +1,53 @@
+import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import StatCard from "../components/StatCard"
+import api from "../api/axios"
 
 function Dashboard() {
   const stored = localStorage.getItem("user")
-  const firstName = stored ? JSON.parse(stored).Name?.split(" ")[0] : "there"
+  const user = stored ? JSON.parse(stored) : null
+  const firstName = user?.Name?.split(" ")[0] || "there"
+  const userId = user?.UserID
+
+  const [risk, setRisk] = useState(null)
+  const [recommendation, setRecommendation] = useState(null)
+  const [cycle, setCycle] = useState(null)
+  const [loadingRisk, setLoadingRisk] = useState(true)
+
+  useEffect(() => {
+    if (!userId) return
+
+    const loadDashboardData = async () => {
+      try {
+        const [riskRes, recommendationRes, cycleRes] = await Promise.all([
+  api.get(`/risk/${userId}`),
+  api.get(`/recommendation/${userId}`),
+  api.get(`/cycles/${userId}`)
+])
+
+        const risks = riskRes.data
+        const recommendations = recommendationRes.data
+        const cycles = cycleRes.data
+        setRisk(risks.length ? risks[risks.length - 1] : null)
+        setRecommendation(
+          recommendations.length
+            ? recommendations[recommendations.length - 1]
+            : null
+        )
+        setCycle(
+            cycles.length
+              ? cycles[cycles.length - 1]
+              : null
+        )
+      } catch (error) {
+        console.error("Failed to load dashboard data:", error)
+      } finally {
+        setLoadingRisk(false)
+      }
+    }
+
+    loadDashboardData()
+  }, [userId])
 
   return (
     <div className="min-h-screen bg-background text-on-surface pb-24 md:pb-0">
@@ -25,11 +69,23 @@ function Dashboard() {
               spa
             </span>
 
-            Today is Day 14 of your cycle
+            {cycle ? (
+  <>
+    Cycle started on {cycle.StartDate}
 
-            <span className="text-tertiary font-bold">
-              • Ovulation Window
-            </span>
+    <span className="text-tertiary font-bold">
+      • {cycle.CycleLength}-day cycle
+    </span>
+  </>
+) : (
+  <>
+    No cycle data recorded
+
+    <span className="text-tertiary font-bold">
+      • Add your cycle to start tracking
+    </span>
+  </>
+)}
           </p>
         </section>
 
@@ -56,24 +112,22 @@ function Dashboard() {
                   </h3>
                 </div>
 
-                <p className="text-lavender-mist font-body-lg mb-8 leading-relaxed italic">
-                  "Your skin temperature has spiked by 0.8°C over the last 3
-                  nights, often a precursor to increased night sweat frequency."
-                </p>
+                <p className="text-lavender-mist font-body-lg mb-8 leading-relaxed">
+  Your personalized insights will appear here after you complete an assessment.
+</p>
 
-                <button
-                  onClick={() =>
-                    alert("AI report generation will be connected later.")
-                  }
-                  className="bg-white text-primary px-8 py-3.5 rounded-xl font-label-md hover:bg-lavender-mist transition-all flex items-center gap-3 active:scale-95 shadow-md"
-                >
-                  Generate AI Report
-
-                  <span className="material-symbols-outlined text-[18px]">
-                    auto_awesome
-                  </span>
-                </button>
-
+<Link
+  to="/assessment"
+  className="bg-white text-primary px-8 py-3.5 rounded-xl font-label-md hover:bg-lavender-mist transition-all flex items-center gap-3 active:scale-95 shadow-md"
+>
+  <span
+    className="material-symbols-outlined"
+    style={{ fontVariationSettings: "'FILL' 1" }}
+  >
+    analytics
+  </span>
+  Complete Assessment
+</Link>
               </div>
 
 
@@ -108,8 +162,8 @@ function Dashboard() {
                   Risk Assessment
                 </span>
 
-                <div className="bg-risk-high/10 p-2 rounded-full">
-                  <span className="material-symbols-outlined text-risk-high">
+                <div className="bg-primary/10 p-2 rounded-full">
+                  <span className="material-symbols-outlined text-primary">
                     error
                   </span>
                 </div>
@@ -139,14 +193,18 @@ function Dashboard() {
                     />
 
                     <circle
-                      className="text-risk-high"
+                      className="text-primary"
                       cx="80"
                       cy="80"
                       fill="transparent"
                       r="70"
                       stroke="currentColor"
                       strokeDasharray="440"
-                      strokeDashoffset="66"
+                      strokeDashoffset={
+                         loadingRisk
+                           ? 440
+                           : 440 - (440 * (risk?.RiskScore || 0))
+                      }
                       strokeLinecap="round"
                       strokeWidth="8"
                     />
@@ -157,7 +215,7 @@ function Dashboard() {
                   <div className="text-center">
 
                     <span className="font-headline-lg text-risk-high text-[44px]">
-                      85
+                      {loadingRisk ? "--" : Math.round((risk?.RiskScore || 0) * 100)}
                     </span>
 
                     <p className="text-label-sm font-bold text-on-surface-variant">
@@ -169,24 +227,58 @@ function Dashboard() {
                 </div>
 
 
-                <div className="bg-risk-high text-white px-8 py-2.5 rounded-full font-label-md shadow-sm">
-                  High Likelihood
-                </div>
+                <div
+  className={`${
+    risk?.RiskLevel === "High"
+      ? "bg-risk-high"
+      : risk?.RiskLevel === "Moderate"
+      ? "bg-secondary"
+      : risk?.RiskLevel === "Low"
+      ? "bg-risk-low"
+      : "bg-outline"
+  } text-white px-8 py-2.5 rounded-full font-label-md shadow-sm`}
+>
+  {loadingRisk ? "Loading..." : risk?.RiskLevel || "No Assessment"}
+</div>
 
               </div>
 
             </div>
 
 
-            <div className="mt-8 p-5 bg-risk-high/5 rounded-2xl border border-risk-high/10 italic">
+            <div className="mt-8 p-5 bg-primary/5 rounded-2xl border border-primary/10">
+  <p className="text-body-md text-on-surface leading-relaxed mb-4">
+    <strong>Personalized Recommendations</strong>
+  </p>
 
-              <p className="text-body-md text-on-surface leading-relaxed">
-                <strong>Recommendation:</strong> Based on your elevated
-                symptoms and hormone trends, we recommend consulting a
-                healthcare professional for further clinical evaluation.
-              </p>
+  {loadingRisk ? (
+    <p className="text-body-md text-on-surface-variant">
+      Loading your recommendations...
+    </p>
+  ) : recommendation ? (
+    <div className="space-y-3 text-body-md text-on-surface">
+      <p>
+        <strong>Diet:</strong> {recommendation.DietPlan}
+      </p>
 
-            </div>
+      <p>
+        <strong>Exercise:</strong> {recommendation.ExercisePlan}
+      </p>
+
+      <p>
+        <strong>Yoga:</strong> {recommendation.YogaPlan}
+      </p>
+
+      <p>
+        <strong>Lifestyle:</strong> {recommendation.LifestyleTips}
+      </p>
+    </div>
+  ) : (
+    <p className="text-body-md text-on-surface-variant">
+      Complete an assessment to receive personalized recommendations.
+    </p>
+  )}
+</div>
 
           </div>
 
@@ -201,8 +293,8 @@ function Dashboard() {
                 icon="favorite"
                 tone="risk-high"
                 label="Heart Rate"
-                value="78"
-                unit="bpm"
+                value="—"
+                unit="No data"
                 bars={[
                   { height: 50, opacity: 0.3 },
                   { height: 67, opacity: 0.5 },
@@ -217,8 +309,8 @@ function Dashboard() {
               <StatCard
                 icon="nights_stay"
                 tone="primary"
-                label="Sleep"
-                value="7h 20m"
+                label="No data"
+                value="—"
                 barsContained={false}
                 bars={[
                   { height: 40, opacity: 0.2 },
@@ -239,9 +331,9 @@ function Dashboard() {
               icon="footprint"
               tone="risk-low"
               label="Daily Steps"
-              value="4,526"
+              value="—"
               progress={45}
-              progressLabel="Goal: 10,000"
+              progressLabel="No data available"
             />
 
 
@@ -343,7 +435,7 @@ function Dashboard() {
 
                 <span className="w-2.5 h-2.5 rounded-full bg-risk-low shadow-[0_0_8px_rgba(132,165,157,0.6)]" />
 
-                Connected &amp; Monitoring
+                No data available
 
               </p>
 
@@ -357,7 +449,7 @@ function Dashboard() {
                   </span>
 
                   <span className="text-label-sm font-bold">
-                    92%
+                    —
                   </span>
 
                 </div>
@@ -370,7 +462,7 @@ function Dashboard() {
                   </span>
 
                   <span className="text-label-sm font-bold">
-                    Synced
+                    No data
                   </span>
 
                 </div>

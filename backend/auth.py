@@ -1,5 +1,7 @@
+import os
 import bcrypt
 import jwt
+
 from datetime import datetime, timedelta, timezone
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -9,7 +11,7 @@ from database import get_db
 from models import User
 
 # In production, move this to an environment variable — never hardcode in real deployments
-SECRET_KEY = "CHANGE_THIS_TO_A_LONG_RANDOM_SECRET"
+SECRET_KEY = os.getenv("JWT_SECRET_KEY", "dev-secret-change-this")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 1 day
 
