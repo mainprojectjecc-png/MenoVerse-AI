@@ -274,3 +274,103 @@ The Assessment flow successfully connects the frontend to the ML prediction back
 The Symptoms flow successfully saves data to the database and displays the latest symptoms on the Dashboard.
 JWT authentication and ownership protection have been tested for protected endpoints.
 Swagger UI is available at /docs for interactive API testing.
+User Profile
+
+PUT /users/{user_id}
+
+Updates the authenticated user's profile information.
+
+Path Parameter:
+
+user_id: int
+
+Body:
+
+{
+  "Name": "Updated Name",
+  "Age": 48,
+  "Email": "updated@example.com"
+}
+
+Requires a valid JWT access token.
+
+Users can only update their own profile. Attempting to update another user's profile returns 403 Forbidden.
+
+Age is optional when updating the profile.
+
+Returns:
+
+{
+  "UserID": int,
+  "Name": string,
+  "Age": int,
+  "Email": string
+}
+
+
+Cycle Tracking
+
+POST /cycles
+
+Creates a new cycle record for the authenticated user.
+
+Body:
+
+{
+  "UserID": int,
+  "StartDate": "2026-09-12",
+  "EndDate": "2026-09-15",
+  "CycleLength": 28,
+  "Notes": "Cycle entry"
+}
+
+Requires a valid JWT access token.
+
+The UserID is taken from the authenticated user and cannot be used to create a cycle for another user.
+
+
+GET /cycles/{user_id}
+
+Returns cycle records belonging to the authenticated user.
+
+Requires a valid JWT access token.
+
+Users cannot access another user's cycle records.
+
+
+PUT /cycles/{cycle_id}
+
+Updates an existing cycle record.
+
+Requires a valid JWT access token and ownership of the cycle record.
+
+
+DELETE /cycles/{cycle_id}
+
+Deletes an existing cycle record.
+
+Requires a valid JWT access token and ownership of the cycle record.
+
+The frontend Cycle Tracking page supports adding, viewing, and deleting cycle records.
+
+
+Profile and Cycle Tracking Integration
+
+The Profile page is connected to the authenticated user's account information.
+
+Users can edit their Name and Email through the frontend. Profile updates are saved to the Users database table through PUT /users/{user_id}.
+
+The Cycle Tracking page is connected to the backend and supports creating, viewing, and deleting cycle records.
+
+
+Latest API Testing Updates
+
+PUT /users/{user_id} tested successfully for the authenticated user's own profile.
+
+Cross-user profile update requests are protected by ownership checks.
+
+Cycle entry creation tested successfully from the frontend.
+
+Cycle deletion tested successfully from the frontend.
+
+Profile changes tested successfully and verified through the backend.
