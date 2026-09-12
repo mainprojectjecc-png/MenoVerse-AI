@@ -206,7 +206,6 @@ Deletes a journal entry.
 
 Yes. You want the **new section in the exact same simple formatting style as the document you sent** — using `**##`, `**###`, and `\-`, not a differently formatted Markdown style.
 
-Add this **at the very bottom**:
 
 **## Latest Updates**
 
@@ -277,3 +276,87 @@ Add this **at the very bottom**:
 - Swagger UI is available at **/docs** for interactive API testing.
 
 **Keep everything above unchanged.** Just paste this section at the bottom of your existing document, save it, and then we can push it to Git.
+
+**## Latest Updates**
+
+**### JWT Authentication**
+
+\- JWT authentication has been added to the backend.
+
+\- **POST /login** now verifies the user's email and password and returns a JWT access token.
+
+\- Passwords continue to be securely hashed using bcrypt.
+
+\- JWT authentication provides secure authentication for protected API requests.
+
+**### Endpoint Authorization**
+
+\- Protected endpoints now require a valid JWT access token.
+
+\- Users can only access their own cycles, symptoms, risk assessments, recommendations, and voice journal records.
+
+\- Users cannot access or modify another user's records.
+
+\- UserID values submitted when creating records are overridden with the authenticated user's ID.
+
+\- Cross-user access attempts return a **403 Forbidden** response.
+
+**### AI Prediction Updates**
+
+\- **POST /predict** has been successfully tested with the trained Random Forest model.
+
+\- The prediction automatically saves both a RiskAssessment and a Recommendation in the database.
+
+\- The response includes the RiskLevel, Confidence score, SavedRiskID, SavedRecommendationID, and personalized Recommendation.
+
+\- Recommendations are personalized based on the user's survey responses and symptoms, including hot flashes, sleep disturbances, fatigue, anxiety, stress level, headaches, heart palpitations, exercise habits, and other relevant factors.
+
+**### Symptoms Updates**
+
+\- **POST /symptoms** is connected to the frontend Symptoms page.
+
+\- Users can record hot flashes, mood, sleep quality, fatigue, and headache severity.
+
+\- Symptom severity values are stored as numeric values from 0 to 3.
+
+\- Successfully saved symptoms are stored in the database under the authenticated user's UserID.
+
+\- The Dashboard retrieves and displays the user's latest saved symptoms.
+
+**### Frontend Integration**
+
+\- Frontend registration and login are connected to the backend authentication system.
+
+\- Users can log in through the frontend and access the dashboard.
+
+\- The Assessment page sends survey responses to the **POST /predict** endpoint.
+
+\- The frontend displays the returned risk level, confidence score, and personalized recommendations.
+
+\- The Symptoms page sends symptom data to the **POST /symptoms** endpoint.
+
+\- The Dashboard displays the latest saved symptom information from the backend.
+
+**### API Testing Updates**
+
+\- Protected endpoints have been manually tested using JWT authentication.
+
+\- Cross-user access attempts were tested and correctly returned **403 Forbidden**.
+
+\- POST requests were tested to confirm that the authenticated user's UserID is enforced.
+
+\- PUT requests were tested to confirm ownership protection.
+
+\- **POST /predict** was tested successfully with authenticated users.
+
+\- **POST /symptoms** was tested successfully and verified in the database.
+
+**### Current Status**
+
+\- Backend authentication, database operations, ML prediction, recommendation generation, symptom logging, endpoint authorization, and frontend integration have been implemented and tested.
+
+\- The Assessment flow successfully connects the frontend to the ML prediction backend.
+
+\- The Symptoms flow successfully saves data to the database and displays the latest symptoms on the Dashboard.
+
+\- Swagger UI is available at **/docs** for interactive API testing.
