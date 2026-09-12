@@ -219,6 +219,52 @@ Deletes a journal entry.
 
 Requires a valid JWT access token and ownership of the journal record.
 
+Frontend Integration and Recent Updates
+Authentication
+- Email/password login is handled through POST /login.
+- Successful responses include an access token stored in localStorage as part of the authenticated user object.
+- The frontend axios client automatically attaches the JWT to the Authorization header as a Bearer token for protected requests.
+
+Dashboard
+- The dashboard reads the authenticated user from localStorage and uses the authenticated UserID to request backend data.
+- It fetches the latest risk assessment via GET /risk/{user_id}, recommendations via GET /recommendation/{user_id}, cycle data via GET /cycles/{user_id}, and symptom data via GET /symptoms/{user_id}.
+- The frontend does not display fake heart-rate, sleep, or step values; only backend-backed risk, cycle, and symptom data is shown.
+
+Insights
+- The insights page displays real risk assessment data from GET /risk/{user_id}.
+- It displays the latest symptom entries from GET /symptoms/{user_id}.
+- It displays the latest cycle information from GET /cycles/{user_id}.
+- It displays recommendations from GET /recommendation/{user_id}.
+- When wearable or device data is unavailable, the frontend shows an honest empty state instead of inventing metrics.
+
+Profile
+- User profile details are loaded from GET /users/{user_id} and merged into the stored authenticated user object.
+- Profile updates are sent through PUT /users/{user_id} for the authenticated user.
+- Notification preference toggles persist locally in localStorage and are restored when the Profile page mounts. These settings are frontend-only and do not imply a live delivery service.
+
+Exercise
+- The featured routine Play/Pause interaction is functional on the frontend and cycles through the existing routine steps without any backend dependency.
+- The View All control expands and collapses the visible exercise routines already represented on the page.
+- Category filtering remains functional and stays within the existing frontend-only routine list.
+
+Voice Journal
+- The View All control expands and collapses the set of existing journal entries already available in the page.
+- The frontend does not claim unsupported AI analysis, automatic health scoring, or automatic risk detection from journal entries.
+
+Nutrition
+- The page presents general wellness guidance, not personalized medical claims or unsupported health optimization claims.
+- Nutrition content remains intentionally non-personalized and avoids unsupported medical assertions.
+
+Frontend cleanup
+- Unsupported demo or fictional health measurements were removed from the frontend.
+- Unsupported medical statistics and fake health metrics were removed.
+- Fictional AI claims were removed from the user-facing interface.
+- Unsupported Google/Apple OAuth shortcuts and Forgot Password shortcuts were removed from the login experience.
+
+Verification
+- The frontend production build was successfully verified with:
+  npm run build
+
 Project Status Summary
 Completed
 User registration and login with bcrypt password hashing.
