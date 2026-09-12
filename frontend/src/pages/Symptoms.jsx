@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
+import api from "../api/axios"
 
 export default function Symptoms() {
   const navigate = useNavigate()
@@ -8,10 +9,12 @@ export default function Symptoms() {
     hotFlashes: "none",
     sleep: "none",
     mood: "none",
-    jointPain: "none",
     fatigue: "none",
-    notes: "",
+    headache: "none",
   })
+
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState("")
 
   const handleChange = (key, value) => {
     setFormData((prev) => ({
@@ -20,9 +23,51 @@ export default function Symptoms() {
     }))
   }
 
-  const handleSave = () => {
-    alert("Symptoms saved successfully!")
-    navigate("/dashboard")
+  const severityToNumber = (value) => {
+    switch (value) {
+      case "mild":
+        return 1
+      case "moderate":
+        return 2
+      case "severe":
+        return 3
+      default:
+        return 0
+    }
+  }
+
+  const handleSave = async () => {
+    setSaving(true)
+    setError("")
+
+    try {
+      const user = JSON.parse(localStorage.getItem("user") || "null")
+
+      if (!user?.UserID) {
+        setError("Please log in again.")
+        return
+      }
+
+      await api.post("/symptoms", {
+        UserID: user.UserID,
+        LogDate: new Date().toISOString().split("T")[0],
+        HotFlashes: severityToNumber(formData.hotFlashes),
+        Mood: formData.mood,
+        SleepQuality: formData.sleep,
+        Fatigue: severityToNumber(formData.fatigue),
+        Headache: severityToNumber(formData.headache),
+      })
+
+      navigate("/dashboard")
+    } catch (err) {
+      console.error("Failed to save symptoms:", err)
+      setError(
+        err.response?.data?.detail ||
+          "Failed to save symptoms. Please try again."
+      )
+    } finally {
+      setSaving(false)
+    }
   }
 
   const symptoms = [
@@ -45,29 +90,24 @@ export default function Symptoms() {
       icon: "mood",
     },
     {
-      key: "jointPain",
-      label: "Joint Pain",
-      sub: "Discomfort",
-      icon: "accessibility_new",
-    },
-    {
       key: "fatigue",
       label: "Fatigue",
       sub: "Energy Levels",
       icon: "psychology",
     },
+    {
+      key: "headache",
+      label: "Headache",
+      sub: "Intensity",
+      icon: "sick",
+    },
   ]
 
   return (
     <div className="min-h-screen bg-[#fff9e8]">
-
       <main className="max-w-[900px] mx-auto px-6 lg:px-8 py-8 lg:py-10">
 
-        {/* =================================================
-            PAGE TITLE
-        ================================================== */}
         <section className="mb-7">
-
           <h1
             className="
               text-[30px]
@@ -85,17 +125,11 @@ export default function Symptoms() {
           <p className="text-sm text-[#464740] mt-2">
             Log your symptoms to help MenoVerse understand your patterns.
           </p>
-
         </section>
 
-
-        {/* =================================================
-            SYMPTOMS
-        ================================================== */}
         <div className="flex flex-col gap-3">
 
           {symptoms.map((item) => (
-
             <article
               key={item.key}
               className="
@@ -112,9 +146,7 @@ export default function Symptoms() {
                 shadow-sm
               "
             >
-
               <div className="flex items-center gap-4 min-w-0">
-
                 <div
                   className="
                     w-11
@@ -133,7 +165,6 @@ export default function Symptoms() {
                 </div>
 
                 <div>
-
                   <h3 className="text-[15px] font-semibold">
                     {item.label}
                   </h3>
@@ -141,11 +172,8 @@ export default function Symptoms() {
                   <p className="text-xs text-[#464740]">
                     {item.sub}
                   </p>
-
                 </div>
-
               </div>
-
 
               <select
                 value={formData[item.key]}
@@ -169,47 +197,24 @@ export default function Symptoms() {
                 <option value="moderate">Moderate</option>
                 <option value="severe">Severe</option>
               </select>
-
             </article>
-
           ))}
 
+          {error && (
+            <div className="bg-red-100 text-red-700 rounded-xl p-4 text-sm">
+              {error}
+            </div>
+          )}
 
-          {/* =================================================
-              NOTES
-          ================================================== */}
-          <textarea
-            value={formData.notes}
-            onChange={(e) =>
-              handleChange("notes", e.target.value)
-            }
-            placeholder="Additional notes..."
-            rows={4}
-            className="
-              w-full
-              bg-[#faf4df]
-              border
-              border-[#eee5c9]
-              rounded-2xl
-              p-5
-              text-sm
-              outline-none
-              resize-none
-              mt-2
-              placeholder:text-[#aaa68f]
-            "
-          />
-
-
-          {/* =================================================
-              SAVE
-          ================================================== */}
           <button
             onClick={handleSave}
+            disabled={saving}
             className="
               w-full
               bg-[#535845]
               hover:bg-[#464a3a]
+              disabled:opacity-60
+              disabled:cursor-not-allowed
               text-white
               font-semibold
               py-4
@@ -218,13 +223,11 @@ export default function Symptoms() {
               transition
             "
           >
-            Save Entry
+            {saving ? "Saving..." : "Save Entry"}
           </button>
 
         </div>
-
       </main>
-
     </div>
   )
 }

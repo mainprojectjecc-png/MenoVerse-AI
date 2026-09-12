@@ -12,32 +12,56 @@ function Dashboard() {
   const [risk, setRisk] = useState(null)
   const [recommendation, setRecommendation] = useState(null)
   const [cycle, setCycle] = useState(null)
+  const [symptom, setSymptom] = useState(null)
   const [loadingRisk, setLoadingRisk] = useState(true)
 
   useEffect(() => {
-    if (!userId) return
+    if (!userId) {
+      setLoadingRisk(false)
+      return
+    }
 
     const loadDashboardData = async () => {
       try {
-        const [riskRes, recommendationRes, cycleRes] = await Promise.all([
-  api.get(`/risk/${userId}`),
-  api.get(`/recommendation/${userId}`),
-  api.get(`/cycles/${userId}`)
-])
+        const [
+          riskRes,
+          recommendationRes,
+          cycleRes,
+          symptomRes,
+        ] = await Promise.all([
+          api.get(`/risk/${userId}`),
+          api.get(`/recommendation/${userId}`),
+          api.get(`/cycles/${userId}`),
+          api.get(`/symptoms/${userId}`),
+        ])
 
         const risks = riskRes.data
         const recommendations = recommendationRes.data
         const cycles = cycleRes.data
-        setRisk(risks.length ? risks[risks.length - 1] : null)
+        const symptoms = symptomRes.data
+
+        setRisk(
+          risks.length
+            ? risks[risks.length - 1]
+            : null
+        )
+
         setRecommendation(
           recommendations.length
             ? recommendations[recommendations.length - 1]
             : null
         )
+
         setCycle(
-            cycles.length
-              ? cycles[cycles.length - 1]
-              : null
+          cycles.length
+            ? cycles[cycles.length - 1]
+            : null
+        )
+
+        setSymptom(
+          symptoms.length
+            ? symptoms[symptoms.length - 1]
+            : null
         )
       } catch (error) {
         console.error("Failed to load dashboard data:", error)
@@ -70,25 +94,24 @@ function Dashboard() {
             </span>
 
             {cycle ? (
-  <>
-    Cycle started on {cycle.StartDate}
+              <>
+                Cycle started on {cycle.StartDate}
 
-    <span className="text-tertiary font-bold">
-      • {cycle.CycleLength}-day cycle
-    </span>
-  </>
-) : (
-  <>
-    No cycle data recorded
+                <span className="text-tertiary font-bold">
+                  • {cycle.CycleLength}-day cycle
+                </span>
+              </>
+            ) : (
+              <>
+                No cycle data recorded
 
-    <span className="text-tertiary font-bold">
-      • Add your cycle to start tracking
-    </span>
-  </>
-)}
+                <span className="text-tertiary font-bold">
+                  • Add your cycle to start tracking
+                </span>
+              </>
+            )}
           </p>
         </section>
-
 
         {/* WEEKLY INSIGHTS */}
         <section className="mb-12">
@@ -113,23 +136,22 @@ function Dashboard() {
                 </div>
 
                 <p className="text-lavender-mist font-body-lg mb-8 leading-relaxed">
-  Your personalized insights will appear here after you complete an assessment.
-</p>
+                  Your personalized insights will appear here after you complete an assessment.
+                </p>
 
-<Link
-  to="/assessment"
-  className="bg-white text-primary px-8 py-3.5 rounded-xl font-label-md hover:bg-lavender-mist transition-all flex items-center gap-3 active:scale-95 shadow-md"
->
-  <span
-    className="material-symbols-outlined"
-    style={{ fontVariationSettings: "'FILL' 1" }}
-  >
-    analytics
-  </span>
-  Complete Assessment
-</Link>
+                <Link
+                  to="/assessment"
+                  className="bg-white text-primary px-8 py-3.5 rounded-xl font-label-md hover:bg-lavender-mist transition-all flex items-center gap-3 active:scale-95 shadow-md"
+                >
+                  <span
+                    className="material-symbols-outlined"
+                    style={{ fontVariationSettings: "'FILL' 1" }}
+                  >
+                    analytics
+                  </span>
+                  Complete Assessment
+                </Link>
               </div>
-
 
               <div className="hidden md:flex items-center justify-center">
 
@@ -146,7 +168,6 @@ function Dashboard() {
             </div>
           </div>
         </section>
-
 
         {/* DASHBOARD CARDS */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-gutter">
@@ -170,11 +191,9 @@ function Dashboard() {
 
               </div>
 
-
               <h3 className="font-headline-md text-headline-md text-plum-deep mb-8">
                 Perimenopause Risk Level
               </h3>
-
 
               <div className="flex flex-col items-center py-6">
 
@@ -201,9 +220,9 @@ function Dashboard() {
                       stroke="currentColor"
                       strokeDasharray="440"
                       strokeDashoffset={
-                         loadingRisk
-                           ? 440
-                           : 440 - (440 * (risk?.RiskScore || 0))
+                        loadingRisk
+                          ? 440
+                          : 440 - (440 * (risk?.RiskScore || 0))
                       }
                       strokeLinecap="round"
                       strokeWidth="8"
@@ -211,11 +230,12 @@ function Dashboard() {
 
                   </svg>
 
-
                   <div className="text-center">
 
                     <span className="font-headline-lg text-risk-high text-[44px]">
-                      {loadingRisk ? "--" : Math.round((risk?.RiskScore || 0) * 100)}
+                      {loadingRisk
+                        ? "--"
+                        : Math.round((risk?.RiskScore || 0) * 100)}
                     </span>
 
                     <p className="text-label-sm font-bold text-on-surface-variant">
@@ -226,62 +246,70 @@ function Dashboard() {
 
                 </div>
 
-
                 <div
-  className={`${
-    risk?.RiskLevel === "High"
-      ? "bg-risk-high"
-      : risk?.RiskLevel === "Moderate"
-      ? "bg-secondary"
-      : risk?.RiskLevel === "Low"
-      ? "bg-risk-low"
-      : "bg-outline"
-  } text-white px-8 py-2.5 rounded-full font-label-md shadow-sm`}
->
-  {loadingRisk ? "Loading..." : risk?.RiskLevel || "No Assessment"}
-</div>
+                  className={`${
+                    risk?.RiskLevel === "High"
+                      ? "bg-risk-high"
+                      : risk?.RiskLevel === "Moderate"
+                      ? "bg-secondary"
+                      : risk?.RiskLevel === "Low"
+                      ? "bg-risk-low"
+                      : "bg-outline"
+                  } text-white px-8 py-2.5 rounded-full font-label-md shadow-sm`}
+                >
+                  {loadingRisk
+                    ? "Loading..."
+                    : risk?.RiskLevel || "No Assessment"}
+                </div>
 
               </div>
 
             </div>
 
-
+            {/* PERSONALIZED RECOMMENDATIONS */}
             <div className="mt-8 p-5 bg-primary/5 rounded-2xl border border-primary/10">
-  <p className="text-body-md text-on-surface leading-relaxed mb-4">
-    <strong>Personalized Recommendations</strong>
-  </p>
 
-  {loadingRisk ? (
-    <p className="text-body-md text-on-surface-variant">
-      Loading your recommendations...
-    </p>
-  ) : recommendation ? (
-    <div className="space-y-3 text-body-md text-on-surface">
-      <p>
-        <strong>Diet:</strong> {recommendation.DietPlan}
-      </p>
+              <p className="text-body-md text-on-surface leading-relaxed mb-4">
+                <strong>Personalized Recommendations</strong>
+              </p>
 
-      <p>
-        <strong>Exercise:</strong> {recommendation.ExercisePlan}
-      </p>
+              {loadingRisk ? (
+                <p className="text-body-md text-on-surface-variant">
+                  Loading your recommendations...
+                </p>
+              ) : recommendation ? (
+                <div className="space-y-3 text-body-md text-on-surface">
 
-      <p>
-        <strong>Yoga:</strong> {recommendation.YogaPlan}
-      </p>
+                  <p>
+                    <strong>Diet:</strong>{" "}
+                    {recommendation.DietPlan}
+                  </p>
 
-      <p>
-        <strong>Lifestyle:</strong> {recommendation.LifestyleTips}
-      </p>
-    </div>
-  ) : (
-    <p className="text-body-md text-on-surface-variant">
-      Complete an assessment to receive personalized recommendations.
-    </p>
-  )}
-</div>
+                  <p>
+                    <strong>Exercise:</strong>{" "}
+                    {recommendation.ExercisePlan}
+                  </p>
+
+                  <p>
+                    <strong>Yoga:</strong>{" "}
+                    {recommendation.YogaPlan}
+                  </p>
+
+                  <p>
+                    <strong>Lifestyle:</strong>{" "}
+                    {recommendation.LifestyleTips}
+                  </p>
+
+                </div>
+              ) : (
+                <p className="text-body-md text-on-surface-variant">
+                  Complete an assessment to receive personalized recommendations.
+                </p>
+              )}
+
+            </div>
 
           </div>
-
 
           {/* RIGHT SIDE CARDS */}
           <div className="md:col-span-7 space-y-gutter">
@@ -324,7 +352,6 @@ function Dashboard() {
 
             </div>
 
-
             {/* DAILY STEPS */}
             <StatCard
               variant="wide"
@@ -335,7 +362,6 @@ function Dashboard() {
               progress={45}
               progressLabel="No data available"
             />
-
 
             {/* QUICK LOG SYMPTOMS */}
             <div className="bg-surface rounded-2xl p-8 soft-shadow border-2 border-primary/10">
@@ -355,7 +381,6 @@ function Dashboard() {
 
               </div>
 
-
               <div className="flex flex-wrap gap-4">
 
                 <Link
@@ -368,7 +393,6 @@ function Dashboard() {
                   Hot Flashes
                 </Link>
 
-
                 <Link
                   to="/symptoms"
                   className="px-6 py-3 rounded-xl border border-outline-variant text-on-surface-variant hover:bg-primary/5 hover:border-primary transition-all flex items-center gap-3 active:scale-95"
@@ -378,7 +402,6 @@ function Dashboard() {
                   </span>
                   Mood Changes
                 </Link>
-
 
                 <Link
                   to="/symptoms"
@@ -390,7 +413,6 @@ function Dashboard() {
                   Fatigue
                 </Link>
 
-
                 <Link
                   to="/symptoms"
                   className="px-6 py-3 rounded-xl border border-outline-variant text-on-surface-variant hover:bg-primary/5 hover:border-primary transition-all flex items-center gap-3 active:scale-95"
@@ -400,7 +422,6 @@ function Dashboard() {
                   </span>
                   Night Sweats
                 </Link>
-
 
                 <Link
                   to="/symptoms"
@@ -416,9 +437,72 @@ function Dashboard() {
 
             </div>
 
+            {/* LATEST SYMPTOMS */}
+            {symptom && (
+              <div className="bg-surface rounded-2xl p-8 soft-shadow border border-outline-variant/20 mt-gutter">
+
+                <h4 className="font-headline-md text-plum-deep mb-5">
+                  Latest Symptoms
+                </h4>
+
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+
+                  <div>
+                    <p className="text-label-sm text-on-surface-variant">
+                      Hot Flashes
+                    </p>
+                    <p className="font-bold">
+                      {symptom.HotFlashes}/3
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-label-sm text-on-surface-variant">
+                      Mood
+                    </p>
+                    <p className="font-bold capitalize">
+                      {symptom.Mood}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-label-sm text-on-surface-variant">
+                      Sleep Quality
+                    </p>
+                    <p className="font-bold">
+                      {symptom.SleepQuality}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-label-sm text-on-surface-variant">
+                      Fatigue
+                    </p>
+                    <p className="font-bold">
+                      {symptom.Fatigue}/3
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-label-sm text-on-surface-variant">
+                      Headache
+                    </p>
+                    <p className="font-bold">
+                      {symptom.Headache}/3
+                    </p>
+                  </div>
+
+                </div>
+
+                <p className="text-label-sm text-on-surface-variant mt-5">
+                  Logged on {symptom.LogDate}
+                </p>
+
+              </div>
+            )}
+
           </div>
         </div>
-
 
         {/* MENO VERSE WATCH */}
         <section className="mt-12">
@@ -439,7 +523,6 @@ function Dashboard() {
 
               </p>
 
-
               <div className="flex gap-8 justify-center md:justify-start">
 
                 <div className="flex flex-col items-center">
@@ -453,7 +536,6 @@ function Dashboard() {
                   </span>
 
                 </div>
-
 
                 <div className="flex flex-col items-center">
 
@@ -471,7 +553,6 @@ function Dashboard() {
 
             </div>
 
-
             <div className="w-full md:w-64 aspect-[4/3] bg-surface rounded-2xl flex items-center justify-center p-6 shadow-inner border border-outline-variant/10">
 
               <span className="material-symbols-outlined text-primary text-6xl">
@@ -485,7 +566,6 @@ function Dashboard() {
         </section>
 
       </main>
-
 
       {/* FLOATING VOICE JOURNAL BUTTON */}
       <div className="fixed bottom-28 right-6 md:bottom-12 md:right-12 z-40">
