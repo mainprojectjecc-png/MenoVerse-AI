@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr, Field
 from datetime import date
-
+from typing import Optional
 
 # --------------------------------------------------
 # USER
@@ -22,6 +22,10 @@ class UserCreate(BaseModel):
     Email: EmailStr
     Password: str = Field(..., min_length=6)
 
+class UserUpdate(BaseModel):
+    Name: str
+    Age: Optional[int] = None
+    Email: EmailStr
 
 class UserLogin(BaseModel):
     Email: EmailStr
