@@ -15,6 +15,19 @@ const navLinks = [
 function Sidebar({ collapsed }) {
   const location = useLocation()
 
+  const stored = localStorage.getItem("user")
+  const user = stored ? JSON.parse(stored) : null
+
+  const name = user?.Name || "User"
+
+  const initials = name
+    .split(" ")
+    .filter(Boolean)
+    .map((part) => part.charAt(0))
+    .slice(0, 2)
+    .join("")
+    .toUpperCase()
+
   return (
     <aside
       className={`
@@ -102,10 +115,10 @@ function Sidebar({ collapsed }) {
         {collapsed ? (
           <Link
             to="/profile"
-            title="Sarah J"
+            title={name}
             className="w-11 h-11 mx-auto rounded-full bg-[#B7B7A4] flex items-center justify-center font-bold text-sm"
           >
-            SJ
+            {initials}
           </Link>
         ) : (
           <Link
@@ -113,12 +126,12 @@ function Sidebar({ collapsed }) {
             className="flex items-center gap-3 bg-white rounded-xl p-3"
           >
             <div className="w-9 h-9 rounded-full bg-[#B7B7A4] flex items-center justify-center font-bold text-sm">
-              SJ
+              {initials}
             </div>
 
             <div>
               <p className="text-sm font-semibold">
-                Sarah J
+                {name}
               </p>
 
               <p className="text-xs text-gray-500">

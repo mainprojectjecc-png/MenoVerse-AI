@@ -74,10 +74,14 @@ function Tag({ icon, label, tone }) {
 
 export default function VoiceJournal() {
   const [isRecording, setIsRecording] = useState(false)
+  const [showAllEntries, setShowAllEntries] = useState(false)
 
   const handleToggleRecord = () => {
     setIsRecording((prev) => !prev)
   }
+
+  const visibleEntries = showAllEntries ? journalEntries : journalEntries.slice(0, 2)
+  const hasMoreEntries = journalEntries.length > 2
 
   return (
     <div className="min-h-screen bg-[#FAF7F0]">
@@ -215,16 +219,26 @@ export default function VoiceJournal() {
               Recent Journals
             </h2>
 
-            <button className="text-sm text-primary font-semibold hover:underline">
-              View All
-            </button>
+            {hasMoreEntries ? (
+              <button
+                type="button"
+                onClick={() => setShowAllEntries((current) => !current)}
+                className="text-sm text-primary font-semibold hover:underline"
+              >
+                {showAllEntries ? "Show Less" : "View All"}
+              </button>
+            ) : (
+              <span className="text-sm text-on-surface-variant font-medium">
+                All entries shown
+              </span>
+            )}
 
           </div>
 
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
-            {journalEntries.map((entry) => (
+            {visibleEntries.map((entry) => (
 
               <div
                 key={entry.id}
@@ -324,13 +338,11 @@ export default function VoiceJournal() {
               <div>
 
                 <h4 className="text-xs text-secondary-container uppercase tracking-[0.05em] font-bold">
-                  AI Companion Insight
+                  Wellness Reminder
                 </h4>
 
                 <p className="text-sm text-lavender-mist mt-2 leading-relaxed italic">
-                  Recording regularly helps MenoVerse identify subtle
-                  patterns in your vocal pitch and energy, providing more
-                  accurate risk tracking for your cycle.
+                  Journaling regularly can help you notice patterns in how you feel and support reflection over time.
                 </p>
 
               </div>

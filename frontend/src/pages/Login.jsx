@@ -70,10 +70,6 @@ export default function Login() {
               </button>
             </div>
 
-            <div className="flex justify-end">
-              <button type="button" className="text-[12px] text-[#5f604b] font-medium">Forgot Password?</button>
-            </div>
-
             {error && (
               <p className="text-center text-[14px] text-[#BC6C4D] font-medium">{error}</p>
             )}
@@ -82,21 +78,6 @@ export default function Login() {
               {loading? <span className="material-symbols-outlined animate-spin text-[20px]">sync</span> : <>Sign In <span className="material-symbols-outlined text-[20px]">arrow_forward</span></>}
             </button>
           </form>
-
-          <div className="my-8 flex items-center gap-4">
-            <div className="h-[1px] flex-1 bg-[#e8e2cf]"></div>
-            <span className="text-[12px] text-[#464740]/60">or</span>
-            <div className="h-[1px] flex-1 bg-[#e8e2cf]"></div>
-          </div>
-
-          <div className="flex gap-4">
-            <button onClick={()=>navigate("/dashboard")} className="flex-1 bg-[#faf4df] py-3 rounded-xl flex justify-center hover:bg-[#f4eeda]">
-              <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-6 h-6" alt="G"/>
-            </button>
-            <button onClick={()=>navigate("/dashboard")} className="flex-1 bg-[#faf4df] py-3 rounded-xl flex justify-center hover:bg-[#f4eeda]">
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.665-1.48 3.666-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09z"/></svg>
-            </button>
-          </div>
         </div>
 
         <p className="mt-8 text-[15px] text-[#464740]">

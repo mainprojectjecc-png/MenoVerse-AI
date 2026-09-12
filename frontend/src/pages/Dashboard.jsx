@@ -136,7 +136,11 @@ function Dashboard() {
                 </div>
 
                 <p className="text-lavender-mist font-body-lg mb-8 leading-relaxed">
-                  Your personalized insights will appear here after you complete an assessment.
+                  {loadingRisk
+    ? "Loading your latest health insights..."
+    : risk
+    ? `Your latest assessment shows ${risk.RiskLevel} risk. Review your recommendations and recent symptoms to stay informed about your wellbeing.`
+    : "Complete an assessment to receive personalized health insights and recommendations."}
                 </p>
 
                 <Link
@@ -323,31 +327,15 @@ function Dashboard() {
                 label="Heart Rate"
                 value="—"
                 unit="No data"
-                bars={[
-                  { height: 50, opacity: 0.3 },
-                  { height: 67, opacity: 0.5 },
-                  { height: 33, opacity: 0.3 },
-                  { height: 75, opacity: 0.7 },
-                  { height: 67, opacity: 0.4 },
-                  { height: 100, opacity: 1 },
-                ]}
               />
 
               {/* SLEEP */}
               <StatCard
                 icon="nights_stay"
                 tone="primary"
-                label="No data"
+                label="Sleep"
                 value="—"
-                barsContained={false}
-                bars={[
-                  { height: 40, opacity: 0.2 },
-                  { height: 60, opacity: 0.4 },
-                  { height: 85, opacity: 0.8 },
-                  { height: 50, opacity: 0.5 },
-                  { height: 30, opacity: 0.2 },
-                  { height: 70, opacity: 0.6 },
-                ]}
+                unit="No data"
               />
 
             </div>
@@ -359,8 +347,7 @@ function Dashboard() {
               tone="risk-low"
               label="Daily Steps"
               value="—"
-              progress={45}
-              progressLabel="No data available"
+              unit="No data"
             />
 
             {/* QUICK LOG SYMPTOMS */}
@@ -418,9 +405,9 @@ function Dashboard() {
                   className="px-6 py-3 rounded-xl border border-outline-variant text-on-surface-variant hover:bg-primary/5 hover:border-primary transition-all flex items-center gap-3 active:scale-95"
                 >
                   <span className="material-symbols-outlined text-[20px] text-tertiary">
-                    nights_stay
+                    sick
                   </span>
-                  Night Sweats
+                  Headache
                 </Link>
 
                 <Link

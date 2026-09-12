@@ -1,6 +1,84 @@
+import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
+import api from "../api/axios"
 
 export default function Insights() {
+  const stored = localStorage.getItem("user")
+  const user = stored ? JSON.parse(stored) : null
+  const userId = user?.UserID
+
+  const [risk, setRisk] = useState(null)
+  const [recommendation, setRecommendation] = useState(null)
+  const [symptom, setSymptom] = useState(null)
+  const [cycle, setCycle] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (!userId) {
+      setLoading(false)
+      return
+    }
+
+    const loadInsights = async () => {
+      try {
+        const [
+          riskRes,
+          recommendationRes,
+          symptomRes,
+          cycleRes,
+        ] = await Promise.all([
+          api.get(`/risk/${userId}`),
+          api.get(`/recommendation/${userId}`),
+          api.get(`/symptoms/${userId}`),
+          api.get(`/cycles/${userId}`),
+        ])
+
+        const risks = riskRes.data
+        const recommendations = recommendationRes.data
+        const symptoms = symptomRes.data
+        const cycles = cycleRes.data
+
+        setRisk(
+          risks.length
+            ? risks[risks.length - 1]
+            : null
+        )
+
+        setRecommendation(
+          recommendations.length
+            ? recommendations[recommendations.length - 1]
+            : null
+        )
+
+        setSymptom(
+          symptoms.length
+            ? symptoms[symptoms.length - 1]
+            : null
+        )
+
+        setCycle(
+          cycles.length
+            ? cycles[cycles.length - 1]
+            : null
+        )
+      } catch (error) {
+        console.error("Failed to load insights:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadInsights()
+  }, [userId])
+
+  const riskText = loading
+    ? "Loading your latest assessment..."
+    : risk
+    ? `Your latest assessment indicates ${risk.RiskLevel} perimenopause risk with a risk score of ${Math.round(
+        (risk.RiskScore || 0) * 100
+      )}/100.`
+    : "No assessment has been recorded yet."
+
   return (
     <div className="min-h-screen bg-[#fff9e8] text-[#3F3D35] pb-24 md:pb-0">
 
@@ -16,11 +94,11 @@ export default function Insights() {
           </h2>
 
           <p className="text-[#464740] mt-2">
-            Personalized patterns from your logs and wearables
+            Insights based on your recorded health data
           </p>
         </section>
 
-        {/* AI WEEKLY REPORT */}
+        {/* ASSESSMENT INSIGHT */}
         <div className="bg-[#535845] text-white rounded-3xl p-8 relative overflow-hidden">
           <div className="absolute -right-20 -top-20 w-64 h-64 bg-white/10 rounded-full blur-2xl" />
 
@@ -31,7 +109,7 @@ export default function Insights() {
               </span>
 
               <span className="text-xs tracking-widest uppercase font-bold text-[#e8e2cf]">
-                AI Generated
+                Personalized Insight
               </span>
             </div>
 
@@ -39,121 +117,242 @@ export default function Insights() {
               className="text-2xl italic mb-4"
               style={{ fontFamily: "Playfair Display" }}
             >
-              Hormonal Shift Detected
+              Latest Assessment
             </h3>
 
             <p className="text-[#e8e2cf]/80 leading-relaxed mb-6">
-              "Your sleep disruptions increased 40% during late luteal phase.
-              Combined with temperature spikes, this suggests progesterone
-              sensitivity."
+              {riskText}
             </p>
 
             <div className="flex flex-wrap gap-3">
               <span className="px-4 py-2 bg-white/10 rounded-full text-xs">
-                Sleep • High
+                Risk: {risk?.RiskLevel || "No assessment"}
               </span>
 
               <span className="px-4 py-2 bg-white/10 rounded-full text-xs">
-                Temp • +0.8°C
+                {risk
+                  ? `Score: ${Math.round(
+                      (risk.RiskScore || 0) * 100
+                    )}/100`
+                  : "Score: —"}
               </span>
             </div>
           </div>
         </div>
 
-        {/* PATTERN CARDS */}
+        {/* RECENT DATA */}
         <div className="grid md:grid-cols-2 gap-6">
 
-          {/* HOT FLASH PATTERN */}
+          {/* SYMPTOMS */}
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#D1CEC0]/20">
             <h4 className="font-semibold flex items-center gap-2">
               <span className="material-symbols-outlined text-[#BC6C4D]">
-                local_fire_department
+                monitor_heart
               </span>
 
-              Hot Flash Pattern
+              Recent Symptoms
             </h4>
 
-            <p className="text-sm text-[#464740] mt-3">
-              Most frequent between 2-4 PM, triggered by caffeine. Try
-              reducing intake after 1 PM.
-            </p>
+            {symptom ? (
+              <>
+                <p className="text-sm text-[#464740] mt-3">
+                  Latest symptom log from {symptom.LogDate}.
+                </p>
 
-            <div className="mt-6 h-20 flex items-end gap-1.5">
-              <div className="flex-1 bg-[#BC6C4D]/20 h-[30%] rounded-full" />
-              <div className="flex-1 bg-[#BC6C4D]/40 h-[60%] rounded-full" />
-              <div className="flex-1 bg-[#BC6C4D] h-[90%] rounded-full" />
-              <div className="flex-1 bg-[#BC6C4D]/30 h-[40%] rounded-full" />
-              <div className="flex-1 bg-[#BC6C4D]/50 h-[70%] rounded-full" />
-            </div>
+                <div className="grid grid-cols-2 gap-4 mt-6">
+
+                  <div>
+                    <p className="text-xs text-gray-500">
+                      Hot Flashes
+                    </p>
+                    <p className="font-bold">
+                      {symptom.HotFlashes}/3
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs text-gray-500">
+                      Mood
+                    </p>
+                    <p className="font-bold capitalize">
+                      {symptom.Mood}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs text-gray-500">
+                      Sleep Quality
+                    </p>
+                    <p className="font-bold capitalize">
+                      {symptom.SleepQuality}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs text-gray-500">
+                      Fatigue
+                    </p>
+                    <p className="font-bold">
+                      {symptom.Fatigue}/3
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs text-gray-500">
+                      Headache
+                    </p>
+                    <p className="font-bold">
+                      {symptom.Headache}/3
+                    </p>
+                  </div>
+
+                </div>
+              </>
+            ) : (
+              <p className="text-sm text-[#464740] mt-3">
+                No symptom data has been recorded yet.
+              </p>
+            )}
           </div>
 
-          {/* SLEEP QUALITY */}
+          {/* CYCLE */}
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#D1CEC0]/20">
             <h4 className="font-semibold flex items-center gap-2">
               <span className="material-symbols-outlined text-[#6B705C]">
-                bedtime
+                calendar_month
               </span>
 
-              Sleep Quality
+              Cycle Tracking
             </h4>
 
-            <p className="text-sm text-[#464740] mt-3">
-              Average 6h 45m this week. Deep sleep improved after logging
-              evening walks.
-            </p>
+            {cycle ? (
+              <>
+                <p className="text-sm text-[#464740] mt-3">
+                  Your latest recorded cycle.
+                </p>
 
-            <div className="mt-6">
-              <div className="flex justify-between text-xs mb-2">
-                <span>Goal 8h</span>
+                <div className="mt-6 space-y-4">
 
-                <span className="font-bold">
-                  84%
-                </span>
-              </div>
+                  <div>
+                    <p className="text-xs text-gray-500">
+                      Start Date
+                    </p>
+                    <p className="font-bold">
+                      {cycle.StartDate}
+                    </p>
+                  </div>
 
-              <div className="w-full h-2.5 bg-[#FAF7F0] rounded-full">
-                <div
-                  className="h-full bg-[#6B705C] rounded-full"
-                  style={{ width: "84%" }}
-                />
-              </div>
-            </div>
+                  <div>
+                    <p className="text-xs text-gray-500">
+                      Cycle Length
+                    </p>
+                    <p className="font-bold">
+                      {cycle.CycleLength} days
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs text-gray-500">
+                      Notes
+                    </p>
+                    <p className="font-bold">
+                      {cycle.Notes || "No notes recorded"}
+                    </p>
+                  </div>
+
+                </div>
+              </>
+            ) : (
+              <p className="text-sm text-[#464740] mt-3">
+                No cycle data has been recorded yet.
+              </p>
+            )}
           </div>
+
         </div>
 
         {/* RECOMMENDATIONS */}
         <div className="bg-white rounded-2xl p-8 shadow-sm border border-[#D1CEC0]/20">
+
           <h4 className="font-semibold mb-6">
-            Recommendations
+            Personalized Recommendations
           </h4>
 
-          <div className="space-y-4">
+          {recommendation ? (
+            <div className="space-y-4">
 
-            {/* RECOMMENDATION 1 */}
-            <div className="flex gap-4 p-4 bg-[#fff9e8] rounded-xl">
-              <span className="w-8 h-8 bg-[#6B705C] text-white rounded-full flex items-center justify-center text-sm shrink-0">
-                1
-              </span>
+              <div className="flex gap-4 p-4 bg-[#fff9e8] rounded-xl">
+                <span className="w-8 h-8 bg-[#6B705C] text-white rounded-full flex items-center justify-center text-sm shrink-0">
+                  1
+                </span>
 
-              <p className="text-sm">
-                Consider magnesium glycinate before bed - your sleep data
-                shows improvement potential.
-              </p>
+                <p className="text-sm">
+                  <strong>Diet:</strong>{" "}
+                  {recommendation.DietPlan}
+                </p>
+              </div>
+
+              <div className="flex gap-4 p-4 bg-[#fff9e8] rounded-xl">
+                <span className="w-8 h-8 bg-[#6B705C] text-white rounded-full flex items-center justify-center text-sm shrink-0">
+                  2
+                </span>
+
+                <p className="text-sm">
+                  <strong>Exercise:</strong>{" "}
+                  {recommendation.ExercisePlan}
+                </p>
+              </div>
+
+              <div className="flex gap-4 p-4 bg-[#fff9e8] rounded-xl">
+                <span className="w-8 h-8 bg-[#6B705C] text-white rounded-full flex items-center justify-center text-sm shrink-0">
+                  3
+                </span>
+
+                <p className="text-sm">
+                  <strong>Yoga:</strong>{" "}
+                  {recommendation.YogaPlan}
+                </p>
+              </div>
+
+              <div className="flex gap-4 p-4 bg-[#fff9e8] rounded-xl">
+                <span className="w-8 h-8 bg-[#6B705C] text-white rounded-full flex items-center justify-center text-sm shrink-0">
+                  4
+                </span>
+
+                <p className="text-sm">
+                  <strong>Lifestyle:</strong>{" "}
+                  {recommendation.LifestyleTips}
+                </p>
+              </div>
+
             </div>
+          ) : (
+            <p className="text-sm text-[#464740]">
+              Complete an assessment to receive personalized
+              recommendations.
+            </p>
+          )}
 
-            {/* RECOMMENDATION 2 */}
-            <div className="flex gap-4 p-4 bg-[#fff9e8] rounded-xl">
-              <span className="w-8 h-8 bg-[#6B705C] text-white rounded-full flex items-center justify-center text-sm shrink-0">
-                2
-              </span>
+        </div>
 
-              <p className="text-sm">
-                Schedule walk 30 mins after lunch - correlates with 20% less
-                fatigue in your logs.
-              </p>
-            </div>
+        {/* WEARABLE DATA */}
+        <div className="bg-white rounded-2xl p-8 shadow-sm border border-[#D1CEC0]/20">
 
-          </div>
+          <h4 className="font-semibold mb-3 flex items-center gap-2">
+            <span className="material-symbols-outlined text-[#6B705C]">
+              watch
+            </span>
+
+            Wearable Data
+          </h4>
+
+          <p className="text-sm text-[#464740]">
+            No wearable device data is currently connected to
+            MenoVerse. Heart rate, sleep duration, temperature,
+            and activity insights will appear here when real
+            device data becomes available.
+          </p>
+
         </div>
 
         {/* BACK TO DASHBOARD */}

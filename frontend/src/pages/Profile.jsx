@@ -1,14 +1,39 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import api from "../api/axios"
+
+const NOTIFICATION_KEYS = {
+  symptomLogReminders: "menoverse_notification_symptom_log_reminders",
+  aiInsightAlerts: "menoverse_notification_ai_insight_alerts",
+  weeklySummary: "menoverse_notification_weekly_summary",
+}
+
+const DEFAULT_NOTIFICATIONS = {
+  symptomLogReminders: true,
+  aiInsightAlerts: true,
+  weeklySummary: false,
+}
+
+function readStoredNotification(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key)
+
+    if (raw === null) {
+      return fallback
+    }
+
+    return JSON.parse(raw)
+  } catch {
+    return fallback
+  }
+}
 
 function ToggleRow({
   label,
   sub,
-  defaultActive = false,
+  active,
+  onToggle,
 }) {
-  const [active, setActive] = useState(defaultActive)
-
   return (
     <div className="flex items-center justify-between gap-4">
       <div>
@@ -23,7 +48,7 @@ function ToggleRow({
 
       <button
         type="button"
-        onClick={() => setActive((value) => !value)}
+        onClick={onToggle}
         className={`
           w-10
           h-6
@@ -60,38 +85,6 @@ function ToggleRow({
   )
 }
 
-function PrivacyLink({ icon, label }) {
-  return (
-    <button
-      type="button"
-      className="
-        w-full
-        flex
-        items-center
-        justify-between
-        p-3
-        rounded-xl
-        hover:bg-surface-container-high
-        transition
-      "
-    >
-      <div className="flex items-center gap-3">
-        <span className="material-symbols-outlined text-on-surface-variant">
-          {icon}
-        </span>
-
-        <span className="text-sm text-plum-deep font-semibold">
-          {label}
-        </span>
-      </div>
-
-      <span className="material-symbols-outlined text-outline">
-        chevron_right
-      </span>
-    </button>
-  )
-}
-
 export default function Profile() {
   const navigate = useNavigate()
 
@@ -100,13 +93,71 @@ export default function Profile() {
 
   const name = user?.Name || "User"
   const email = user?.Email || ""
-  const age = user?.Age || ""
+  const [age, setAge] = useState(user?.Age ?? "")
 
   const [editing, setEditing] = useState(false)
   const [editName, setEditName] = useState(name)
   const [editEmail, setEditEmail] = useState(email)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState("")
+  const [notifications, setNotifications] = useState(() => ({
+    symptomLogReminders: readStoredNotification(
+      NOTIFICATION_KEYS.symptomLogReminders,
+      DEFAULT_NOTIFICATIONS.symptomLogReminders
+    ),
+    aiInsightAlerts: readStoredNotification(
+      NOTIFICATION_KEYS.aiInsightAlerts,
+      DEFAULT_NOTIFICATIONS.aiInsightAlerts
+    ),
+    weeklySummary: readStoredNotification(
+      NOTIFICATION_KEYS.weeklySummary,
+      DEFAULT_NOTIFICATIONS.weeklySummary
+    ),
+  }))
+
+  const handleToggleNotification = (key) => {
+    setNotifications((previous) => {
+      const nextValue = !previous[key]
+      localStorage.setItem(
+        NOTIFICATION_KEYS[key],
+        JSON.stringify(nextValue)
+      )
+
+      return {
+        ...previous,
+        [key]: nextValue,
+      }
+    })
+  }
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const currentUser = JSON.parse(localStorage.getItem("user") || "null")
+
+      if (!currentUser?.UserID) {
+        return
+      }
+
+      try {
+        const response = await api.get(`/users/${currentUser.UserID}`)
+        const profile = response.data
+
+        if (profile) {
+          const updatedUser = {
+            ...currentUser,
+            ...profile,
+          }
+
+          localStorage.setItem("user", JSON.stringify(updatedUser))
+          setAge(profile.Age ?? "")
+        }
+      } catch (error) {
+        console.error("Failed to load user profile:", error)
+      }
+    }
+
+    fetchProfile()
+  }, [])
 
   const initials = name
     .split(" ")
@@ -185,6 +236,7 @@ const response = await api.put(
         JSON.stringify(updatedUser)
       )
 
+      setAge(response.data.Age ?? "")
       setEditing(false)
 
       window.location.reload()
@@ -254,10 +306,6 @@ if (Array.isArray(detail)) {
               "
             >
               {initials}
-            </div>
-
-            <div className="absolute bottom-1 right-1 bg-primary text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase">
-              Pro
             </div>
           </div>
 
@@ -408,23 +456,6 @@ if (Array.isArray(detail)) {
                     Edit Profile
                   </button>
 
-                  <button
-                    type="button"
-                    className="
-                      bg-surface-container-high
-                      text-primary
-                      px-6
-                      py-2.5
-                      rounded-xl
-                      text-sm
-                      font-semibold
-                      border
-                      border-outline-variant/30
-                    "
-                  >
-                    Share Report
-                  </button>
-
                 </div>
               </>
             )}
@@ -458,9 +489,6 @@ if (Array.isArray(detail)) {
                 Health Profile
               </h2>
 
-              <span className="hidden sm:block text-xs text-on-surface-variant px-3 py-1 bg-surface-container-high rounded-full">
-                Last synced: Today
-              </span>
 
             </div>
 
@@ -537,13 +565,6 @@ if (Array.isArray(detail)) {
                   No medical history recorded
                 </span>
 
-                <button
-                  type="button"
-                  className="px-4 py-1.5 border border-dashed border-outline rounded-xl text-sm text-on-surface-variant"
-                >
-                  + Add Condition
-                </button>
-
               </div>
 
             </div>
@@ -607,13 +628,6 @@ if (Array.isArray(detail)) {
                 <div className="h-full w-0" />
               </div>
 
-              <button
-                type="button"
-                className="w-full mt-4 py-3 text-primary text-sm font-semibold rounded-xl hover:bg-lavender-mist"
-              >
-                Sync Data Now
-              </button>
-
             </div>
 
           </section>
@@ -641,18 +655,22 @@ if (Array.isArray(detail)) {
               <ToggleRow
                 label="Symptom Log Reminders"
                 sub="Daily at 8:00 PM"
-                defaultActive
+                active={notifications.symptomLogReminders}
+                onToggle={() => handleToggleNotification("symptomLogReminders")}
               />
 
               <ToggleRow
                 label="AI Insight Alerts"
                 sub="Immediate notifications for trends"
-                defaultActive
+                active={notifications.aiInsightAlerts}
+                onToggle={() => handleToggleNotification("aiInsightAlerts")}
               />
 
               <ToggleRow
                 label="Weekly Summary"
                 sub="Monday mornings"
+                active={notifications.weeklySummary}
+                onToggle={() => handleToggleNotification("weeklySummary")}
               />
 
             </div>
@@ -661,42 +679,6 @@ if (Array.isArray(detail)) {
 
 
           {/* Privacy */}
-
-          <section className="lg:col-span-6 bg-surface rounded-2xl p-6 shadow-sm border border-outline-variant/20">
-
-            <h2
-              className="text-xl text-primary italic flex items-center gap-2 mb-4"
-              style={{
-                fontFamily: "Playfair Display",
-              }}
-            >
-              <span className="material-symbols-outlined">
-                lock_person
-              </span>
-
-              Privacy
-            </h2>
-
-            <div>
-
-              <PrivacyLink
-                icon="database"
-                label="Data Export (JSON/PDF)"
-              />
-
-              <PrivacyLink
-                icon="encrypted"
-                label="Biometric Lock"
-              />
-
-              <PrivacyLink
-                icon="partner_exchange"
-                label="Third-party Sharing"
-              />
-
-            </div>
-
-          </section>
 
         </div>
 
@@ -719,15 +701,6 @@ if (Array.isArray(detail)) {
               className="text-risk-high text-sm font-semibold hover:underline"
             >
               Log Out
-            </button>
-
-            <span>|</span>
-
-            <button
-              type="button"
-              className="text-risk-high text-sm font-semibold hover:underline"
-            >
-              Delete Data & Account
             </button>
 
           </div>

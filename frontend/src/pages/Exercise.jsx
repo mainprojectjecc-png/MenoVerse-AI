@@ -1,10 +1,17 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 const categories = [
   "All Practices",
   "Restorative Yoga",
   "Strength Training",
   "Gentle Cardio",
+]
+
+const featuredRoutineSteps = [
+  "Warm up shoulders and neck",
+  "Gentle spinal rotations",
+  "Reach and lengthen through the sides",
+  "Slow breath reset and settle",
 ]
 
 const exercises = [
@@ -14,6 +21,7 @@ const exercises = [
     time: "20m",
     level: "Beginner",
     tone: "risk-low",
+    category: "Strength Training",
   },
   {
     title: "Bone Density Boost",
@@ -21,6 +29,7 @@ const exercises = [
     time: "35m",
     level: "Intermediate",
     tone: "risk-moderate",
+    category: "Strength Training",
   },
   {
     title: "Deep Sleep Flow",
@@ -28,6 +37,7 @@ const exercises = [
     time: "12m",
     level: "Gentle",
     tone: "risk-low",
+    category: "Restorative Yoga",
   },
   {
     title: "Heart-Health Walk",
@@ -35,6 +45,7 @@ const exercises = [
     time: "45m",
     level: "Beginner",
     tone: "risk-low",
+    category: "Gentle Cardio",
   },
 ]
 
@@ -132,6 +143,30 @@ export default function Exercise() {
   const [activeCategory, setActiveCategory] = useState(
     categories[0]
   )
+  const [isFeaturedPlaying, setIsFeaturedPlaying] = useState(false)
+  const [activeStep, setActiveStep] = useState(0)
+  const [showAllRoutines, setShowAllRoutines] = useState(false)
+
+  useEffect(() => {
+    if (!isFeaturedPlaying) {
+      return undefined
+    }
+
+    const intervalId = setInterval(() => {
+      setActiveStep((current) => (current + 1) % featuredRoutineSteps.length)
+    }, 2200)
+
+    return () => clearInterval(intervalId)
+  }, [isFeaturedPlaying])
+
+  const filteredExercises =
+    activeCategory === "All Practices"
+      ? exercises
+      : exercises.filter((exercise) => exercise.category === activeCategory)
+
+  const visibleExercises = showAllRoutines
+    ? filteredExercises
+    : filteredExercises.slice(0, 2)
 
   return (
     <div className="min-h-screen bg-[#F0EAD6]">
@@ -190,7 +225,7 @@ export default function Exercise() {
               <div className="flex items-center gap-3 mb-3">
 
                 <span className="px-3 py-1 rounded-lg bg-white/90 text-primary text-xs uppercase tracking-wider">
-                  Daily Routine
+                  {isFeaturedPlaying ? "Now Playing" : "Daily Routine"}
                 </span>
 
                 <span className="flex items-center gap-1 text-xs text-white/80">
@@ -212,12 +247,16 @@ export default function Exercise() {
               </h2>
 
               <p className="text-sm text-white/80 mt-1">
-                Waking up the body with gentle spinal rotations.
+                {isFeaturedPlaying
+                  ? `Step ${activeStep + 1}: ${featuredRoutineSteps[activeStep]}`
+                  : "Waking up the body with gentle spinal rotations."}
               </p>
 
             </div>
 
             <button
+              type="button"
+              onClick={() => setIsFeaturedPlaying((current) => !current)}
               className="
                 absolute
                 right-6
@@ -234,6 +273,7 @@ export default function Exercise() {
                 hover:scale-105
                 transition
               "
+              aria-label={isFeaturedPlaying ? "Pause routine" : "Play routine"}
             >
               <span
                 className="material-symbols-outlined"
@@ -241,11 +281,18 @@ export default function Exercise() {
                   fontVariationSettings: "'FILL' 1",
                 }}
               >
-                play_arrow
+                {isFeaturedPlaying ? "pause" : "play_arrow"}
               </span>
             </button>
 
           </div>
+
+          {isFeaturedPlaying && (
+            <div className="mt-4 flex items-center gap-2 rounded-xl bg-white/70 px-3 py-2 text-sm text-primary">
+              <span className="material-symbols-outlined text-[18px]">play_circle</span>
+              <span>Routine in progress: {featuredRoutineSteps[activeStep]}</span>
+            </div>
+          )}
 
         </section>
 
@@ -260,9 +307,10 @@ export default function Exercise() {
 
               <button
                 key={category}
-                onClick={() =>
+                onClick={() => {
                   setActiveCategory(category)
-                }
+                  setShowAllRoutines(false)
+                }}
                 className={`
                   px-5
                   py-3
@@ -303,10 +351,14 @@ export default function Exercise() {
               Recommended for You
             </h2>
 
-            <button className="text-sm text-primary flex items-center gap-1">
-              View all
+            <button
+              type="button"
+              onClick={() => setShowAllRoutines((current) => !current)}
+              className="text-sm text-primary flex items-center gap-1"
+            >
+              {showAllRoutines ? "Show less" : "View all"}
               <span className="material-symbols-outlined text-[18px]">
-                chevron_right
+                {showAllRoutines ? "expand_less" : "chevron_right"}
               </span>
             </button>
 
@@ -315,7 +367,7 @@ export default function Exercise() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
-            {exercises.map((exercise) => (
+            {visibleExercises.map((exercise) => (
               <ExerciseCard
                 key={exercise.title}
                 {...exercise}
@@ -357,8 +409,7 @@ export default function Exercise() {
               </h3>
 
               <p className="text-sm text-on-surface-variant">
-                Exercising today can help reduce night sweats by
-                up to 30%.
+                Gentle movement can support stress management, mood, and overall wellbeing as part of a balanced routine.
               </p>
 
             </div>

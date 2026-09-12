@@ -6,6 +6,19 @@ import BottomNav from "./BottomNav"
 export default function Layout() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
+  const stored = localStorage.getItem("user")
+  const user = stored ? JSON.parse(stored) : null
+
+  const name = user?.Name || "User"
+
+  const initials = name
+    .split(" ")
+    .filter(Boolean)
+    .map((part) => part.charAt(0))
+    .slice(0, 2)
+    .join("")
+    .toUpperCase()
+
   return (
     <div className="min-h-screen bg-[#F0EAD6]">
 
@@ -134,8 +147,10 @@ export default function Layout() {
               font-bold
               text-sm
             "
+            aria-label={`Open profile for ${name}`}
+            title={name}
           >
-            SJ
+            {initials}
           </Link>
 
         </header>
