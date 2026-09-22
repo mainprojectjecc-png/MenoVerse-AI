@@ -154,8 +154,15 @@ class VoiceJournalCreate(BaseModel):
     AudioURL: str | None = None
 
 
+class JournalAnalysisRequest(BaseModel):
+    text: str
+
+
 class VoiceJournalOut(VoiceJournalCreate):
     JournalID: int
+    Mood: str | None = None
+    Symptoms: str | None = None
+    Summary: str | None = None
 
     class Config:
         from_attributes = True

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, Date
+from sqlalchemy import Column, Integer, String, Float, Date, Text
 from database import Base
 
 class User(Base):
@@ -65,3 +65,6 @@ class VoiceJournal(Base):
     EntryDate = Column("EntryDate", Date)
     Content = Column("Content", String)
     AudioURL = Column("AudioURL", String)
+    Mood = Column("Mood", String)
+    Symptoms = Column("Symptoms", Text)
+    Summary = Column("Summary", Text)

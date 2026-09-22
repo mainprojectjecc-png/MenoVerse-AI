@@ -29,8 +29,8 @@ export default function Register() {
         Email: form.email,
         Password: form.password,
       })
-      localStorage.setItem("user", JSON.stringify(res.data))
-      navigate("/dashboard")
+      localStorage.removeItem("user")
+      navigate("/login")
     } catch (err) {
       const detail = err.response?.data?.detail
       let message = "Registration failed. Please try again."

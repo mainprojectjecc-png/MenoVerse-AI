@@ -1,40 +1,21 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import api from "../api/axios"
 
-const journalEntries = [
-  {
-    id: 1,
-    date: "Today, 9:30 AM",
-    title: "Morning Reflection",
-    mood: {
-      label: "Anxious",
-      icon: "sentiment_dissatisfied",
-      tone: "mist",
-    },
-    symptom: {
-      label: "Hot Flash",
-      icon: "thermostat",
-      tone: "risk-high",
-    },
-    note:
-      "Woke up feeling a bit overwhelmed. Had a night sweat around 3 AM that disrupted my sleep...",
-  },
-  {
-    id: 2,
-    date: "Yesterday, 8:45 PM",
-    title: "Evening Wind-down",
-    mood: {
-      label: "Balanced",
-      icon: "sentiment_satisfied",
-      tone: "risk-low",
-    },
-    symptom: {
-      label: "Yoga",
-      icon: "spa",
-      tone: "mist",
-    },
-    note: null,
-  },
-]
+const moodDetails = {
+  Anxious: { icon: "sentiment_dissatisfied", tone: "mist" },
+  Low: { icon: "sentiment_dissatisfied", tone: "risk-high" },
+  Balanced: { icon: "sentiment_satisfied", tone: "risk-low" },
+  Neutral: { icon: "sentiment_neutral", tone: "mist" },
+}
+
+const symptomIcons = {
+  "Hot Flash": "thermostat",
+  "Night Sweat": "water_drop",
+  Headache: "headphones",
+  Insomnia: "bedtime",
+  Fatigue: "battery_1_bar",
+  "Mood Changes": "mood_bad",
+}
 
 function Tag({ icon, label, tone }) {
   const toneClasses =
@@ -74,14 +55,84 @@ function Tag({ icon, label, tone }) {
 
 export default function VoiceJournal() {
   const [isRecording, setIsRecording] = useState(false)
+  const [recognition, setRecognition] = useState(null)
+  const [transcript, setTranscript] = useState("")
+  const [entries, setEntries] = useState([])
+  const [isSaving, setIsSaving] = useState(false)
+  const [error, setError] = useState("")
   const [showAllEntries, setShowAllEntries] = useState(false)
 
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user") || "null")
+    if (!user?.UserID) return
+
+    api.get(`/voicejournal/${user.UserID}`)
+      .then(({ data }) => setEntries(data))
+      .catch(() => setError("Unable to load your journal entries."))
+  }, [])
+
   const handleToggleRecord = () => {
-    setIsRecording((prev) => !prev)
+    if (isRecording) {
+      recognition?.stop()
+      setIsRecording(false)
+      return
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+    if (!SpeechRecognition) {
+      setError("Speech recognition is not supported in this browser. Try Chrome.")
+      return
+    }
+
+    setError("")
+    const speech = new SpeechRecognition()
+    speech.continuous = true
+    speech.interimResults = false
+    speech.lang = "en-US"
+    speech.onresult = (event) => {
+      const text = Array.from(event.results)
+        .map((result) => result[0].transcript)
+        .join(" ")
+      setTranscript((current) => `${current} ${text}`.trim())
+    }
+    speech.onerror = () => {
+      setError("We could not access the microphone. Check your browser permission.")
+      setIsRecording(false)
+    }
+    speech.onend = () => setIsRecording(false)
+    speech.start()
+    setRecognition(speech)
+    setIsRecording(true)
   }
 
-  const visibleEntries = showAllEntries ? journalEntries : journalEntries.slice(0, 2)
-  const hasMoreEntries = journalEntries.length > 2
+  const handleSave = async () => {
+    if (!transcript.trim()) {
+      setError("Record a journal entry before saving.")
+      return
+    }
+
+    setIsSaving(true)
+    setError("")
+    try {
+      const analysis = await api.post("/voicejournal/analyze", { text: transcript })
+      const user = JSON.parse(localStorage.getItem("user") || "null")
+      const { data: savedEntry } = await api.post("/voicejournal", {
+        UserID: user.UserID,
+        EntryDate: new Date().toISOString().slice(0, 10),
+        Content: transcript.trim(),
+        AudioURL: null,
+      })
+      setEntries((current) => [{ ...savedEntry, analysis: analysis.data }, ...current])
+      setTranscript("")
+    } catch (err) {
+      setError(err.response?.data?.detail || "Unable to save your journal entry.")
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const visibleEntries = showAllEntries ? entries : entries.slice(0, 2)
+  const hasMoreEntries = entries.length > 2
 
   return (
     <div className="min-h-screen bg-[#FAF7F0]">
@@ -200,6 +251,26 @@ export default function VoiceJournal() {
               : "Ready to listen"}
           </span>
 
+          <textarea
+            value={transcript}
+            onChange={(event) => setTranscript(event.target.value)}
+            placeholder="Your transcript will appear here..."
+            className="mt-6 w-full max-w-xl min-h-28 rounded-xl border border-outline-variant/40 bg-white/60 p-4 text-sm text-on-surface outline-none focus:ring-2 focus:ring-primary/30"
+          />
+
+          {error && (
+            <p className="mt-3 max-w-xl text-sm text-risk-high">{error}</p>
+          )}
+
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={isSaving || !transcript.trim()}
+            className="mt-4 rounded-xl bg-primary px-6 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {isSaving ? "Analyzing..." : "Save Journal"}
+          </button>
+
         </section>
 
 
@@ -238,10 +309,20 @@ export default function VoiceJournal() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
-            {visibleEntries.map((entry) => (
+            {visibleEntries.map((entry) => {
+              const storedSymptoms = entry.Symptoms
+                ? JSON.parse(entry.Symptoms)
+                : []
+              const analysis = entry.analysis || {
+                mood: entry.Mood || "Neutral",
+                symptoms: storedSymptoms,
+              }
+              const mood = moodDetails[analysis.mood] || moodDetails.Neutral
+
+              return (
 
               <div
-                key={entry.id}
+                key={entry.JournalID}
                 className="
                   bg-[#FAF7F0]
                   p-6
@@ -260,7 +341,7 @@ export default function VoiceJournal() {
                   <div>
 
                     <p className="text-xs text-on-surface-variant font-bold uppercase tracking-wider">
-                      {entry.date}
+                      {new Date(entry.EntryDate).toLocaleDateString()}
                     </p>
 
                     <p
@@ -269,7 +350,7 @@ export default function VoiceJournal() {
                         fontFamily: "Playfair Display",
                       }}
                     >
-                      {entry.title}
+                      Voice Reflection
                     </p>
 
                   </div>
@@ -289,31 +370,33 @@ export default function VoiceJournal() {
                 <div className="flex flex-wrap gap-2">
 
                   <Tag
-                    icon={entry.mood.icon}
-                    label={`Mood: ${entry.mood.label}`}
-                    tone={entry.mood.tone}
+                    icon={mood.icon}
+                    label={`Mood: ${analysis.mood}`}
+                    tone={mood.tone}
                   />
 
-                  {entry.symptom && (
+                  {analysis.symptoms.map((symptom) => (
                     <Tag
-                      icon={entry.symptom.icon}
-                      label={entry.symptom.label}
-                      tone={entry.symptom.tone}
+                      key={symptom}
+                      icon={symptomIcons[symptom] || "medical_services"}
+                      label={symptom}
+                      tone="risk-high"
                     />
-                  )}
+                  ))}
 
                 </div>
 
 
-                {entry.note && (
+                {entry.Content && (
                   <p className="mt-4 text-sm text-on-surface-variant italic leading-relaxed">
-                    "{entry.note}"
+                    "{entry.Content}"
                   </p>
                 )}
 
               </div>
 
-            ))}
+              )
+            })}
 
           </div>
 

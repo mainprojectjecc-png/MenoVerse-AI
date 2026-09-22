@@ -1,10 +1,12 @@
+import json
+
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from typing import List
 
-from database import get_db
+from database import Base, engine, get_db, ensure_voice_journal_columns
 from models import (
     User,
     Cycle,
@@ -31,10 +33,15 @@ from schemas import (
     PredictInput,
     VoiceJournalCreate,
     VoiceJournalOut,
+    JournalAnalysisRequest,
 )
 
 from ml_predictor import predict_risk
 from auth import hash_password, verify_password, get_current_user, create_access_token
+
+
+Base.metadata.create_all(bind=engine)
+ensure_voice_journal_columns()
 
 
 # --------------------------------------------------
@@ -852,6 +859,51 @@ def delete_recommendation(
 # VOICE JOURNAL
 # --------------------------------------------------
 
+def analyze_journal_text(text: str) -> dict:
+    normalized = text.lower()
+    symptoms = []
+
+    symptom_terms = {
+        "Hot Flash": ("hot flash", "hot flush", "flushed"),
+        "Night Sweat": ("night sweat", "sweating at night"),
+        "Headache": ("headache", "migraine"),
+        "Insomnia": ("can't sleep", "cannot sleep", "insomnia", "awake"),
+        "Fatigue": ("tired", "fatigue", "exhausted", "low energy"),
+        "Mood Changes": ("irritable", "irritated", "mood swing"),
+    }
+
+    for label, terms in symptom_terms.items():
+        if any(term in normalized for term in terms):
+            symptoms.append(label)
+
+    mood_terms = {
+        "Anxious": ("anxious", "worried", "overwhelmed", "stressed", "stressful"),
+        "Low": ("sad", "down", "lonely", "depressed", "upset"),
+        "Balanced": ("calm", "good", "happy", "balanced", "peaceful"),
+    }
+    mood = next(
+        (label for label, terms in mood_terms.items()
+         if any(term in normalized for term in terms)),
+        "Neutral",
+    )
+
+    return {
+        "mood": mood,
+        "symptoms": symptoms,
+        "summary": text.strip(),
+    }
+
+
+@app.post("/voicejournal/analyze")
+def analyze_journal(
+    request: JournalAnalysisRequest,
+    current_user: User = Depends(get_current_user),
+):
+    if not request.text.strip():
+        raise HTTPException(status_code=400, detail="Journal text cannot be empty")
+
+    return analyze_journal_text(request.text)
+
 @app.post("/voicejournal", response_model=VoiceJournalOut)
 def create_journal(
     entry: VoiceJournalCreate,
@@ -860,6 +912,10 @@ def create_journal(
 ):
     data = entry.dict()
     data["UserID"] = current_user.UserID
+    analysis = analyze_journal_text(entry.Content or "")
+    data["Mood"] = analysis["mood"]
+    data["Symptoms"] = json.dumps(analysis["symptoms"])
+    data["Summary"] = analysis["summary"]
 
     new_entry = VoiceJournal(**data)
 
@@ -920,9 +976,13 @@ def update_journal(
             detail="Not authorized to modify this journal entry"
         )
 
+    analysis = analyze_journal_text(entry.Content or "")
     for key, value in entry.dict().items():
         if key != "UserID":
             setattr(existing, key, value)
+    existing.Mood = analysis["mood"]
+    existing.Symptoms = json.dumps(analysis["symptoms"])
+    existing.Summary = analysis["summary"]
 
     db.commit()
     db.refresh(existing)
