@@ -420,3 +420,10 @@ Cycle entry creation tested successfully from the frontend.
 Cycle deletion tested successfully from the frontend.
 
 Profile changes tested successfully and verified through the backend.
+
+GET /users/{user_id}
+- Requires JWT authentication.
+- Users can access only their own profile.
+- Returns the authenticated user's profile details.
+- Returns 403 if another user's ID is requested.
+- Returns 404 if the user does not exist.
