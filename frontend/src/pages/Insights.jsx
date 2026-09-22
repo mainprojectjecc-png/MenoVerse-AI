@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import api from "../api/axios"
+import { symptomSeverityLabel } from "../utils/symptomLabels"
 
 export default function Insights() {
   const stored = localStorage.getItem("user")
@@ -166,7 +167,7 @@ export default function Insights() {
                       Hot Flashes
                     </p>
                     <p className="font-bold">
-                      {symptom.HotFlashes}/3
+                      {symptomSeverityLabel(symptom.HotFlashes)}
                     </p>
                   </div>
 
@@ -193,7 +194,7 @@ export default function Insights() {
                       Fatigue
                     </p>
                     <p className="font-bold">
-                      {symptom.Fatigue}/3
+                      {symptomSeverityLabel(symptom.Fatigue)}
                     </p>
                   </div>
 
@@ -202,7 +203,7 @@ export default function Insights() {
                       Headache
                     </p>
                     <p className="font-bold">
-                      {symptom.Headache}/3
+                      {symptomSeverityLabel(symptom.Headache)}
                     </p>
                   </div>
 

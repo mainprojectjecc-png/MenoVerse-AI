@@ -70,7 +70,10 @@ export default function Assessment() {
       })
       setResult(response.data)
     } catch (requestError) {
-      setError(requestError.response?.data?.detail || "The assessment could not be completed. Please try again.")
+      const message = requestError.code === "ECONNABORTED"
+        ? "The backend took too long to respond. Restart the backend and try again."
+        : requestError.response?.data?.detail || "The assessment could not be completed. Please try again."
+      setError(message)
     } finally {
       setLoading(false)
     }

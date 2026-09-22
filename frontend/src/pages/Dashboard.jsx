@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import StatCard from "../components/StatCard"
 import api from "../api/axios"
+import { symptomSeverityLabel } from "../utils/symptomLabels"
 
 function Dashboard() {
   const stored = localStorage.getItem("user")
@@ -439,7 +440,7 @@ function Dashboard() {
                       Hot Flashes
                     </p>
                     <p className="font-bold">
-                      {symptom.HotFlashes}/3
+                      {symptomSeverityLabel(symptom.HotFlashes)}
                     </p>
                   </div>
 
@@ -456,7 +457,7 @@ function Dashboard() {
                     <p className="text-label-sm text-on-surface-variant">
                       Sleep Quality
                     </p>
-                    <p className="font-bold">
+                    <p className="font-bold capitalize">
                       {symptom.SleepQuality}
                     </p>
                   </div>
@@ -466,7 +467,7 @@ function Dashboard() {
                       Fatigue
                     </p>
                     <p className="font-bold">
-                      {symptom.Fatigue}/3
+                      {symptomSeverityLabel(symptom.Fatigue)}
                     </p>
                   </div>
 
@@ -475,7 +476,7 @@ function Dashboard() {
                       Headache
                     </p>
                     <p className="font-bold">
-                      {symptom.Headache}/3
+                      {symptomSeverityLabel(symptom.Headache)}
                     </p>
                   </div>
 
