@@ -233,6 +233,9 @@ function CycleTracking() {
 
       setSaveError(
         err.response?.data?.detail ||
+          (err.request
+            ? "The server could not be reached. Please check that the backend is running."
+            : null) ||
           "Failed to save cycle. Please try again."
       )
     } finally {

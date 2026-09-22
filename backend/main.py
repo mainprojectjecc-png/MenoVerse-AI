@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import SQLAlchemyError
 from typing import List
 
 from database import get_db
@@ -343,9 +344,16 @@ def create_cycle(
 
     new_cycle = Cycle(**data)
 
-    db.add(new_cycle)
-    db.commit()
-    db.refresh(new_cycle)
+    try:
+        db.add(new_cycle)
+        db.commit()
+        db.refresh(new_cycle)
+    except SQLAlchemyError as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Unable to save cycle: {exc}",
+        ) from exc
 
     return new_cycle
 
