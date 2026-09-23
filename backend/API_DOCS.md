@@ -287,7 +287,7 @@ Swagger UI available for interactive API testing.
 Known Limitations
 Model accuracy is 67.95%, with a known weakness on the "Low" risk category due to class imbalance in the training dataset.
 The model training dataset contains significantly more High-risk examples than Low-risk examples.
-Users table currently has limited profile-management functionality; there is no dedicated endpoint for updating or deleting a user's own profile.
+Users table supports profile viewing and updating (GET /users/{user_id}, PUT /users/{user_id}), but there is still no endpoint for deleting a user's own account.
 Wearable health metrics such as heart rate, sleep tracking, steps, and watch battery/sync data are not currently connected to a real wearable device.
 Cycle tracking currently supports backend storage and retrieval, while the frontend does not yet provide a complete cycle-entry form.
 API Testing Updates
