@@ -17,6 +17,7 @@ import Journal from "./pages/VoiceJournal";
 import Insights from "./pages/Insights";
 import Nutrition from "./pages/Nutrition";
 import Exercise from "./pages/Exercise";
+import PostureExercise from "./pages/PostureExercise";
 import Profile from "./pages/Profile";
 
 function ProtectedRoute({ children }) {
@@ -90,6 +91,16 @@ function App() {
           <Route
             path="/exercise"
             element={<Exercise />}
+          />
+
+          <Route
+            path="/execrcise"
+            element={<Exercise />}
+          />
+
+          <Route
+            path="/exercise/posture"
+            element={<PostureExercise />}
           />
 
           {/* Profile */}

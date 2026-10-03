@@ -3,6 +3,7 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 
 def get_engine():
     possible_urls = [
+        "mssql+pyodbc://@./HealthMonitorDB?driver=ODBC+Driver+17+for+SQL+Server&trusted_connection=yes&TrustServerCertificate=yes",
         "mssql+pyodbc://@localhost\\SQLEXPRESS/HealthMonitorDB?driver=ODBC+Driver+17+for+SQL+Server&trusted_connection=yes&TrustServerCertificate=yes",
         "mssql+pyodbc://@localhost/HealthMonitorDB?driver=ODBC+Driver+17+for+SQL+Server&trusted_connection=yes&TrustServerCertificate=yes",
     ]

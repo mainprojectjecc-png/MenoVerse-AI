@@ -3,6 +3,7 @@ const links = [
   { to: "/dashboard", icon: "home", label: "Home" },
   { to: "/cycle", icon: "calendar_month", label: "Cycle" },
   { to: "/symptoms", icon: "edit_note", label: "Symptoms" },
+  { to: "/execrcise", icon: "fitness_center", label: "Exercise" },
   { to: "/insights", icon: "analytics", label: "Insights" },
   { to: "/profile", icon: "person", label: "Profile" },
 ]

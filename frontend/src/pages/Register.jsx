@@ -23,19 +23,27 @@ export default function Register() {
     }
     setLoading(true)
     try {
-      const res = await api.post("/register", {
+      await api.post("/register", {
         Name: form.name,
         Age: parseInt(form.age, 10),
         Email: form.email,
         Password: form.password,
       })
-      localStorage.removeItem("user")
-      navigate("/login")
+
+      const loginRes = await api.post("/login", {
+        Email: form.email,
+        Password: form.password,
+      })
+
+      localStorage.setItem("user", JSON.stringify(loginRes.data))
+      navigate("/dashboard")
     } catch (err) {
       const detail = err.response?.data?.detail
       let message = "Registration failed. Please try again."
 
-      if (typeof detail === "string") {
+      if (err.code === "ERR_NETWORK") {
+        message = "The server is unavailable right now. Start the backend and try again."
+      } else if (typeof detail === "string") {
         message = detail
       } else if (Array.isArray(detail) && detail.length > 0) {
         message = detail.map((d) => d.msg).join(", ")

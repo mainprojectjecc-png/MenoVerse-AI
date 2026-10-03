@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import api from "../api/axios"
 
 const NOTIFICATION_KEYS = {
@@ -13,6 +13,33 @@ const DEFAULT_NOTIFICATIONS = {
   aiInsightAlerts: true,
   weeklySummary: false,
 }
+
+const EXERCISE_HIGHLIGHTS = [
+  {
+    title: "Yoga Practices",
+    description: "Gentle flow",
+    details: "30 min plan",
+    icon: "self_improvement",
+  },
+  {
+    title: "Strength Training",
+    description: "Low-impact strength",
+    details: "20 min plan",
+    icon: "fitness_center",
+  },
+  {
+    title: "Beginner Friendly Zumba",
+    description: "Dance & rhythm",
+    details: "20 min plan",
+    icon: "music_note",
+  },
+  {
+    title: "Cardio Workout",
+    description: "Easy movement",
+    details: "20 min plan",
+    icon: "directions_walk",
+  },
+]
 
 function readStoredNotification(key, fallback) {
   try {
@@ -632,6 +659,65 @@ if (Array.isArray(detail)) {
 
           </section>
 
+
+          <section className="lg:col-span-12 bg-surface rounded-2xl p-6 shadow-sm border border-outline-variant/20">
+
+            <div className="flex items-center justify-between gap-3 border-b border-outline-variant/30 pb-4">
+              <h2
+                className="text-xl text-primary italic flex items-center gap-2"
+                style={{
+                  fontFamily: "Playfair Display",
+                }}
+              >
+                <span className="material-symbols-outlined">
+                  fitness_center
+                </span>
+
+                Exercise
+              </h2>
+
+              <Link
+                to="/exercise"
+                className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white"
+              >
+                Open exercise library
+                <span className="material-symbols-outlined text-[18px]">
+                  arrow_forward
+                </span>
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mt-6">
+              {EXERCISE_HIGHLIGHTS.map((item) => (
+                <div
+                  key={item.title}
+                  className="rounded-2xl border border-outline-variant/30 bg-surface-container-high p-4"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="material-symbols-outlined text-primary text-2xl">
+                      {item.icon}
+                    </span>
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-on-surface-variant">
+                      {item.details}
+                    </span>
+                  </div>
+
+                  <h3
+                    className="text-lg text-plum-deep"
+                    style={{
+                      fontFamily: "Playfair Display",
+                    }}
+                  >
+                    {item.title}
+                  </h3>
+
+                  <p className="mt-2 text-sm text-on-surface-variant">
+                    {item.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </section>
 
           {/* Notifications */}
 
