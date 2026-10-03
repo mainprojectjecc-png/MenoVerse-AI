@@ -9,6 +9,7 @@ const navLinks = [
   { to: "/insights", icon: "analytics", label: "Insights" },
   { to: "/nutrition", icon: "restaurant", label: "Nutrition" },
   { to: "/exercise", icon: "fitness_center", label: "Exercise" },
+  { to: "/education", icon: "menu_book", label: "Education" },
   { to: "/profile", icon: "person", label: "Profile" },
 ]
 
@@ -71,7 +72,9 @@ function Sidebar({ collapsed }) {
         <nav className="flex flex-col gap-2">
 
           {navLinks.map((link) => {
-            const active = location.pathname === link.to
+            const active =
+              location.pathname === link.to ||
+              (link.to === "/education" && location.pathname.startsWith("/education/"))
 
             return (
               <Link

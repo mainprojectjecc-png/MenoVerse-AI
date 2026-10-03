@@ -5,6 +5,7 @@ const links = [
   { to: "/symptoms", icon: "edit_note", label: "Symptoms" },
   { to: "/execrcise", icon: "fitness_center", label: "Exercise" },
   { to: "/insights", icon: "analytics", label: "Insights" },
+  { to: "/education", icon: "menu_book", label: "Learn" },
   { to: "/profile", icon: "person", label: "Profile" },
 ]
 export default function BottomNav() {

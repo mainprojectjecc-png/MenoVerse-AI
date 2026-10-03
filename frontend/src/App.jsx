@@ -19,6 +19,8 @@ import Nutrition from "./pages/Nutrition";
 import Exercise from "./pages/Exercise";
 import PostureExercise from "./pages/PostureExercise";
 import Profile from "./pages/Profile";
+import PerimenopauseGuide from "./pages/PerimenopauseGuide";
+import SymptomEducation from "./pages/SymptomEducation";
 
 function ProtectedRoute({ children }) {
   const user = localStorage.getItem("user")
@@ -91,6 +93,16 @@ function App() {
           <Route
             path="/exercise"
             element={<Exercise />}
+          />
+
+          <Route
+            path="/education"
+            element={<PerimenopauseGuide />}
+          />
+
+          <Route
+            path="/education/symptoms/:slug"
+            element={<SymptomEducation />}
           />
 
           <Route

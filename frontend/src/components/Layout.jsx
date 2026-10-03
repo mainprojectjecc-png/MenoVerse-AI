@@ -133,6 +133,13 @@ export default function Layout() {
               Exercise
             </Link>
 
+            <Link
+              to="/education"
+              className="text-sm text-[#77776d] hover:text-[#535845]"
+            >
+              Education
+            </Link>
+
           </nav>
 
           {/* PROFILE */}
