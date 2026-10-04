@@ -16,6 +16,7 @@ import Symptoms from "./pages/Symptoms";
 import Journal from "./pages/VoiceJournal";
 import Insights from "./pages/Insights";
 import Nutrition from "./pages/Nutrition";
+import Diet from "./pages/Diet";
 import Exercise from "./pages/Exercise";
 import PostureExercise from "./pages/PostureExercise";
 import Profile from "./pages/Profile";
@@ -87,6 +88,11 @@ function App() {
           <Route
             path="/nutrition"
             element={<Nutrition />}
+          />
+
+          <Route
+            path="/diet"
+            element={<Diet />}
           />
 
           {/* Exercise */}

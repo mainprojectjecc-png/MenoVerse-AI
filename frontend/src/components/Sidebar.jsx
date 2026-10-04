@@ -8,6 +8,7 @@ const navLinks = [
   { to: "/journal", icon: "mic", label: "Voice Journal" },
   { to: "/insights", icon: "analytics", label: "Insights" },
   { to: "/nutrition", icon: "restaurant", label: "Nutrition" },
+  { to: "/diet", icon: "restaurant_menu", label: "Diet" },
   { to: "/exercise", icon: "fitness_center", label: "Exercise" },
   { to: "/education", icon: "menu_book", label: "Education" },
   { to: "/profile", icon: "person", label: "Profile" },

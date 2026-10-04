@@ -4,6 +4,13 @@ import Sidebar from "./Sidebar"
 import BottomNav from "./BottomNav"
 import { bottomNavLinks } from "./bottomNavLinks"
 
+const menuLinks = [
+  ...bottomNavLinks,
+  { to: "/nutrition", icon: "restaurant", label: "Nutrition" },
+  { to: "/assessment", icon: "fact_check", label: "Assessment" },
+  { to: "/journal", icon: "mic", label: "Voice Journal" },
+]
+
 export default function Layout() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -80,7 +87,7 @@ export default function Layout() {
                 aria-label="Main navigation"
                 className="absolute left-0 top-full mt-3 w-64 rounded-2xl border border-[#e8e2cf] bg-[#FAF7F0] p-3 shadow-xl z-50"
               >
-                {bottomNavLinks.map((link) => {
+                {menuLinks.map((link) => {
                   const active =
                     location.pathname === link.to ||
                     (link.to === "/education" &&
