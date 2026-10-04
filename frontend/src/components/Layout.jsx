@@ -1,10 +1,13 @@
 import { useState } from "react"
-import { Link, Outlet } from "react-router-dom"
+import { Link, Outlet, useLocation } from "react-router-dom"
 import Sidebar from "./Sidebar"
 import BottomNav from "./BottomNav"
+import { bottomNavLinks } from "./bottomNavLinks"
 
 export default function Layout() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const location = useLocation()
 
   const stored = localStorage.getItem("user")
   const user = stored ? JSON.parse(stored) : null
@@ -47,23 +50,63 @@ export default function Layout() {
           "
         >
 
-          {/* SIDEBAR TOGGLE */}
-          <button
-            onClick={() => setSidebarCollapsed((prev) => !prev)}
-            className="
-              w-10 h-10
-              rounded-full
-              hover:bg-[#e8e2cf]/60
-              flex items-center
-              justify-center
-              transition-all
-            "
-            aria-label="Toggle sidebar"
-          >
-            <span className="material-symbols-outlined text-[24px]">
-              menu
-            </span>
-          </button>
+          {/* MENU */}
+          <div className="relative">
+            <button
+              onClick={() => {
+                setSidebarCollapsed((prev) => !prev)
+                setMenuOpen((prev) => !prev)
+              }}
+              className="
+                w-10 h-10
+                rounded-full
+                hover:bg-[#e8e2cf]/60
+                flex items-center
+                justify-center
+                transition-all
+              "
+              aria-label="Toggle navigation menu"
+              aria-expanded={menuOpen}
+              aria-controls="header-navigation-menu"
+            >
+              <span className="material-symbols-outlined text-[24px]">
+                {menuOpen ? "close" : "menu"}
+              </span>
+            </button>
+
+            {menuOpen && (
+              <nav
+                id="header-navigation-menu"
+                aria-label="Main navigation"
+                className="absolute left-0 top-full mt-3 w-64 rounded-2xl border border-[#e8e2cf] bg-[#FAF7F0] p-3 shadow-xl z-50"
+              >
+                {bottomNavLinks.map((link) => {
+                  const active =
+                    location.pathname === link.to ||
+                    (link.to === "/education" &&
+                      location.pathname.startsWith("/education/"))
+
+                  return (
+                    <Link
+                      key={link.to}
+                      to={link.to}
+                      onClick={() => setMenuOpen(false)}
+                      className={`flex items-center gap-4 rounded-xl px-4 py-3 text-sm transition-colors ${
+                        active
+                          ? "bg-[#535845] font-semibold text-white"
+                          : "text-[#3F3D35] hover:bg-[#e8e2cf]/60"
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-[21px]">
+                        {link.icon}
+                      </span>
+                      <span>{link.label}</span>
+                    </Link>
+                  )
+                })}
+              </nav>
+            )}
+          </div>
 
           {/* BRAND */}
           <Link

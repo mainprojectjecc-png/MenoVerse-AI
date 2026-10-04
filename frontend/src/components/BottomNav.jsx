@@ -1,18 +1,11 @@
 import { Link, useLocation } from "react-router-dom"
-const links = [
-  { to: "/dashboard", icon: "home", label: "Home" },
-  { to: "/cycle", icon: "calendar_month", label: "Cycle" },
-  { to: "/symptoms", icon: "edit_note", label: "Symptoms" },
-  { to: "/execrcise", icon: "fitness_center", label: "Exercise" },
-  { to: "/insights", icon: "analytics", label: "Insights" },
-  { to: "/education", icon: "menu_book", label: "Learn" },
-  { to: "/profile", icon: "person", label: "Profile" },
-]
+import { bottomNavLinks } from "./bottomNavLinks"
+
 export default function BottomNav() {
   const location = useLocation()
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-[#FAF7F0] border-t border-[#e8e2cf] flex justify-around py-2 z-40 lg:hidden">
-      {links.map(l => {
+      {bottomNavLinks.map(l => {
         const active = location.pathname === l.to
         return (
           <Link key={l.to} to={l.to} className={`flex flex-col items-center gap-1 p-2 rounded-lg ${active? "text-[#535845]" : "text-gray-500"}`}>
