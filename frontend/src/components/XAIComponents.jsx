@@ -148,9 +148,9 @@ export function XAIFactorCard({ factor }) {
           }`}
           aria-hidden="true"
         >
-          {factor.direction === "moves_to_later_stage"
+          {["moves_to_later_stage", "increases_risk"].includes(factor.direction)
             ? "north_east"
-            : factor.direction === "moves_to_earlier_stage"
+            : ["moves_to_earlier_stage", "decreases_risk"].includes(factor.direction)
               ? "south_east"
               : "remove"}
         </span>
