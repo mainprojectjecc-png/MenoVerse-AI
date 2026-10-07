@@ -144,7 +144,7 @@ Full interactive testing is available at /docs (Swagger UI).
 AI Prediction
 POST /predict
 
-Runs the trained Random Forest model on survey responses, saves the result to RiskAssessment and Recommendation, and returns the prediction result.
+Runs the trained Random Forest model on survey responses to predict a menopause stage, saves the result and a matching Recommendation, and returns the predicted stage with model confidence.
 
 Body:
 
@@ -161,7 +161,7 @@ Body:
   "Anxiety": "Mild" | "Severe",
   "Headaches": "Mild" | "Severe",
   "Heart_Palpitations": "Mild" | "Severe",
-  "Exercise_Yoga_Frequency": "Never" | "1-2 days" | "Weekly" | "Daily",
+  "Exercise_Yoga_Frequency": "Never" | "1-2 days" | "3-4 days" | "Daily",
   "Avg_Sleep_Duration": "Less than 5 hours" | "5-6 hours" | "7-8 hours" | "More than 8 hours",
   "Stress_Level": number,
   "Diagnosed_Conditions": "None of the Above" | "condition name",
@@ -173,7 +173,7 @@ Requires a valid JWT access token. The prediction is performed for the authentic
 Returns:
 
 {
-  "RiskLevel": "Low" | "Moderate" | "High",
+  "MenopauseStage": "Premenopause" | "Early perimenopause" | "Late perimenopause" | "Postmenopause",
   "Confidence": float,
   "SavedRiskID": int,
   "SavedRecommendationID": int,
@@ -190,6 +190,7 @@ Notes:
 Text values must match the categories expected by the trained model.
 Weight_kg and Stress_Level must be numbers.
 The result is automatically saved to the RiskAssessment table under the authenticated user's UserID.
+GET /risk/{user_id} includes a `MenopauseStage` field for new stage predictions. The legacy `RiskLevel` field remains for compatibility; older Low/Moderate/High assessments do not have a menopause-stage result.
 A personalized Recommendation is automatically generated and saved.
 Recommendations consider the individual's survey responses and relevant symptoms.
 Voice Journal
@@ -272,7 +273,7 @@ JWT authentication for protected API endpoints.
 JWT ownership and authorization checks for user-specific records.
 CRUD operations for Cycles, Symptoms, RiskAssessment, Recommendation, and VoiceJournal.
 Users endpoint protected with JWT authentication.
-/predict runs the trained Random Forest model on the required survey inputs.
+/predict predicts one of four menopause stages from the required survey inputs using the supplied 500-row synthetic dataset.
 /predict automatically saves a RiskAssessment and matching Recommendation.
 Personalized recommendations are generated from survey responses and relevant symptoms.
 Input validation through Pydantic.
@@ -285,8 +286,7 @@ Database backed up.
 Backend and frontend flows manually tested.
 Swagger UI available for interactive API testing.
 Known Limitations
-Model accuracy is 67.95%, with a known weakness on the "Low" risk category due to class imbalance in the training dataset.
-The model training dataset contains significantly more High-risk examples than Low-risk examples.
+The menopause-stage classifier is trained and evaluated on synthetic data. With the current fixed split of 150 training rows and 350 held-out test rows, mean training cross-validation accuracy is 82.00% and holdout accuracy is 84.57%; these scores are not evidence of clinical performance. All dataset rows use the 46-55 age group.
 Users table supports profile viewing and updating (GET /users/{user_id}, PUT /users/{user_id}), but there is still no endpoint for deleting a user's own account.
 Wearable health metrics such as heart rate, sleep tracking, steps, and watch battery/sync data are not currently connected to a real wearable device.
 Cycle tracking currently supports backend storage and retrieval, while the frontend does not yet provide a complete cycle-entry form.
@@ -310,7 +310,7 @@ Frontend registration and login are connected to the backend authentication syst
 JWT access tokens are automatically attached to protected API requests.
 Users can log in through the frontend and access the Dashboard.
 The Assessment page sends survey responses to the POST /predict endpoint.
-The frontend displays the returned risk level, confidence score, and personalized recommendations.
+The frontend displays the returned menopause stage, model confidence, and personalized recommendations.
 The Symptoms page sends symptom data to the POST /symptoms endpoint.
 The Dashboard retrieves and displays the user's latest saved symptoms.
 The Dashboard retrieves and displays the latest risk assessment and recommendation.

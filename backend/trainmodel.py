@@ -1,135 +1,138 @@
-import pandas as pd
-import numpy as np
-import joblib
 from pathlib import Path
 
-from sklearn.model_selection import train_test_split
+import joblib
+import pandas as pd
 from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
-from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import OneHotEncoder
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import (
-    accuracy_score,
-    classification_report,
-    confusion_matrix
-)
+from sklearn.impute import SimpleImputer
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from sklearn.model_selection import GridSearchCV, StratifiedKFold, train_test_split
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OneHotEncoder
+
 
 script_dir = Path(__file__).resolve().parent
-file_path = script_dir / "menopause_survey_random2.xlsx"
-
-if not file_path.exists() or file_path.stat().st_size == 0:
-    raise FileNotFoundError(
-        f"Dataset is missing or empty: {file_path}. "
-        "Place a valid menopause_survey_random2.xlsx file in the ml folder."
-    )
-
-df = pd.read_excel(file_path)
-print("Dataset shape:", df.shape)
-print("\nColumns:")
-print(df.columns.tolist())
-
-df.columns = df.columns.str.strip()
-
-def calculate_risk(row):
-    score = 0
-    age = str(row["Age Group"]).lower()
-    if "45" in age or "55" in age or "over 55" in age:
-        score += 2
-    elif "35" in age:
-        score += 1
-    cycle_regular = str(row["Menstrual Cycle Regular?"]).lower()
-    if cycle_regular == "no":
-        score += 2
-    cycle_length = str(row["Avg Menstrual Cycle Length"]).lower()
-    if "more than 35" in cycle_length:
-        score += 2
-    elif "29" in cycle_length:
-        score += 1
-    symptoms = [
-        "Hot Flashes", "Night Sweats", "Sleep Disturbances",
-        "Fatigue", "Anxiety", "Headaches", "Heart Palpitations"
-    ]
-    for symptom in symptoms:
-        value = str(row[symptom]).lower()
-        if "severe" in value:
-            score += 2
-        elif "moderate" in value:
-            score += 1
-    family = str(row["Family History of Early Menopause?"]).lower()
-    if family == "yes":
-        score += 1
-    if score >= 8:
-        return "High"
-    elif score >= 4:
-        return "Moderate"
-    else:
-        return "Low"
-
-df["Perimenopause_Risk"] = df.apply(calculate_risk, axis=1)
-print("\nRisk distribution:")
-print(df["Perimenopause_Risk"].value_counts())
-
+dataset_path = (
+    script_dir.parent / "dataset" / "menopause_synthetic_500_age45-49_v4.xlsx"
+)
+model_path = script_dir / "random_forest_model.pkl"
+test_samples = 350
+target = "Menopause Stage (Label)"
 features = [
-    "Age Group", "Weight (kg)", "Menstrual Cycle Regular?",
-    "Avg Menstrual Cycle Length", "Hot Flashes", "Night Sweats",
-    "Sleep Disturbances", "Fatigue", "Anxiety", "Headaches",
-    "Heart Palpitations", "Exercise/Yoga Frequency", "Avg Sleep Duration",
-    "Stress Level", "Diagnosed Conditions", "Family History of Early Menopause?"
+    "Age Group",
+    "Weight (kg)",
+    "Menstrual Cycle Regular?",
+    "Avg Menstrual Cycle Length",
+    "Hot Flashes",
+    "Night Sweats",
+    "Sleep Disturbances",
+    "Fatigue",
+    "Anxiety",
+    "Headaches",
+    "Heart Palpitations",
+    "Exercise/Yoga Frequency",
+    "Avg Sleep Duration",
+    "Stress Level",
+    "Diagnosed Conditions",
+    "Family History of Early Menopause?",
 ]
 
+if not dataset_path.is_file() or dataset_path.stat().st_size == 0:
+    raise FileNotFoundError(f"Dataset is missing or empty: {dataset_path}")
+
+df = pd.read_excel(dataset_path)
+df.columns = df.columns.str.strip()
+missing_columns = sorted(set(features + [target]) - set(df.columns))
+if missing_columns:
+    raise ValueError(f"Dataset is missing required columns: {missing_columns}")
+
+df = df.dropna(subset=[target]).copy()
+if df[target].nunique() < 2:
+    raise ValueError("The dataset must contain at least two target classes.")
+if len(df) <= test_samples:
+    raise ValueError(
+        f"At least {test_samples + 1} labeled rows are required to reserve "
+        f"{test_samples} test samples; found {len(df)}."
+    )
+
 X = df[features]
-y = df["Perimenopause_Risk"]
+y = df[target].astype(str).str.strip()
+categorical_features = X.select_dtypes(exclude="number").columns.tolist()
+numerical_features = X.select_dtypes(include="number").columns.tolist()
 
-categorical_features = X.select_dtypes(include=["object"]).columns.tolist()
-numerical_features = X.select_dtypes(include=["int64", "float64"]).columns.tolist()
-
-print("\nCategorical features:")
-print(categorical_features)
-print("\nNumerical features:")
-print(numerical_features)
-
-numeric_pipeline = Pipeline(steps=[("imputer", SimpleImputer(strategy="median"))])
-categorical_pipeline = Pipeline(steps=[
-    ("imputer", SimpleImputer(strategy="most_frequent")),
-    ("encoder", OneHotEncoder(handle_unknown="ignore"))
-])
-
-preprocessor = ColumnTransformer(transformers=[
-    ("numeric", numeric_pipeline, numerical_features),
-    ("categorical", categorical_pipeline, categorical_features)
-])
-
-random_forest = RandomForestClassifier(
-    n_estimators=200, max_depth=10, random_state=42, class_weight="balanced"
+preprocessor = ColumnTransformer(
+    transformers=[
+        (
+            "numeric",
+            Pipeline(steps=[("imputer", SimpleImputer(strategy="median"))]),
+            numerical_features,
+        ),
+        (
+            "categorical",
+            Pipeline(
+                steps=[
+                    ("imputer", SimpleImputer(strategy="most_frequent")),
+                    ("encoder", OneHotEncoder(handle_unknown="ignore")),
+                ]
+            ),
+            categorical_features,
+        ),
+    ]
 )
 
-model = Pipeline(steps=[("preprocessor", preprocessor), ("classifier", random_forest)])
+classifier = RandomForestClassifier(
+    n_estimators=300,
+    min_samples_leaf=2,
+    class_weight="balanced",
+    random_state=42,
+    n_jobs=-1,
+)
+model = Pipeline(
+    steps=[("preprocessor", preprocessor), ("classifier", classifier)]
+)
+parameter_grid = {
+    "classifier__n_estimators": [300, 500],
+    "classifier__max_depth": [None, 12],
+    "classifier__min_samples_leaf": [1, 2, 4],
+    "classifier__max_features": ["sqrt", 0.8],
+}
 
 X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.20, random_state=42, stratify=y
+    X,
+    y,
+    test_size=test_samples,
+    random_state=42,
+    stratify=y,
 )
-print("\nTraining samples:", len(X_train))
-print("Testing samples:", len(X_test))
+search = GridSearchCV(
+    model,
+    parameter_grid,
+    scoring="accuracy",
+    cv=StratifiedKFold(n_splits=5, shuffle=True, random_state=42),
+    n_jobs=-1,
+)
+search.fit(X_train, y_train)
+best_model = search.best_estimator_
+y_pred = best_model.predict(X_test)
 
-print("\nTraining Random Forest...")
-model.fit(X_train, y_train)
-print("Training completed!")
+print(f"Dataset: {dataset_path}")
+print(f"Rows: {len(df)}")
+print(f"Training samples: {len(X_train)}")
+print(f"Test samples: {len(X_test)}")
+print(f"Best training cross-validation accuracy: {search.best_score_:.2%}")
+print(f"Best parameters: {search.best_params_}")
+print(f"Target distribution:\n{y.value_counts().to_string()}")
+print(f"\nHoldout accuracy: {accuracy_score(y_test, y_pred):.2%}")
+print(
+    "\nClassification report:\n",
+    classification_report(y_test, y_pred, zero_division=0),
+)
+print(
+    "Confusion matrix:\n",
+    confusion_matrix(y_test, y_pred, labels=sorted(y.unique())),
+)
 
-y_pred = model.predict(X_test)
-accuracy = accuracy_score(y_test, y_pred)
-
-print("\n================================")
-print("MODEL RESULTS")
-print("================================")
-print(f"Accuracy: {accuracy * 100:.2f}%")
-print("\nClassification Report:")
-print(classification_report(y_test, y_pred))
-print("\nConfusion Matrix:")
-print(confusion_matrix(y_test, y_pred))
-
-joblib.dump(model, script_dir / "random_forest_model.pkl")
-print("\nModel saved as: random_forest_model.pkl")
-
-df.to_excel(script_dir / "menopause_dataset_with_risk.xlsx", index=False)
-print("\nLabeled dataset saved as: menopause_dataset_with_risk.xlsx")
+# Evaluate on the held-out split, then train the deployable model on all rows.
+best_model.fit(X, y)
+joblib.dump({"model": best_model, "features": features}, model_path)
+print(f"\nFull-data model saved to: {model_path}")

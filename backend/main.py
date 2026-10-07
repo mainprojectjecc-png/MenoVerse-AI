@@ -36,7 +36,7 @@ from schemas import (
     JournalAnalysisRequest,
 )
 
-from ml_predictor import predict_risk
+from ml_predictor import predict_stage
 from auth import hash_password, verify_password, get_current_user, create_access_token
 
 
@@ -48,30 +48,26 @@ ensure_voice_journal_columns()
 # RECOMMENDATION GENERATOR
 # --------------------------------------------------
 
-def generate_recommendation(risk_level: str, data: dict) -> dict:
+def generate_recommendation(menopause_stage: str, data: dict) -> dict:
     diet_tips = []
     exercise_tips = []
     yoga_tips = []
     lifestyle_tips = []
 
-    # Risk-based recommendations
-    if risk_level == "High":
+    if menopause_stage == "Postmenopause":
         diet_tips.append(
-            "Increase calcium, vitamin D, and phytoestrogen-rich foods "
-            "(soy, flaxseed)"
+            "Maintain a balanced diet with adequate calcium and vitamin D"
         )
         lifestyle_tips.append(
-            "Consider consulting a gynecologist for symptom management"
+            "Discuss ongoing symptoms and preventive care with a healthcare professional"
         )
-
-    elif risk_level == "Moderate":
+    elif menopause_stage in ("Early perimenopause", "Late perimenopause"):
         diet_tips.append(
-            "Maintain a calcium-rich, balanced diet"
+            "Maintain a balanced diet and track changes in your symptoms and cycles"
         )
-
     else:
         diet_tips.append(
-            "Maintain a balanced, nutrient-rich diet"
+            "Maintain a balanced, nutrient-rich diet and continue routine health care"
         )
 
     # Hot flashes
@@ -706,7 +702,7 @@ def predict(
         )
 
     try:
-        risk_level, confidence = predict_risk(
+        menopause_stage, confidence = predict_stage(
             data.dict()
         )
 
@@ -722,15 +718,15 @@ def predict(
             detail=f"Invalid prediction input: {e}"
         )
 
-    # Save risk assessment
+    # The existing database column stores the model's predicted stage.
     new_risk = RiskAssessment(
         UserID=current_user.UserID,
         RiskScore=confidence,
-        RiskLevel=risk_level,
+        RiskLevel=menopause_stage,
         Explanation=(
-            f"AI-predicted {risk_level} risk based on "
+            f"AI-predicted {menopause_stage} based on "
             f"survey responses "
-            f"(confidence: {confidence:.2f})"
+            f"(model confidence: {confidence:.2f})"
         ),
     )
 
@@ -740,7 +736,7 @@ def predict(
 
     # Generate recommendations
     rec_content = generate_recommendation(
-        risk_level,
+        menopause_stage,
         data.dict()
     )
 
@@ -758,7 +754,7 @@ def predict(
     db.refresh(new_rec)
 
     return {
-        "RiskLevel": risk_level,
+        "MenopauseStage": menopause_stage,
         "Confidence": confidence,
         "SavedRiskID": new_risk.RiskID,
         "SavedRecommendationID": new_rec.RecommendationID,

@@ -140,7 +140,9 @@ function Dashboard() {
                   {loadingRisk
     ? "Loading your latest health insights..."
     : risk
-    ? `Your latest assessment shows ${risk.RiskLevel} risk. Review your recommendations and recent symptoms to stay informed about your wellbeing.`
+    ? risk.MenopauseStage
+      ? `Your latest assessment predicts ${risk.MenopauseStage}. Review your recommendations and recent symptoms to stay informed about your wellbeing.`
+      : `Your previous assessment recorded a ${risk.RiskLevel} risk rating. Review your recent symptoms to stay informed about your wellbeing.`
     : "Complete an assessment to receive personalized health insights and recommendations."}
                 </p>
 
@@ -185,7 +187,7 @@ function Dashboard() {
               <div className="flex justify-between items-start mb-8">
 
                 <span className="font-label-md text-primary uppercase tracking-[0.1em] font-bold">
-                  Risk Assessment
+                  Menopause Stage
                 </span>
 
                 <div className="bg-primary/10 p-2 rounded-full">
@@ -197,7 +199,7 @@ function Dashboard() {
               </div>
 
               <h3 className="font-headline-md text-headline-md text-plum-deep mb-8">
-                Perimenopause Risk Level
+                Predicted menopause stage
               </h3>
 
               <div className="flex flex-col items-center py-6">
@@ -240,11 +242,11 @@ function Dashboard() {
                     <span className="font-headline-lg text-risk-high text-[44px]">
                       {loadingRisk
                         ? "--"
-                        : Math.round((risk?.RiskScore || 0) * 100)}
+                        : `${Math.round((risk?.RiskScore || 0) * 100)}%`}
                     </span>
 
                     <p className="text-label-sm font-bold text-on-surface-variant">
-                      /100
+                      model confidence
                     </p>
 
                   </div>
@@ -252,19 +254,15 @@ function Dashboard() {
                 </div>
 
                 <div
-                  className={`${
-                    risk?.RiskLevel === "High"
-                      ? "bg-risk-high"
-                      : risk?.RiskLevel === "Moderate"
-                      ? "bg-secondary"
-                      : risk?.RiskLevel === "Low"
-                      ? "bg-risk-low"
-                      : "bg-outline"
-                  } text-white px-8 py-2.5 rounded-full font-label-md shadow-sm`}
+                  className="bg-primary text-white px-8 py-2.5 rounded-full font-label-md shadow-sm"
                 >
                   {loadingRisk
                     ? "Loading..."
-                    : risk?.RiskLevel || "No Assessment"}
+                    : risk?.MenopauseStage || (
+                      risk?.RiskLevel
+                        ? `Legacy risk: ${risk.RiskLevel}`
+                        : "No Assessment"
+                    )}
                 </div>
 
               </div>

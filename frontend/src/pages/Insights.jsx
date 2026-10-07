@@ -75,9 +75,11 @@ export default function Insights() {
   const riskText = loading
     ? "Loading your latest assessment..."
     : risk
-    ? `Your latest assessment indicates ${risk.RiskLevel} perimenopause risk with a risk score of ${Math.round(
-        (risk.RiskScore || 0) * 100
-      )}/100.`
+    ? risk.MenopauseStage
+      ? `Your latest assessment predicts ${risk.MenopauseStage}. Model confidence: ${Math.round(
+          (risk.RiskScore || 0) * 100
+        )}%.`
+      : `Your previous assessment recorded a ${risk.RiskLevel} risk rating.`
     : "No assessment has been recorded yet."
 
   return (
@@ -127,15 +129,19 @@ export default function Insights() {
 
             <div className="flex flex-wrap gap-3">
               <span className="px-4 py-2 bg-white/10 rounded-full text-xs">
-                Risk: {risk?.RiskLevel || "No assessment"}
+                {risk?.MenopauseStage
+                  ? `Stage: ${risk.MenopauseStage}`
+                  : risk?.RiskLevel
+                  ? `Legacy risk: ${risk.RiskLevel}`
+                  : "Stage: No result"}
               </span>
 
               <span className="px-4 py-2 bg-white/10 rounded-full text-xs">
                 {risk
-                  ? `Score: ${Math.round(
+                  ? `Model confidence: ${Math.round(
                       (risk.RiskScore || 0) * 100
-                    )}/100`
-                  : "Score: —"}
+                    )}%`
+                  : "Confidence: —"}
               </span>
             </div>
           </div>

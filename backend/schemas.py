@@ -91,6 +91,7 @@ class RiskAssessmentCreate(BaseModel):
 
 class RiskAssessmentOut(RiskAssessmentCreate):
     RiskID: int
+    MenopauseStage: str | None = None
 
     class Config:
         from_attributes = True

@@ -13,7 +13,7 @@ const questions = [
   { key: "Anxiety", label: "Anxiety", options: ["Mild", "Moderate", "Severe"] },
   { key: "Headaches", label: "Headaches", options: ["Mild", "Moderate", "Severe"] },
   { key: "Heart_Palpitations", label: "Heart palpitations", options: ["Mild", "Moderate", "Severe"] },
-  { key: "Exercise_Yoga_Frequency", label: "Exercise or yoga frequency", options: ["Never", "1-2 days", "Weekly", "Daily"] },
+  { key: "Exercise_Yoga_Frequency", label: "Exercise or yoga frequency", options: ["Never", "1-2 days", "3-4 days", "Daily"] },
   { key: "Avg_Sleep_Duration", label: "Average sleep duration", options: ["Less than 5 hours", "5-6 hours", "7-8 hours", "More than 8 hours"] },
   { key: "Diagnosed_Conditions", label: "Diagnosed conditions", options: ["None of the Above", "PCOS", "Diabetes", "Hypertension"] },
   { key: "Family_History_Early_Menopause", label: "Family history of early menopause?", options: ["No", "Yes"] },
@@ -122,8 +122,8 @@ export default function Assessment() {
           <section className="mt-8 bg-surface rounded-2xl p-6 md:p-8 soft-shadow border border-outline-variant/20" aria-live="polite">
             <p className="text-label-md text-primary uppercase tracking-[0.1em] font-bold">Your result</p>
             <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mt-2">
-              <h2 className="font-headline-lg text-plum-deep">{result.RiskLevel} risk</h2>
-              <p className="text-on-surface-variant">Confidence: {(result.Confidence * 100).toFixed(0)}%</p>
+              <h2 className="font-headline-lg text-plum-deep">{result.MenopauseStage}</h2>
+              <p className="text-on-surface-variant">Model confidence: {(result.Confidence * 100).toFixed(0)}%</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
               {Object.entries(result.Recommendation || {}).map(([key, value]) => (

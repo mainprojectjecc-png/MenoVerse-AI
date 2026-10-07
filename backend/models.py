@@ -45,6 +45,16 @@ class RiskAssessment(Base):
     RiskLevel = Column("RiskLevel", String)
     Explanation = Column("Explanation", String)
 
+    @property
+    def MenopauseStage(self) -> str | None:
+        stages = {
+            "Premenopause",
+            "Early perimenopause",
+            "Late perimenopause",
+            "Postmenopause",
+        }
+        return self.RiskLevel if self.RiskLevel in stages else None
+
 class Recommendation(Base):
     __tablename__ = "Recommendation"
     __table_args__ = {"schema": "dbo"}
