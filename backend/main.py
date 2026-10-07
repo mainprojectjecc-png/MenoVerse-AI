@@ -70,9 +70,11 @@ from schemas import (
 
 from ml_predictor import explain_risk
 from auth import hash_password, verify_password, get_current_user, create_access_token
+from community import router as community_router, seed_community_groups
 
 
 Base.metadata.create_all(bind=engine)
+seed_community_groups()
 ensure_voice_journal_columns()
 ensure_diet_log_portion_column()
 
@@ -397,6 +399,7 @@ def generate_recommendation(menopause_stage: str, data: dict) -> dict:
 # --------------------------------------------------
 
 app = FastAPI()
+app.include_router(community_router)
 
 
 # --------------------------------------------------

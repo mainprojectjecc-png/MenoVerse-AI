@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from datetime import date, datetime
 from typing import Optional
 
@@ -307,3 +307,41 @@ class ShoppingListOut(BaseModel):
 class HydrationUpdate(BaseModel):
     LogDate: date
     Glasses: int
+
+
+class CommunityGroupOut(BaseModel):
+    groupId: int
+    name: str
+    focus: str
+    description: str
+    icon: str
+    accent: str
+    memberCount: int
+    isMember: bool
+
+
+class CommunityMembershipOut(BaseModel):
+    groupId: int
+    isMember: bool
+
+
+class CommunityMessageCreate(BaseModel):
+    content: str = Field(min_length=1, max_length=1000)
+
+    @field_validator("content")
+    @classmethod
+    def validate_content(cls, value: str) -> str:
+        content = value.strip()
+        if not content:
+            raise ValueError("Message cannot be blank.")
+        return content
+
+
+class CommunityMessageOut(BaseModel):
+    messageId: int
+    groupId: int
+    userId: int
+    author: str
+    content: str
+    createdAt: datetime
+    isMine: bool

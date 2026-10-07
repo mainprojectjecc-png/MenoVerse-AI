@@ -4,6 +4,7 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
+import { lazy, Suspense } from "react";
 
 import Layout from "./components/Layout";
 
@@ -23,6 +24,7 @@ import Profile from "./pages/Profile";
 import PerimenopauseGuide from "./pages/PerimenopauseGuide";
 import SymptomEducation from "./pages/SymptomEducation";
 import XAI from "./pages/XAI";
+const Community = lazy(() => import("./pages/Community"));
 
 function ProtectedRoute({ children }) {
   const user = localStorage.getItem("user")
@@ -83,6 +85,21 @@ function App() {
           <Route
             path="/insights"
             element={<Insights />}
+          />
+
+          <Route
+            path="/community"
+            element={
+              <Suspense
+                fallback={
+                  <div className="flex min-h-[50vh] items-center justify-center text-sm text-on-surface-variant" role="status">
+                    Opening your community...
+                  </div>
+                }
+              >
+                <Community />
+              </Suspense>
+            }
           />
 
           <Route

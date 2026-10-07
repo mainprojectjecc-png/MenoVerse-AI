@@ -1,581 +1,601 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Link } from "react-router-dom"
-import StatCard from "../components/StatCard"
 import api from "../api/axios"
-import { symptomSeverityLabel } from "../utils/symptomLabels"
+
+const EMPTY_DATA = {
+  risks: [],
+  recommendations: [],
+  cycles: [],
+  symptoms: [],
+}
+
+function formatDate(value, options = { month: "short", day: "numeric" }) {
+  if (!value) return "Not recorded"
+  const date = new Date(`${String(value).slice(0, 10)}T00:00:00`)
+  return Number.isNaN(date.getTime())
+    ? "Not recorded"
+    : date.toLocaleDateString(undefined, options)
+}
+
+function getDaysBetween(start, end = new Date()) {
+  const startDate = new Date(`${String(start).slice(0, 10)}T00:00:00`)
+  const endDate = new Date(end)
+  endDate.setHours(0, 0, 0, 0)
+  if (Number.isNaN(startDate.getTime())) return null
+  return Math.max(1, Math.floor((endDate - startDate) / 86_400_000) + 1)
+}
+
+function getSymptomCount(entry) {
+  if (!entry) return 0
+  return [
+    Number(entry.HotFlashes) > 0,
+    Boolean(entry.Mood && entry.Mood.toLowerCase() !== "none"),
+    Boolean(entry.SleepQuality && entry.SleepQuality.toLowerCase() !== "none"),
+    Number(entry.Fatigue) > 0,
+    Number(entry.Headache) > 0,
+  ].filter(Boolean).length
+}
+
+function shorten(value, maxLength = 118) {
+  if (!value) return ""
+  const text = String(value).trim()
+  return text.length > maxLength ? `${text.slice(0, maxLength).trim()}…` : text
+}
+
+function latestRecord(records, key) {
+  return records.reduce(
+    (latest, record) => (!latest || record[key] > latest[key] ? record : latest),
+    null,
+  )
+}
+
+function getTrendPoints(records, key) {
+  const left = 30
+  const top = 10
+  const width = 324
+  const height = 82
+
+  return records.map((entry, index) => {
+    const x = left + (records.length > 1 ? (index / (records.length - 1)) * width : width / 2)
+    const severity = Math.min(3, Math.max(0, Number(entry[key]) || 0))
+    const y = top + height - (severity / 3) * height
+    return `${x},${y}`
+  }).join(" ")
+}
+
+function SectionHeading({ eyebrow, title, to, linkLabel }) {
+  return (
+    <div className="mb-4 flex items-end justify-between gap-4">
+      <div>
+        {eyebrow && (
+          <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.17em] text-on-surface-variant">
+            {eyebrow}
+          </p>
+        )}
+        <h2 className="font-headline-md text-xl font-semibold text-on-surface sm:text-2xl">
+          {title}
+        </h2>
+      </div>
+      {to && (
+        <Link
+          to={to}
+          className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-primary transition-colors hover:text-tertiary sm:text-sm"
+        >
+          {linkLabel}
+          <span className="material-symbols-outlined text-[17px]">arrow_forward</span>
+        </Link>
+      )}
+    </div>
+  )
+}
+
+function Icon({ children, tone = "plum" }) {
+  const tones = {
+    plum: "bg-primary/10 text-primary",
+    rose: "bg-tertiary/10 text-tertiary",
+    sage: "bg-secondary/10 text-secondary",
+    gold: "bg-amber-100 text-amber-700",
+  }
+  return (
+    <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${tones[tone]}`}>
+      <span className="material-symbols-outlined text-[20px]">{children}</span>
+    </span>
+  )
+}
 
 function Dashboard() {
-  const stored = localStorage.getItem("user")
-  const user = stored ? JSON.parse(stored) : null
-  const firstName = user?.Name?.split(" ")[0] || "there"
+  const user = useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem("user") || "null")
+    } catch {
+      return null
+    }
+  }, [])
+  const firstName = user?.Name?.trim().split(/\s+/)[0] || "there"
   const userId = user?.UserID
-
-  const [risk, setRisk] = useState(null)
-  const [recommendation, setRecommendation] = useState(null)
-  const [cycle, setCycle] = useState(null)
-  const [symptom, setSymptom] = useState(null)
-  const [loadingRisk, setLoadingRisk] = useState(true)
+  const [data, setData] = useState(EMPTY_DATA)
+  const [communityGroups, setCommunityGroups] = useState([])
+  const [communityError, setCommunityError] = useState("")
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState("")
+  const [retryCount, setRetryCount] = useState(0)
 
   useEffect(() => {
-    const loadDashboardData = async () => {
-      try {
-        const [
-          riskRes,
-          recommendationRes,
-          cycleRes,
-          symptomRes,
-        ] = await Promise.all([
-          api.get(`/risk/${userId}`),
-          api.get(`/recommendation/${userId}`),
-          api.get(`/cycles/${userId}`),
-          api.get(`/symptoms/${userId}`),
-        ])
+    let active = true
 
-        const risks = riskRes.data
-        const recommendations = recommendationRes.data
-        const cycles = cycleRes.data
-        const symptoms = symptomRes.data
+    async function loadDashboard() {
+      setLoading(true)
+      setLoadError("")
+      setCommunityError("")
 
-        setRisk(
-          risks.length
-            ? risks[risks.length - 1]
-            : null
-        )
-
-        setRecommendation(
-          recommendations.length
-            ? recommendations[recommendations.length - 1]
-            : null
-        )
-
-        setCycle(
-          cycles.length
-            ? cycles[cycles.length - 1]
-            : null
-        )
-
-        setSymptom(
-          symptoms.length
-            ? symptoms[symptoms.length - 1]
-            : null
-        )
-      } catch (error) {
-        console.error("Failed to load dashboard data:", error)
-      } finally {
-        setLoadingRisk(false)
-      }
-    }
-
-    const loadInitialData = async () => {
-      await Promise.resolve()
       if (!userId) {
-        setLoadingRisk(false)
+        setLoadError("Your account details could not be found. Please sign in again.")
+        setLoading(false)
         return
       }
-      await loadDashboardData()
+
+      const results = await Promise.allSettled([
+        api.get(`/risk/${userId}`),
+        api.get(`/recommendation/${userId}`),
+        api.get(`/cycles/${userId}`),
+        api.get(`/symptoms/${userId}`),
+        api.get("/community/groups"),
+      ])
+
+      if (!active) return
+
+      const nextData = { ...EMPTY_DATA }
+      const keys = ["risks", "recommendations", "cycles", "symptoms"]
+      let failedRequests = 0
+
+      results.slice(0, 4).forEach((result, index) => {
+        if (result.status === "fulfilled" && Array.isArray(result.value.data)) {
+          nextData[keys[index]] = result.value.data
+        } else {
+          failedRequests += 1
+          if (result.status === "rejected") {
+            console.error(`Failed to load dashboard ${keys[index]}:`, result.reason)
+          }
+        }
+      })
+
+      setData(nextData)
+      const communityResult = results[4]
+      if (communityResult.status === "fulfilled" && Array.isArray(communityResult.value.data)) {
+        setCommunityGroups(communityResult.value.data)
+        setCommunityError("")
+      } else if (communityResult.status === "rejected") {
+        console.error("Failed to load dashboard community groups:", communityResult.reason)
+        setCommunityError(
+          communityResult.reason.response?.data?.detail
+            || "Support circles are temporarily unavailable.",
+        )
+      } else {
+        setCommunityError("Support circle information couldn't be loaded.")
+      }
+      setLoadError(
+        failedRequests
+          ? "Some of your wellness data couldn't be loaded. Please try again in a moment."
+          : "",
+      )
+      setLoading(false)
     }
 
-    void loadInitialData()
-  }, [userId])
+    void loadDashboard()
+    return () => {
+      active = false
+    }
+  }, [userId, retryCount])
+
+  const latestCycle = latestRecord(data.cycles, "StartDate")
+  const latestRisk = latestRecord(data.risks, "RiskID")
+  const latestRecommendation = latestRecord(data.recommendations, "RecommendationID")
+  const latestSymptom = latestRecord(data.symptoms, "LogDate")
+  const cycleDay = latestCycle ? getDaysBetween(latestCycle.StartDate) : null
+  const cycleLength = Number(latestCycle?.CycleLength) || 28
+  const daysUntilNextPeriod = cycleDay ? Math.max(cycleLength - cycleDay, 0) : null
+  const recentSymptoms = data.symptoms
+    .slice()
+    .sort((a, b) => String(a.LogDate).localeCompare(String(b.LogDate)))
+    .slice(-7)
+    .map((entry) => ({
+    date: formatDate(entry.LogDate, { day: "numeric", month: "short" }),
+    hotFlashes: Number(entry.HotFlashes) || 0,
+    fatigue: Number(entry.Fatigue) || 0,
+    headache: Number(entry.Headache) || 0,
+    }))
+  const greeting = new Date().getHours() < 12
+    ? "Good morning"
+    : new Date().getHours() < 18
+      ? "Good afternoon"
+      : "Good evening"
+  const formattedToday = new Date().toLocaleDateString(undefined, {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  })
+  const assessmentStage = latestRisk?.MenopauseStage || latestRisk?.RiskLevel
+  const joinedGroups = communityGroups.filter((group) => group.isMember)
 
   return (
-    <div className="min-h-screen bg-background text-on-surface pb-24 md:pb-0">
-
-      {/* MAIN CONTENT */}
-      <main className="max-w-[1100px] mx-auto px-margin-mobile md:px-margin-desktop py-10">
-
-        {/* GREETING */}
-        <section className="mb-12">
-          <h2 className="font-headline-xl text-headline-xl text-plum-deep mb-3">
-            Good morning, {firstName}.
-          </h2>
-
-          <p className="text-on-surface-variant flex items-center gap-2 font-medium">
-            <span
-              className="material-symbols-outlined text-tertiary"
-              style={{ fontVariationSettings: "'FILL' 1" }}
-            >
-              spa
-            </span>
-
-            {cycle ? (
-              <>
-                Cycle started on {cycle.StartDate}
-
-                <span className="text-tertiary font-bold">
-                  • {cycle.CycleLength}-day cycle
-                </span>
-              </>
-            ) : (
-              <>
-                No cycle data recorded
-
-                <span className="text-tertiary font-bold">
-                  • Add your cycle to start tracking
-                </span>
-              </>
-            )}
-          </p>
-        </section>
-
-        {/* WEEKLY INSIGHTS */}
-        <section className="mb-12">
-          <div className="bg-primary text-white rounded-2xl p-8 md:p-10 relative overflow-hidden soft-shadow">
-
-            <div className="absolute -right-10 -bottom-10 w-80 h-80 bg-white/10 rounded-full blur-3xl" />
-
-            <div className="absolute left-1/4 -top-20 w-40 h-40 bg-secondary/20 rounded-full blur-2xl" />
-
-            <div className="relative z-10 grid md:grid-cols-3 gap-8 items-center">
-
-              <div className="md:col-span-2">
-
-                <div className="flex items-center gap-2 mb-4">
-                  <span className="material-symbols-outlined text-secondary-container">
-                    auto_awesome
-                  </span>
-
-                  <h3 className="font-headline-md text-headline-md">
-                    Your Weekly Insights
-                  </h3>
-                </div>
-
-                <p className="text-lavender-mist font-body-lg mb-8 leading-relaxed">
-                  {loadingRisk
-    ? "Loading your latest health insights..."
-    : risk
-    ? risk.MenopauseStage
-      ? `Your latest assessment predicts ${risk.MenopauseStage}. Review your recommendations and recent symptoms to stay informed about your wellbeing.`
-      : `Your latest assessment recorded a ${risk.RiskLevel} stage-derived category. This dataset-based result is not a clinical risk estimate.`
-    : "Complete an assessment to receive personalized health insights and recommendations."}
-                </p>
-
-                <Link
-                  to="/assessment"
-                  className="bg-white text-primary px-8 py-3.5 rounded-xl font-label-md hover:bg-lavender-mist transition-all flex items-center gap-3 active:scale-95 shadow-md"
-                >
-                  <span
-                    className="material-symbols-outlined"
-                    style={{ fontVariationSettings: "'FILL' 1" }}
-                  >
-                    analytics
-                  </span>
-                  Complete Assessment
-                </Link>
-              </div>
-
-              <div className="hidden md:flex items-center justify-center">
-
-                <div className="aspect-square w-full rounded-2xl bg-white/10 border-4 border-white/10 flex items-center justify-center">
-
-                  <span className="material-symbols-outlined text-white/60 text-6xl">
-                    wb_twilight
-                  </span>
-
-                </div>
-
-              </div>
-
-            </div>
+    <div className="min-h-screen bg-background pb-24 text-on-surface lg:pb-10">
+      <main className="mx-auto max-w-[1360px] px-4 py-6 sm:px-7 sm:py-8 xl:px-10">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-4 sm:mb-7">
+          <div>
+            <p className="mb-2 inline-flex items-center gap-2 text-xs font-semibold tracking-wide text-on-surface-variant">
+              <span className="material-symbols-outlined text-[16px]">calendar_today</span>
+              {formattedToday}
+              <span className="h-1 w-1 rounded-full bg-outline" />
+              <span className="uppercase tracking-[0.12em]">Your wellness dashboard</span>
+            </p>
+            <h1 className="font-headline-xl text-3xl font-semibold tracking-tight text-primary sm:text-[2.5rem]">
+              {greeting}, {firstName}
+            </h1>
+            <p className="mt-1.5 text-sm leading-6 text-on-surface-variant sm:text-base">
+              Your personal space to check in, notice patterns, and find support.
+            </p>
           </div>
-        </section>
-
-        {/* DASHBOARD CARDS */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-gutter">
-
-          {/* RISK ASSESSMENT */}
-          <div className="md:col-span-5 bg-surface rounded-2xl p-8 soft-shadow border border-outline-variant/20 flex flex-col justify-between">
-
-            <div>
-
-              <div className="flex justify-between items-start mb-8">
-
-                <span className="font-label-md text-primary uppercase tracking-[0.1em] font-bold">
-                  Risk Category
-                </span>
-
-                <div className="bg-primary/10 p-2 rounded-full">
-                  <span className="material-symbols-outlined text-primary">
-                    error
-                  </span>
-                </div>
-
-              </div>
-
-              <h3 className="font-headline-md text-headline-md text-plum-deep mb-8">
-                Stage-derived risk category
-              </h3>
-
-              <div className="flex flex-col items-center py-6">
-
-                <div className="relative w-40 h-40 flex items-center justify-center rounded-full bg-surface-container-high/50 mb-6">
-
-                  <svg className="absolute inset-0 w-full h-full -rotate-90">
-
-                    <circle
-                      className="text-outline-variant/30"
-                      cx="80"
-                      cy="80"
-                      fill="transparent"
-                      r="70"
-                      stroke="currentColor"
-                      strokeWidth="8"
-                    />
-
-                    <circle
-                      className="text-primary"
-                      cx="80"
-                      cy="80"
-                      fill="transparent"
-                      r="70"
-                      stroke="currentColor"
-                      strokeDasharray="440"
-                      strokeDashoffset={
-                        loadingRisk
-                          ? 440
-                          : 440 - (440 * (risk?.RiskScore || 0))
-                      }
-                      strokeLinecap="round"
-                      strokeWidth="8"
-                    />
-
-                  </svg>
-
-                  <div className="text-center">
-
-                    <span className="font-headline-lg text-risk-high text-[44px]">
-                      {loadingRisk
-                        ? "--"
-                        : `${Math.round((risk?.RiskScore || 0) * 100)}%`}
-                    </span>
-
-                    <p className="text-label-sm font-bold text-on-surface-variant">
-                      model confidence
-                    </p>
-
-                  </div>
-
-                </div>
-
-                <div
-                  className="bg-primary text-white px-8 py-2.5 rounded-full font-label-md shadow-sm"
-                >
-                  {loadingRisk
-                    ? "Loading..."
-                    : risk?.MenopauseStage
-                      ? risk.MenopauseStage
-                      : risk?.RiskLevel || "No Assessment"}
-                </div>
-
-                <p className="mt-3 max-w-xs text-center text-xs leading-relaxed text-on-surface-variant">
-                  New predictions are derived from dataset menopause-stage labels, not clinical risk criteria.
-                </p>
-
-              </div>
-
-            </div>
-
-            {/* PERSONALIZED RECOMMENDATIONS */}
-            <div className="mt-8 p-5 bg-primary/5 rounded-2xl border border-primary/10">
-
-              <p className="text-body-md text-on-surface leading-relaxed mb-4">
-                <strong>Personalized Recommendations</strong>
-              </p>
-
-              {loadingRisk ? (
-                <p className="text-body-md text-on-surface-variant">
-                  Loading your recommendations...
-                </p>
-              ) : recommendation ? (
-                <div className="space-y-3 text-body-md text-on-surface">
-
-                  <p>
-                    <strong>Diet:</strong>{" "}
-                    {recommendation.DietPlan}
-                  </p>
-
-                  <p>
-                    <strong>Exercise:</strong>{" "}
-                    {recommendation.ExercisePlan}
-                  </p>
-
-                  <p>
-                    <strong>Yoga:</strong>{" "}
-                    {recommendation.YogaPlan}
-                  </p>
-
-                  <p>
-                    <strong>Lifestyle:</strong>{" "}
-                    {recommendation.LifestyleTips}
-                  </p>
-
-                </div>
-              ) : (
-                <p className="text-body-md text-on-surface-variant">
-                  Complete an assessment to receive personalized recommendations.
-                </p>
-              )}
-
-            </div>
-
-          </div>
-
-          {/* RIGHT SIDE CARDS */}
-          <div className="md:col-span-7 space-y-gutter">
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-gutter">
-
-              {/* HEART RATE */}
-              <StatCard
-                icon="favorite"
-                tone="risk-high"
-                label="Heart Rate"
-                value="—"
-                unit="No data"
-              />
-
-              {/* SLEEP */}
-              <StatCard
-                icon="nights_stay"
-                tone="primary"
-                label="Sleep"
-                value="—"
-                unit="No data"
-              />
-
-            </div>
-
-            {/* DAILY STEPS */}
-            <StatCard
-              variant="wide"
-              icon="footprint"
-              tone="risk-low"
-              label="Daily Steps"
-              value="—"
-              unit="No data"
-            />
-
-            {/* QUICK LOG SYMPTOMS */}
-            <div className="bg-surface rounded-2xl p-8 soft-shadow border-2 border-primary/10">
-
-              <div className="flex justify-between items-center mb-6">
-
-                <h4 className="font-headline-md text-plum-deep italic">
-                  Quick Log Symptoms
-                </h4>
-
-                <Link
-                  to="/symptoms"
-                  className="text-primary font-label-md hover:underline decoration-2 underline-offset-4"
-                >
-                  View History
-                </Link>
-
-              </div>
-
-              <div className="flex flex-wrap gap-4">
-
-                <Link
-                  to="/symptoms"
-                  className="px-6 py-3 rounded-xl border border-outline-variant text-on-surface-variant hover:bg-primary/5 hover:border-primary transition-all flex items-center gap-3 active:scale-95"
-                >
-                  <span className="material-symbols-outlined text-[20px] text-tertiary">
-                    wb_sunny
-                  </span>
-                  Hot Flashes
-                </Link>
-
-                <Link
-                  to="/symptoms"
-                  className="px-6 py-3 rounded-xl border border-outline-variant text-on-surface-variant hover:bg-primary/5 hover:border-primary transition-all flex items-center gap-3 active:scale-95"
-                >
-                  <span className="material-symbols-outlined text-[20px] text-tertiary">
-                    sentiment_dissatisfied
-                  </span>
-                  Mood Changes
-                </Link>
-
-                <Link
-                  to="/symptoms"
-                  className="px-6 py-3 rounded-xl border border-outline-variant text-on-surface-variant hover:bg-primary/5 hover:border-primary transition-all flex items-center gap-3 active:scale-95"
-                >
-                  <span className="material-symbols-outlined text-[20px] text-tertiary">
-                    battery_alert
-                  </span>
-                  Fatigue
-                </Link>
-
-                <Link
-                  to="/symptoms"
-                  className="px-6 py-3 rounded-xl border border-outline-variant text-on-surface-variant hover:bg-primary/5 hover:border-primary transition-all flex items-center gap-3 active:scale-95"
-                >
-                  <span className="material-symbols-outlined text-[20px] text-tertiary">
-                    sick
-                  </span>
-                  Headache
-                </Link>
-
-                <Link
-                  to="/symptoms"
-                  className="bg-primary text-white flex items-center justify-center w-12 h-12 rounded-xl active:scale-95 transition-all shadow-md"
-                  aria-label="Add symptom"
-                >
-                  <span className="material-symbols-outlined">
-                    add
-                  </span>
-                </Link>
-
-              </div>
-
-            </div>
-
-            {/* LATEST SYMPTOMS */}
-            {symptom && (
-              <div className="bg-surface rounded-2xl p-8 soft-shadow border border-outline-variant/20 mt-gutter">
-
-                <h4 className="font-headline-md text-plum-deep mb-5">
-                  Latest Symptoms
-                </h4>
-
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-
-                  <div>
-                    <p className="text-label-sm text-on-surface-variant">
-                      Hot Flashes
-                    </p>
-                    <p className="font-bold">
-                      {symptomSeverityLabel(symptom.HotFlashes)}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-label-sm text-on-surface-variant">
-                      Mood
-                    </p>
-                    <p className="font-bold capitalize">
-                      {symptom.Mood}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-label-sm text-on-surface-variant">
-                      Sleep Quality
-                    </p>
-                    <p className="font-bold capitalize">
-                      {symptom.SleepQuality}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-label-sm text-on-surface-variant">
-                      Fatigue
-                    </p>
-                    <p className="font-bold">
-                      {symptomSeverityLabel(symptom.Fatigue)}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-label-sm text-on-surface-variant">
-                      Headache
-                    </p>
-                    <p className="font-bold">
-                      {symptomSeverityLabel(symptom.Headache)}
-                    </p>
-                  </div>
-
-                </div>
-
-                <p className="text-label-sm text-on-surface-variant mt-5">
-                  Logged on {symptom.LogDate}
-                </p>
-
-              </div>
-            )}
-
-          </div>
+          <Link
+            to="/symptoms"
+            className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-[0_8px_20px_-10px_rgba(91,42,110,0.65)] transition hover:-translate-y-0.5 hover:bg-plum-deep hover:shadow-md focus-visible:outline-offset-4"
+          >
+            <span className="material-symbols-outlined text-[19px]">add</span>
+            Log a check-in
+          </Link>
         </div>
 
-        {/* MENO VERSE WATCH */}
-        <section className="mt-12">
-
-          <div className="bg-surface-container-high rounded-3xl p-8 md:p-10 flex flex-col md:flex-row items-center justify-between gap-8 soft-shadow border border-white/50">
-
-            <div className="text-center md:text-left flex-1">
-
-              <h3 className="font-headline-md text-plum-deep mb-2">
-                MenoVerse Watch S3
-              </h3>
-
-              <p className="text-on-surface-variant text-label-md mb-8 flex items-center justify-center md:justify-start gap-2 font-medium">
-
-                <span className="w-2.5 h-2.5 rounded-full bg-risk-low shadow-[0_0_8px_rgba(132,165,157,0.6)]" />
-
-                No data available
-
-              </p>
-
-              <div className="flex gap-8 justify-center md:justify-start">
-
-                <div className="flex flex-col items-center">
-
-                  <span className="material-symbols-outlined text-primary mb-2 text-[28px]">
-                    battery_charging_90
-                  </span>
-
-                  <span className="text-label-sm font-bold">
-                    —
-                  </span>
-
-                </div>
-
-                <div className="flex flex-col items-center">
-
-                  <span className="material-symbols-outlined text-primary mb-2 text-[28px]">
-                    sync
-                  </span>
-
-                  <span className="text-label-sm font-bold">
-                    No data
-                  </span>
-
-                </div>
-
+        {loadError && (
+          <div role="alert" className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-risk-high/20 bg-white px-4 py-3.5 text-sm text-risk-high shadow-sm">
+            <div className="flex min-w-0 items-start gap-3">
+              <span className="material-symbols-outlined mt-0.5 text-[20px]">cloud_off</span>
+              <div>
+                <p className="font-semibold">Some information is unavailable</p>
+                <p className="mt-0.5 text-xs leading-5 text-on-surface-variant">{loadError}</p>
               </div>
-
             </div>
-
-            <div className="w-full md:w-64 aspect-[4/3] bg-surface rounded-2xl flex items-center justify-center p-6 shadow-inner border border-outline-variant/10">
-
-              <span className="material-symbols-outlined text-primary text-6xl">
-                watch
-              </span>
-
-            </div>
-
+            {userId ? (
+              <button
+                type="button"
+                onClick={() => setRetryCount((count) => count + 1)}
+                disabled={loading}
+                className="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-lg border border-outline-variant/70 px-3 py-2 text-xs font-semibold text-primary transition hover:bg-surface-container disabled:cursor-wait disabled:opacity-60"
+              >
+                <span className={`material-symbols-outlined text-[17px] ${loading ? "animate-spin" : ""}`}>refresh</span>
+                {loading ? "Trying again…" : "Try again"}
+              </button>
+            ) : (
+              <Link to="/login" className="shrink-0 text-xs font-semibold text-primary underline underline-offset-4">
+                Sign in again
+              </Link>
+            )}
           </div>
+        )}
 
+        <section aria-label="Wellness summary" className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <Link
+            to="/cycle"
+            className="group rounded-2xl border border-outline-variant/50 bg-white p-4 shadow-[0_12px_32px_-26px_rgba(43,21,56,0.38)] transition hover:-translate-y-0.5 hover:border-tertiary/35 hover:shadow-md sm:p-5"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-tertiary/10 text-tertiary">
+                <span className="material-symbols-outlined text-[21px]">calendar_month</span>
+              </span>
+              <span className="material-symbols-outlined text-[18px] text-on-surface-variant transition-transform group-hover:translate-x-0.5">arrow_outward</span>
+            </div>
+            <p className="mt-4 text-xs font-medium text-on-surface-variant">Cycle overview</p>
+            <p className="mt-1 font-headline-md text-xl font-semibold text-on-surface">
+              {loading ? "Loading…" : cycleDay ? `Day ${cycleDay}` : "Add cycle"}
+            </p>
+            <p className="mt-1 text-xs text-on-surface-variant">
+              {latestCycle ? `Started ${formatDate(latestCycle.StartDate)}` : "Keep your cycle details in one place"}
+            </p>
+          </Link>
+
+          <Link
+            to="/symptoms"
+            className="group rounded-2xl border border-outline-variant/50 bg-white p-4 shadow-[0_12px_32px_-26px_rgba(43,21,56,0.38)] transition hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md sm:p-5"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <span className="material-symbols-outlined text-[21px]">edit_note</span>
+              </span>
+              <span className="material-symbols-outlined text-[18px] text-on-surface-variant transition-transform group-hover:translate-x-0.5">arrow_outward</span>
+            </div>
+            <p className="mt-4 text-xs font-medium text-on-surface-variant">Latest check-in</p>
+            <p className="mt-1 font-headline-md text-xl font-semibold text-on-surface">
+              {loading ? "Loading…" : latestSymptom ? formatDate(latestSymptom.LogDate) : "Not logged yet"}
+            </p>
+            <p className="mt-1 text-xs text-on-surface-variant">
+              {latestSymptom ? `${getSymptomCount(latestSymptom)} symptoms noted` : "A quick check-in can help you spot patterns"}
+            </p>
+          </Link>
+
+          <Link
+            to="/community"
+            className="group rounded-2xl border border-outline-variant/50 bg-gradient-to-br from-white to-[#f7eff8] p-4 shadow-[0_12px_32px_-26px_rgba(43,21,56,0.38)] transition hover:-translate-y-0.5 hover:border-secondary/30 hover:shadow-md sm:col-span-2 sm:p-5 xl:col-span-1"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary/10 text-secondary">
+                <span className="material-symbols-outlined text-[21px]">diversity_3</span>
+              </span>
+              <span className="material-symbols-outlined text-[18px] text-on-surface-variant transition-transform group-hover:translate-x-0.5">arrow_outward</span>
+            </div>
+            <p className="mt-4 text-xs font-medium text-on-surface-variant">Your support circles</p>
+            <p className="mt-1 font-headline-md text-xl font-semibold text-on-surface">
+              {loading ? "Loading…" : joinedGroups.length ? `${joinedGroups.length} joined` : "Find your people"}
+            </p>
+            <p className="mt-1 text-xs text-on-surface-variant">Support feels better when it is shared</p>
+          </Link>
         </section>
 
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1.65fr)_minmax(290px,0.9fr)]">
+          <div className="space-y-5">
+            <section className="grid gap-5 md:grid-cols-2">
+              <article className="rounded-2xl border border-outline-variant/55 bg-white p-5 shadow-[0_14px_38px_-28px_rgba(43,21,56,0.36)] sm:p-6">
+                <SectionHeading eyebrow="Cycle tracker" title="Your cycle at a glance" to="/cycle" linkLabel="View calendar" />
+                {loading ? (
+                  <div className="h-32 animate-pulse rounded-2xl bg-surface-container" />
+                ) : latestCycle ? (
+                  <div className="flex items-center gap-5">
+                    <div
+                      className="relative flex h-32 w-32 shrink-0 items-center justify-center rounded-full"
+                      style={{ background: `conic-gradient(#cf6d98 ${Math.min((cycleDay / cycleLength) * 100, 100)}%, #f1e9f2 0)` }}
+                    >
+                      <div className="flex h-[106px] w-[106px] flex-col items-center justify-center rounded-full bg-white">
+                        <span className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-variant">Cycle day</span>
+                        <span className="font-headline-lg text-3xl font-semibold text-primary">{cycleDay}</span>
+                        <span className="text-[11px] text-on-surface-variant">of {cycleLength}</span>
+                      </div>
+                    </div>
+                    <div className="min-w-0 space-y-3 text-sm">
+                      <div>
+                        <p className="text-xs text-on-surface-variant">Last period began</p>
+                        <p className="mt-0.5 font-semibold text-on-surface">{formatDate(latestCycle.StartDate)}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-on-surface-variant">Next period estimate</p>
+                        <p className="mt-0.5 font-semibold text-on-surface">
+                          {daysUntilNextPeriod === 0 ? "Expected soon" : `About ${daysUntilNextPeriod} days`}
+                        </p>
+                      </div>
+                      <p className="text-xs leading-5 text-on-surface-variant">An estimate based on your recorded cycle length.</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="rounded-2xl bg-surface-container/70 px-4 py-5">
+                    <p className="text-sm text-on-surface-variant">Add a cycle entry to see your personal cycle overview.</p>
+                    <Link to="/cycle" className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-primary">
+                      Add cycle data <span className="material-symbols-outlined text-[17px]">arrow_forward</span>
+                    </Link>
+                  </div>
+                )}
+              </article>
+
+              <article className="rounded-2xl border border-outline-variant/55 bg-white p-5 shadow-[0_14px_38px_-28px_rgba(43,21,56,0.36)] sm:p-6">
+                <SectionHeading eyebrow="Your patterns" title="Symptom trends" to="/symptoms" linkLabel="Log symptoms" />
+                {loading ? (
+                  <div className="h-32 animate-pulse rounded-2xl bg-surface-container" />
+                ) : recentSymptoms.length ? (
+                  <>
+                    <div className="mb-3 flex flex-wrap gap-x-4 gap-y-2 text-xs font-medium text-on-surface-variant">
+                      <span className="inline-flex items-center gap-1.5"><i className="h-2 w-2 rounded-full bg-tertiary" />Hot flashes</span>
+                      <span className="inline-flex items-center gap-1.5"><i className="h-2 w-2 rounded-full bg-primary" />Fatigue</span>
+                      <span className="inline-flex items-center gap-1.5"><i className="h-2 w-2 rounded-full bg-secondary" />Headache</span>
+                    </div>
+                    <div className="h-32 w-full">
+                      <svg
+                        className="h-full w-full overflow-visible"
+                        viewBox="0 0 360 132"
+                        preserveAspectRatio="none"
+                        role="img"
+                        aria-label="Recent symptom severity trends from zero to three"
+                      >
+                        {[0, 1, 2, 3].map((level) => {
+                          const y = 10 + 82 - (level / 3) * 82
+                          return (
+                            <g key={level}>
+                              <line x1="30" x2="354" y1={y} y2={y} stroke="#efe8f0" strokeDasharray="4 4" />
+                              <text x="20" y={y + 3} textAnchor="end" fill="#84778a" fontSize="9">{level}</text>
+                            </g>
+                          )
+                        })}
+                        {recentSymptoms.map((entry, index) => {
+                          const x = 30 + (recentSymptoms.length > 1 ? (index / (recentSymptoms.length - 1)) * 324 : 162)
+                          return (
+                            <text key={`${entry.date}-${index}`} x={x} y="116" textAnchor="middle" fill="#84778a" fontSize="9">
+                              {entry.date}
+                            </text>
+                          )
+                        })}
+                        <polyline points={getTrendPoints(recentSymptoms, "hotFlashes")} fill="none" stroke="#cf6d98" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+                        <polyline points={getTrendPoints(recentSymptoms, "fatigue")} fill="none" stroke="#775187" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+                        <polyline points={getTrendPoints(recentSymptoms, "headache")} fill="none" stroke="#4a9a8b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+                      </svg>
+                    </div>
+                  </>
+                ) : (
+                  <div className="rounded-2xl bg-surface-container/70 px-4 py-5">
+                    <p className="text-sm text-on-surface-variant">Your symptom history will appear here as you log entries.</p>
+                    <Link to="/symptoms" className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-primary">
+                      Log your first entry <span className="material-symbols-outlined text-[17px]">arrow_forward</span>
+                    </Link>
+                  </div>
+                )}
+              </article>
+            </section>
+
+            <section>
+              <SectionHeading eyebrow="Care that fits you" title="Personalized recommendations" to="/insights" linkLabel="See all" />
+              <div className="grid gap-3 sm:grid-cols-2">
+                {[
+                  { title: "Nutrition", description: latestRecommendation?.DietPlan, fallback: "Explore simple, nourishing ideas for your everyday routine.", icon: "nutrition", tone: "rose", to: "/nutrition", label: "Explore nutrition" },
+                  { title: "Movement", description: latestRecommendation?.ExercisePlan || latestRecommendation?.YogaPlan, fallback: "Find gentle movement and restorative practices at your pace.", icon: "self_improvement", tone: "sage", to: "/exercise", label: "Explore movement" },
+                ].map((item) => (
+                  <Link key={item.title} to={item.to} className="group rounded-2xl border border-outline-variant/55 bg-white p-4 shadow-[0_14px_38px_-30px_rgba(43,21,56,0.36)] transition hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md">
+                    <div className="flex items-start gap-3">
+                      <Icon tone={item.tone}>{item.icon}</Icon>
+                      <div className="min-w-0">
+                        <h3 className="text-sm font-semibold text-on-surface">{item.title}</h3>
+                        <p className="mt-1 text-xs leading-5 text-on-surface-variant">{shorten(item.description, 100) || item.fallback}</p>
+                        <span className="mt-3 inline-flex items-center gap-1 text-[11px] font-semibold text-primary">
+                          {item.label}<span className="material-symbols-outlined text-[15px] transition-transform group-hover:translate-x-0.5">arrow_forward</span>
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </section>
+
+            <section className="rounded-2xl border border-outline-variant/55 bg-white p-5 shadow-[0_14px_38px_-28px_rgba(43,21,56,0.36)] sm:p-6">
+              <SectionHeading eyebrow="A thoughtful check-in" title="Your recent health notes" to="/insights" linkLabel="View insights" />
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div className="flex items-start gap-3">
+                  <Icon tone="rose">edit_note</Icon>
+                  <div>
+                    <p className="text-xs text-on-surface-variant">Latest symptom log</p>
+                    <p className="mt-1 text-sm font-semibold text-on-surface">{formatDate(latestSymptom?.LogDate)}</p>
+                    <p className="mt-0.5 text-xs text-on-surface-variant">{getSymptomCount(latestSymptom)} symptoms noted</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Icon tone="plum">psychology</Icon>
+                  <div>
+                    <p className="text-xs text-on-surface-variant">Latest assessment</p>
+                    <p className="mt-1 text-sm font-semibold text-on-surface">{assessmentStage || "Not yet completed"}</p>
+                    <p className="mt-0.5 text-xs text-on-surface-variant">For personal awareness, not diagnosis</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Icon tone="sage">favorite</Icon>
+                  <div>
+                    <p className="text-xs text-on-surface-variant">Your next step</p>
+                    <Link to={latestRecommendation ? "/insights" : "/assessment"} className="mt-1 inline-block text-sm font-semibold text-on-surface hover:text-primary">
+                      {latestRecommendation ? "Review your care plan" : "Start with an assessment"}
+                    </Link>
+                    <p className="mt-0.5 text-xs text-on-surface-variant">Move forward at your own pace</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <aside className="space-y-5">
+            <section className="rounded-2xl border border-outline-variant/55 bg-white p-5 shadow-[0_14px_38px_-28px_rgba(43,21,56,0.36)] sm:p-6">
+              <SectionHeading eyebrow="Today at a glance" title="Your overview" />
+              <div className="space-y-1">
+                <Link to="/cycle" className="flex items-center justify-between gap-3 rounded-xl px-3 py-3 transition hover:bg-surface-container/75">
+                  <span className="flex items-center gap-3"><Icon tone="rose">calendar_month</Icon><span className="text-sm font-medium">Cycle day</span></span>
+                  <span className="text-sm font-semibold text-on-surface">{loading ? "—" : cycleDay || "—"}</span>
+                </Link>
+                <Link to="/symptoms" className="flex items-center justify-between gap-3 rounded-xl px-3 py-3 transition hover:bg-surface-container/75">
+                  <span className="flex items-center gap-3"><Icon tone="plum">edit_note</Icon><span className="text-sm font-medium">In latest check-in</span></span>
+                  <span className="text-sm font-semibold text-on-surface">{loading ? "—" : getSymptomCount(latestSymptom)}</span>
+                </Link>
+                <Link to="/cycle" className="flex items-center justify-between gap-3 rounded-xl px-3 py-3 transition hover:bg-surface-container/75">
+                  <span className="flex items-center gap-3"><Icon tone="sage">water_drop</Icon><span className="text-sm font-medium">Next period estimate</span></span>
+                  <span className="text-right text-xs font-semibold text-on-surface">
+                    {loading || daysUntilNextPeriod === null
+                      ? "—"
+                      : daysUntilNextPeriod === 0
+                        ? "Expected soon"
+                        : `~${daysUntilNextPeriod} days`}
+                  </span>
+                </Link>
+                <Link to="/assessment" className="flex items-center justify-between gap-3 rounded-xl px-3 py-3 transition hover:bg-surface-container/75">
+                  <span className="flex items-center gap-3"><Icon tone="gold">auto_awesome</Icon><span className="text-sm font-medium">Assessment</span></span>
+                  <span className="text-right text-xs font-semibold text-on-surface">{assessmentStage || "Get started"}</span>
+                </Link>
+              </div>
+              <p className="mt-3 border-t border-outline-variant/50 pt-3 text-xs leading-5 text-on-surface-variant">
+                Cycle dates are estimates based on the information you have logged.
+              </p>
+            </section>
+
+            <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-[#43234f] p-5 text-white shadow-[0_18px_42px_-24px_rgba(55,28,69,0.58)] sm:p-6">
+              <div className="flex items-center gap-2 text-tertiary-container">
+                <span className="material-symbols-outlined text-[20px]">psychology</span>
+                <p className="text-[10px] font-bold uppercase tracking-[0.16em]">Assessment insight</p>
+              </div>
+              <h2 className="mt-3 font-headline-md text-xl font-semibold">
+                {loading ? "Gathering your insights…" : assessmentStage || "Your story, understood"}
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-white/75">
+                {latestRisk?.Explanation
+                  ? shorten(latestRisk.Explanation, 170)
+                  : "Complete an assessment to explore a personalized, dataset-based overview of your current pattern."}
+              </p>
+              {typeof latestRisk?.RiskScore === "number" && (
+                <p className="mt-3 text-xs text-white/65">
+                  Model confidence: {Math.round(latestRisk.RiskScore * 100)}% · Not a clinical risk estimate
+                </p>
+              )}
+              <Link to={latestRisk ? "/insights" : "/assessment"} className="mt-5 inline-flex items-center gap-2 rounded-xl bg-white/12 px-3.5 py-2.5 text-xs font-semibold text-white transition hover:bg-white/20">
+                {latestRisk ? "View full assessment" : "Begin your assessment"}
+                <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+              </Link>
+            </section>
+
+            <section className="rounded-2xl border border-outline-variant/55 bg-white p-5 shadow-[0_14px_38px_-28px_rgba(43,21,56,0.36)] sm:p-6">
+              <div className="flex items-start gap-3">
+                <Icon tone="sage">diversity_3</Icon>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-secondary">Women supporting women</p>
+                  <h2 className="mt-1 font-headline-md text-lg font-semibold text-on-surface">
+                    You don&apos;t have to figure it out alone.
+                  </h2>
+                  <p className="mt-1 text-sm leading-6 text-on-surface-variant">
+                    Find a support circle and connect with women navigating midlife too.
+                  </p>
+                  {joinedGroups.length > 0 && (
+                    <p className="mt-2 text-[11px] font-medium text-secondary">
+                      {joinedGroups.slice(0, 2).map((group) => group.name).join(" · ")}
+                    </p>
+                  )}
+                  {communityError && (
+                    <p role="status" className="mt-2 text-xs leading-5 text-risk-high">
+                      {communityError}
+                    </p>
+                  )}
+                  <Link to="/community" className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:text-tertiary">
+                    {joinedGroups.length ? "Open your circles" : "Explore support circles"}
+                    <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                  </Link>
+                </div>
+              </div>
+            </section>
+
+            <section className="rounded-2xl border border-outline-variant/55 bg-white p-5 shadow-[0_14px_38px_-28px_rgba(43,21,56,0.36)] sm:p-6">
+              <SectionHeading eyebrow="Small steps count" title="Quick actions" />
+              <div className="space-y-2">
+                {[
+                  { label: "Log symptoms", icon: "edit_note", to: "/symptoms", tone: "rose" },
+                  { label: "Add cycle data", icon: "calendar_add_on", to: "/cycle", tone: "plum" },
+                  { label: "Get an assessment", icon: "auto_awesome", to: "/assessment", tone: "gold" },
+                  { label: "Explore gentle movement", icon: "self_improvement", to: "/exercise", tone: "sage" },
+                  { label: "Meet your community", icon: "diversity_3", to: "/community", tone: "rose" },
+                ].map((action) => (
+                  <Link key={action.to} to={action.to} className="group flex items-center justify-between gap-3 rounded-xl border border-outline-variant/50 px-3 py-2.5 transition hover:border-primary/25 hover:bg-surface-container/65">
+                    <span className="flex items-center gap-3">
+                      <Icon tone={action.tone}>{action.icon}</Icon>
+                      <span className="text-xs font-semibold text-on-surface">{action.label}</span>
+                    </span>
+                    <span className="material-symbols-outlined text-[18px] text-on-surface-variant transition-transform group-hover:translate-x-0.5">chevron_right</span>
+                  </Link>
+                ))}
+              </div>
+            </section>
+
+            <section className="rounded-3xl border border-tertiary/10 bg-gradient-to-br from-[#f8eaf1] to-[#f7f1f6] p-5 sm:p-6">
+              <span className="material-symbols-outlined text-tertiary">favorite</span>
+              <p className="mt-2 font-headline-md text-lg font-semibold text-primary">A gentle reminder</p>
+              <p className="mt-1 text-xs leading-5 text-on-surface-variant">
+                Your wellbeing is personal. Take what feels helpful, and leave room for your own pace.
+              </p>
+            </section>
+          </aside>
+        </div>
       </main>
-
-      {/* FLOATING VOICE JOURNAL BUTTON */}
-      <div className="fixed bottom-28 right-6 md:bottom-12 md:right-12 z-40">
-
-        <Link
-          to="/journal"
-          className="bg-tertiary text-white w-16 h-16 rounded-2xl flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 group"
-          aria-label="Voice Journal"
-        >
-
-          <span className="material-symbols-outlined text-[32px] group-hover:scale-110 transition-transform">
-            mic
-          </span>
-
-        </Link>
-
-      </div>
-
     </div>
   )
 }

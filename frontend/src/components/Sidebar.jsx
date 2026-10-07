@@ -1,18 +1,33 @@
 import { Link, useLocation } from "react-router-dom"
 
-const navLinks = [
-  { to: "/dashboard", icon: "home", label: "Dashboard" },
-  { to: "/assessment", icon: "fact_check", label: "Assessment" },
-  { to: "/cycle", icon: "calendar_month", label: "Cycle Tracking" },
-  { to: "/symptoms", icon: "edit_note", label: "Symptoms" },
-  { to: "/journal", icon: "mic", label: "Voice Journal" },
-  { to: "/insights", icon: "analytics", label: "Insights" },
-  { to: "/xai", icon: "psychology", label: "AI Explanation" },
-  { to: "/nutrition", icon: "restaurant", label: "Nutrition" },
-  { to: "/diet", icon: "restaurant_menu", label: "Diet" },
-  { to: "/exercise", icon: "fitness_center", label: "Exercise" },
-  { to: "/education", icon: "menu_book", label: "Education" },
-  { to: "/profile", icon: "person", label: "Profile" },
+const navGroups = [
+  {
+    label: "Your health",
+    links: [
+      { to: "/dashboard", icon: "home", label: "Home" },
+      { to: "/cycle", icon: "calendar_month", label: "Cycle tracker" },
+      { to: "/symptoms", icon: "edit_note", label: "Symptoms" },
+      { to: "/insights", icon: "analytics", label: "Health insights" },
+      { to: "/community", icon: "diversity_3", label: "Community" },
+    ],
+  },
+  {
+    label: "Personalized care",
+    links: [
+      { to: "/assessment", icon: "fact_check", label: "Assessment" },
+      { to: "/xai", icon: "psychology", label: "AI explanation" },
+      { to: "/journal", icon: "mic", label: "Voice journal" },
+    ],
+  },
+  {
+    label: "Wellbeing",
+    links: [
+      { to: "/nutrition", icon: "restaurant", label: "Nutrition" },
+      { to: "/diet", icon: "restaurant_menu", label: "Meal ideas" },
+      { to: "/exercise", icon: "fitness_center", label: "Movement" },
+      { to: "/education", icon: "menu_book", label: "Learn" },
+    ],
+  },
 ]
 
 function Sidebar({ collapsed }) {
@@ -35,9 +50,10 @@ function Sidebar({ collapsed }) {
     <aside
       className={`
         hidden lg:flex fixed left-0 top-0 bottom-0 z-40
-        border-r border-outline-variant/70 bg-white
+        border-r border-outline-variant/50 bg-white
         flex-col
         transition-all duration-300 ease-in-out
+        shadow-[8px_0_32px_-28px_rgba(43,21,56,0.28)]
         ${collapsed ? "w-20" : "w-72"}
       `}
     >
@@ -45,20 +61,20 @@ function Sidebar({ collapsed }) {
       {/* LOGO */}
       <Link
         to="/dashboard"
-        className={`flex h-[76px] shrink-0 items-center border-b border-outline-variant/60 transition-all duration-300 ${
-          collapsed ? "justify-center px-2" : "gap-3 px-6"
+        className={`flex h-[76px] shrink-0 items-center border-b border-outline-variant/50 transition-all duration-300 ${
+          collapsed ? "justify-center px-2" : "gap-3 px-5"
         }`}
       >
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-base font-bold text-white shadow-sm">
-          M
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+          <span className="material-symbols-outlined text-[23px]">spa</span>
         </span>
         {!collapsed && (
           <span>
             <span className="block font-headline-md text-lg font-semibold leading-tight text-primary">
-              MenoVerse
+              MenoVerse AI
             </span>
-            <span className="mt-0.5 block text-[10px] font-semibold uppercase tracking-[0.16em] text-on-surface-variant">
-              Wellness
+            <span className="mt-0.5 block text-[10px] font-medium tracking-wide text-on-surface-variant">
+              Your personal wellness space
             </span>
           </span>
         )}
@@ -66,56 +82,53 @@ function Sidebar({ collapsed }) {
 
       {/* NAVIGATION */}
       <div className="flex-1 overflow-y-auto px-3 py-5">
-        {!collapsed && (
-          <p className="mb-3 px-4 text-[10px] font-bold uppercase tracking-[0.18em] text-on-surface-variant/80">
-            Your workspace
-          </p>
-        )}
-        <nav className="flex flex-col gap-1.5">
+        <nav aria-label="Main navigation" className="flex flex-col gap-5">
+          {navGroups.map((group) => (
+            <div key={group.label}>
+              {!collapsed && (
+                <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.15em] text-on-surface-variant/75">
+                  {group.label}
+                </p>
+              )}
+              <div className="flex flex-col gap-1">
+                {group.links.map((link) => {
+                  const active =
+                    location.pathname === link.to ||
+                    location.pathname.startsWith(`${link.to}/`)
 
-          {navLinks.map((link) => {
-            const active =
-              location.pathname === link.to ||
-              location.pathname.startsWith(`${link.to}/`)
-
-            return (
-              <Link
-                key={link.to}
-                to={link.to}
-                title={collapsed ? link.label : undefined}
-                className={`
-                  flex items-center
-                  rounded-full
-                  transition-all duration-200
-                  ${collapsed
-                    ? "justify-center w-14 h-14 mx-auto"
-                    : "gap-3 px-4 py-3 w-full"
-                  }
-                  ${
-                    active
-                      ? "bg-primary text-white font-semibold shadow-sm"
-                      : "text-on-surface-variant hover:bg-surface-container hover:text-primary"
-                  }
-                `}
-              >
-                <span className={`material-symbols-outlined shrink-0 text-[21px] ${active ? "text-white" : ""}`}>
-                  {link.icon}
-                </span>
-
-                {!collapsed && (
-                  <span className="text-[14px] whitespace-nowrap">
-                    {link.label}
-                  </span>
-                )}
-              </Link>
-            )
-          })}
-
+                  return (
+                    <Link
+                      key={link.to}
+                      to={link.to}
+                      title={collapsed ? link.label : undefined}
+                      aria-current={active ? "page" : undefined}
+                      className={`flex items-center rounded-xl transition-all duration-200 ${
+                        collapsed
+                          ? "mx-auto h-12 w-12 justify-center"
+                          : "w-full gap-3 px-3 py-2.5"
+                      } ${
+                        active
+                          ? "bg-primary/10 font-semibold text-primary"
+                          : "text-on-surface-variant hover:bg-surface-container/80 hover:text-primary"
+                      }`}
+                    >
+                      <span className="material-symbols-outlined shrink-0 text-[20px]">
+                        {link.icon}
+                      </span>
+                      {!collapsed && (
+                        <span className="truncate text-[13px]">{link.label}</span>
+                      )}
+                    </Link>
+                  )
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
       </div>
 
       {/* USER PROFILE */}
-      <div className="shrink-0 border-t border-outline-variant/60 p-4">
+      <div className="shrink-0 border-t border-outline-variant/50 p-3">
 
         {collapsed ? (
           <Link
@@ -128,7 +141,7 @@ function Sidebar({ collapsed }) {
         ) : (
           <Link
             to="/profile"
-            className="flex items-center gap-3 rounded-xl border border-outline-variant/60 bg-background/70 p-3 transition-colors hover:bg-surface-container"
+            className="flex items-center gap-3 rounded-2xl border border-outline-variant/55 bg-background/75 p-3 transition-colors hover:bg-surface-container"
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary-container text-sm font-bold text-on-secondary-container">
               {initials}

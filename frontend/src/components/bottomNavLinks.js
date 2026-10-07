@@ -4,4 +4,5 @@ export const bottomNavLinks = [
   { to: "/symptoms", icon: "edit_note", label: "Symptoms" },
   { to: "/diet", icon: "restaurant_menu", label: "Diet" },
   { to: "/insights", icon: "analytics", label: "Insights" },
+  { to: "/community", icon: "diversity_3", label: "Community" },
 ]

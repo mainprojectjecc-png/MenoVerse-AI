@@ -55,7 +55,7 @@ export default function Layout() {
         <header
           className="
             sticky top-0 z-30 flex h-[76px] items-center gap-4
-            border-b border-outline-variant/70 bg-white/85 px-4 backdrop-blur-xl
+            border-b border-outline-variant/55 bg-white/90 px-4 shadow-[0_8px_28px_-26px_rgba(43,21,56,0.45)] backdrop-blur-xl
             sm:px-6 lg:px-8
           "
         >
@@ -117,15 +117,15 @@ export default function Layout() {
           </div>
 
           <Link to="/dashboard" className="flex min-w-0 items-center gap-3">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-sm font-bold text-white shadow-sm">
-              M
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <span className="material-symbols-outlined text-[21px]">spa</span>
             </span>
-            <span className="hidden font-headline-md text-lg font-semibold text-primary sm:inline">
+            <span className="hidden font-headline-md text-lg font-semibold text-primary sm:inline lg:hidden">
               MenoVerse
             </span>
           </Link>
 
-          <div className="mx-1 h-8 w-px bg-outline-variant/70" />
+          <div className="mx-1 hidden h-8 w-px bg-outline-variant/70 sm:block" />
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-on-surface">
               {activeLink?.label || "Your wellness"}

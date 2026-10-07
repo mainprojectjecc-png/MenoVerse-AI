@@ -309,6 +309,14 @@ Frontend cleanup
 - Fictional AI claims were removed from the user-facing interface.
 - Unsupported Google/Apple OAuth shortcuts and Forgot Password shortcuts were removed from the login experience.
 
+Community
+- GET /community/groups returns the available support circles, actual membership counts, and whether the authenticated user has joined each group.
+- POST /community/groups/{group_id}/join joins a support circle. Repeating the request is safe.
+- DELETE /community/groups/{group_id}/join leaves a support circle.
+- GET /community/groups/{group_id}/messages?limit=50 returns the latest messages only to group members. The limit must be between 1 and 100.
+- POST /community/groups/{group_id}/messages sends a message to a group the authenticated user has joined. Message content must contain 1 to 1000 non-whitespace characters.
+- Community group definitions are seeded at startup. Membership and messages are stored in the database and are visible to authenticated members of the selected group.
+
 Verification
 - The frontend production build was successfully verified with:
   npm run build

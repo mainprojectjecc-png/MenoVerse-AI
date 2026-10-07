@@ -9,6 +9,8 @@ from sqlalchemy import (
     Text,
     DateTime,
     UniqueConstraint,
+    Unicode,
+    UnicodeText,
 )
 
 from database import Base
@@ -388,3 +390,43 @@ class HydrationLog(Base):
         default=datetime.utcnow,
         onupdate=datetime.utcnow,
     )
+
+
+class CommunityGroup(Base):
+    __tablename__ = "CommunityGroups"
+    __table_args__ = {"schema": "dbo"}
+
+    GroupID = Column("GroupID", Integer, primary_key=True, index=True)
+    Name = Column("Name", Unicode(120), nullable=False, unique=True)
+    Focus = Column("Focus", Unicode(100), nullable=False)
+    Description = Column("Description", UnicodeText, nullable=False)
+    Icon = Column("Icon", String(40), nullable=False)
+    Accent = Column("Accent", String(20), nullable=False)
+
+
+class CommunityMembership(Base):
+    __tablename__ = "CommunityMemberships"
+    __table_args__ = (
+        UniqueConstraint(
+            "UserID",
+            "GroupID",
+            name="uq_community_membership_user_group",
+        ),
+        {"schema": "dbo"},
+    )
+
+    MembershipID = Column("MembershipID", Integer, primary_key=True, index=True)
+    UserID = Column("UserID", Integer, nullable=False, index=True)
+    GroupID = Column("GroupID", Integer, nullable=False, index=True)
+    JoinedAt = Column("JoinedAt", DateTime, default=datetime.utcnow, nullable=False)
+
+
+class CommunityMessage(Base):
+    __tablename__ = "CommunityMessages"
+    __table_args__ = {"schema": "dbo"}
+
+    MessageID = Column("MessageID", Integer, primary_key=True, index=True)
+    GroupID = Column("GroupID", Integer, nullable=False, index=True)
+    UserID = Column("UserID", Integer, nullable=False, index=True)
+    Content = Column("Content", UnicodeText, nullable=False)
+    CreatedAt = Column("CreatedAt", DateTime, default=datetime.utcnow, nullable=False, index=True)
