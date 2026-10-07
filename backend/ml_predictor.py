@@ -4,7 +4,7 @@ import joblib
 import pandas as pd
 
 
-MODEL_PATH = Path(__file__).resolve().parent / "random_forest_model.pkl"
+MODEL_PATH = Path(__file__).resolve().parent / "menopause_stage_model.pkl"
 INPUT_COLUMNS = {
     "Age Group": "Age_Group",
     "Weight (kg)": "Weight_kg",

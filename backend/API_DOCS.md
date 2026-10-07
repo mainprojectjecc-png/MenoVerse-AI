@@ -173,7 +173,7 @@ Requires a valid JWT access token. The prediction is performed for the authentic
 Returns:
 
 {
-  "MenopauseStage": "Premenopause" | "Early perimenopause" | "Late perimenopause" | "Postmenopause",
+  "MenopauseStage": "Early" | "Perimenopause" | "Postmenopause",
   "Confidence": float,
   "SavedRiskID": int,
   "SavedRecommendationID": int,
@@ -286,7 +286,7 @@ Database backed up.
 Backend and frontend flows manually tested.
 Swagger UI available for interactive API testing.
 Known Limitations
-The menopause-stage classifier is trained and evaluated on synthetic data. With the current fixed split of 150 training rows and 350 held-out test rows, mean training cross-validation accuracy is 82.00% and holdout accuracy is 84.57%; these scores are not evidence of clinical performance. All dataset rows use the 46-55 age group.
+The menopause-stage classifier is trained and evaluated on synthetic data. It groups Premenopause and Early perimenopause as `Early`, and Late perimenopause as `Perimenopause`. All dataset rows use the 46-55 age group. Scores on this synthetic dataset are not evidence of clinical performance.
 Users table supports profile viewing and updating (GET /users/{user_id}, PUT /users/{user_id}), but there is still no endpoint for deleting a user's own account.
 Wearable health metrics such as heart rate, sleep tracking, steps, and watch battery/sync data are not currently connected to a real wearable device.
 Cycle tracking currently supports backend storage and retrieval, while the frontend does not yet provide a complete cycle-entry form.

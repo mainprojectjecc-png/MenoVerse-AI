@@ -47,13 +47,15 @@ class RiskAssessment(Base):
 
     @property
     def MenopauseStage(self) -> str | None:
-        stages = {
-            "Premenopause",
-            "Early perimenopause",
-            "Late perimenopause",
-            "Postmenopause",
+        stage_mapping = {
+            "Premenopause": "Early",
+            "Early perimenopause": "Early",
+            "Early": "Early",
+            "Late perimenopause": "Perimenopause",
+            "Perimenopause": "Perimenopause",
+            "Postmenopause": "Postmenopause",
         }
-        return self.RiskLevel if self.RiskLevel in stages else None
+        return stage_mapping.get(self.RiskLevel)
 
 class Recommendation(Base):
     __tablename__ = "Recommendation"

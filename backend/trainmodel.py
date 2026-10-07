@@ -3,10 +3,14 @@ from pathlib import Path
 import joblib
 import pandas as pd
 from sklearn.compose import ColumnTransformer
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.impute import SimpleImputer
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-from sklearn.model_selection import GridSearchCV, StratifiedKFold, train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import (
+    GridSearchCV,
+    StratifiedKFold,
+    train_test_split,
+)
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 
@@ -15,9 +19,15 @@ script_dir = Path(__file__).resolve().parent
 dataset_path = (
     script_dir.parent / "dataset" / "menopause_synthetic_500_age45-49_v4.xlsx"
 )
-model_path = script_dir / "random_forest_model.pkl"
+model_path = script_dir / "menopause_stage_model.pkl"
 test_samples = 350
 target = "Menopause Stage (Label)"
+stage_mapping = {
+    "Premenopause": "Early",
+    "Early perimenopause": "Early",
+    "Late perimenopause": "Perimenopause",
+    "Postmenopause": "Postmenopause",
+}
 features = [
     "Age Group",
     "Weight (kg)",
@@ -47,6 +57,11 @@ if missing_columns:
     raise ValueError(f"Dataset is missing required columns: {missing_columns}")
 
 df = df.dropna(subset=[target]).copy()
+df[target] = df[target].astype(str).str.strip()
+unknown_stages = sorted(set(df[target]) - set(stage_mapping))
+if unknown_stages:
+    raise ValueError(f"Dataset contains unsupported menopause stages: {unknown_stages}")
+df[target] = df[target].map(stage_mapping)
 if df[target].nunique() < 2:
     raise ValueError("The dataset must contain at least two target classes.")
 if len(df) <= test_samples:
@@ -56,7 +71,7 @@ if len(df) <= test_samples:
     )
 
 X = df[features]
-y = df[target].astype(str).str.strip()
+y = df[target]
 categorical_features = X.select_dtypes(exclude="number").columns.tolist()
 numerical_features = X.select_dtypes(include="number").columns.tolist()
 
@@ -80,15 +95,20 @@ preprocessor = ColumnTransformer(
     ]
 )
 
-classifier = RandomForestClassifier(
-    n_estimators=300,
-    min_samples_leaf=2,
-    class_weight="balanced",
-    random_state=42,
-    n_jobs=-1,
-)
 model = Pipeline(
-    steps=[("preprocessor", preprocessor), ("classifier", classifier)]
+    steps=[
+        ("preprocessor", preprocessor),
+        (
+            "classifier",
+            RandomForestClassifier(
+                n_estimators=300,
+                min_samples_leaf=2,
+                class_weight="balanced",
+                random_state=42,
+                n_jobs=-1,
+            ),
+        ),
+    ]
 )
 parameter_grid = {
     "classifier__n_estimators": [300, 500],
@@ -112,17 +132,18 @@ search = GridSearchCV(
     n_jobs=-1,
 )
 search.fit(X_train, y_train)
-best_model = search.best_estimator_
-y_pred = best_model.predict(X_test)
+model = search.best_estimator_
+y_pred = model.predict(X_test)
 
 print(f"Dataset: {dataset_path}")
 print(f"Rows: {len(df)}")
 print(f"Training samples: {len(X_train)}")
 print(f"Test samples: {len(X_test)}")
-print(f"Best training cross-validation accuracy: {search.best_score_:.2%}")
+print("Model: Random Forest")
+print(f"Best training 5-fold cross-validation accuracy: {search.best_score_:.2%}")
 print(f"Best parameters: {search.best_params_}")
 print(f"Target distribution:\n{y.value_counts().to_string()}")
-print(f"\nHoldout accuracy: {accuracy_score(y_test, y_pred):.2%}")
+print(f"\n350-row holdout accuracy: {accuracy_score(y_test, y_pred):.2%}")
 print(
     "\nClassification report:\n",
     classification_report(y_test, y_pred, zero_division=0),
@@ -133,6 +154,6 @@ print(
 )
 
 # Evaluate on the held-out split, then train the deployable model on all rows.
-best_model.fit(X, y)
-joblib.dump({"model": best_model, "features": features}, model_path)
-print(f"\nFull-data model saved to: {model_path}")
+model.fit(X, y)
+joblib.dump({"model": model, "features": features}, model_path)
+print(f"\nFull-data Random Forest model saved to: {model_path}")

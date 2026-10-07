@@ -61,7 +61,7 @@ def generate_recommendation(menopause_stage: str, data: dict) -> dict:
         lifestyle_tips.append(
             "Discuss ongoing symptoms and preventive care with a healthcare professional"
         )
-    elif menopause_stage in ("Early perimenopause", "Late perimenopause"):
+    elif menopause_stage in ("Early", "Perimenopause"):
         diet_tips.append(
             "Maintain a balanced diet and track changes in your symptoms and cycles"
         )
