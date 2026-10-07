@@ -144,7 +144,9 @@ Full interactive testing is available at /docs (Swagger UI).
 AI Prediction
 POST /predict
 
-Runs the trained Random Forest model on survey responses to predict a menopause stage, saves the result and a matching Recommendation, and returns the predicted stage with model confidence.
+Runs the trained Random Forest model on survey responses to predict a menopause
+stage, saves the result, a matching Recommendation, and an assessment-specific
+explanation snapshot, then returns the prediction and explanation.
 
 Body:
 
@@ -182,7 +184,20 @@ Returns:
     "ExercisePlan": string,
     "YogaPlan": string,
     "LifestyleTips": string
-  }
+  },
+  "Factors": [
+    {
+      "key": string,
+      "feature": string,
+      "value": string | number,
+      "contribution": number,
+      "impact": "high" | "moderate" | "low",
+      "direction": "moves_to_later_stage" | "moves_to_earlier_stage" | "no_material_change",
+      "explanation": string
+    }
+  ],
+  "PersonalizedInsight": string,
+  "ExplanationMethod": string
 }
 
 Notes:
@@ -193,6 +208,18 @@ The result is automatically saved to the RiskAssessment table under the authenti
 GET /risk/{user_id} includes a `MenopauseStage` field for new stage predictions. The legacy `RiskLevel` field remains for compatibility; older Low/Moderate/High assessments do not have a menopause-stage result.
 A personalized Recommendation is automatically generated and saved.
 Recommendations consider the individual's survey responses and relevant symptoms.
+
+GET /xai/{user_id}
+
+Returns the authenticated user's latest saved prediction, assessment answers,
+per-answer local sensitivity comparisons, personalized interpretation, and
+explanation method. Cross-user requests return 403. If no prediction snapshot
+exists (including assessments created before explanation snapshots were added),
+the endpoint returns 404 and the user should complete a new assessment.
+
+The per-answer comparisons vary one answer at a time across values observed for
+that question in the model's training data. They describe model sensitivity for
+this assessment; they are not causal effects or medical risk percentages.
 Voice Journal
 POST /voicejournal
 

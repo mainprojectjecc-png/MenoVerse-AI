@@ -19,6 +19,7 @@ from models import (
     Cycle,
     Symptom,
     RiskAssessment,
+    AssessmentExplanation,
     Recommendation,
     VoiceJournal,
     DietSuggestion, 
@@ -67,7 +68,7 @@ from schemas import (
     HydrationUpdate
 )
 
-from ml_predictor import predict_stage
+from ml_predictor import explain_stage
 from auth import hash_password, verify_password, get_current_user, create_access_token
 
 
@@ -918,9 +919,9 @@ def predict(
         )
 
     try:
-        menopause_stage, confidence = predict_stage(
-            data.dict()
-        )
+        prediction = explain_stage(data.model_dump(exclude={"UserID"}))
+        menopause_stage = prediction["MenopauseStage"]
+        confidence = prediction["Confidence"]
 
     except FileNotFoundError as e:
         raise HTTPException(
@@ -947,13 +948,27 @@ def predict(
     )
 
     db.add(new_risk)
+    db.flush()
+
+    explanation_record = AssessmentExplanation(
+        RiskID=new_risk.RiskID,
+        UserID=current_user.UserID,
+        InputData=json.dumps(
+            data.model_dump(exclude={"UserID"}),
+            ensure_ascii=False,
+        ),
+        Factors=json.dumps(prediction["Factors"], ensure_ascii=False),
+        PersonalizedInsight=prediction["PersonalizedInsight"],
+        ExplanationMethod=prediction["ExplanationMethod"],
+    )
+    db.add(explanation_record)
     db.commit()
     db.refresh(new_risk)
 
     # Generate recommendations
     rec_content = generate_recommendation(
         menopause_stage,
-        data.dict()
+        data.model_dump()
     )
 
     # Save recommendation
@@ -974,7 +989,59 @@ def predict(
         "Confidence": confidence,
         "SavedRiskID": new_risk.RiskID,
         "SavedRecommendationID": new_rec.RecommendationID,
-        "Recommendation": rec_content
+        "Recommendation": rec_content,
+        "Factors": prediction["Factors"],
+        "PersonalizedInsight": prediction["PersonalizedInsight"],
+        "ExplanationMethod": prediction["ExplanationMethod"],
+    }
+
+
+@app.get("/xai/{user_id}")
+def get_latest_explanation(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if user_id != current_user.UserID:
+        raise HTTPException(
+            status_code=403,
+            detail="Not authorized to access this user's AI explanation",
+        )
+
+    explanation = (
+        db.query(AssessmentExplanation)
+        .filter(AssessmentExplanation.UserID == user_id)
+        .order_by(AssessmentExplanation.ExplanationID.desc())
+        .first()
+    )
+    if not explanation:
+        raise HTTPException(
+            status_code=404,
+            detail="Complete an assessment to see your personalized AI explanation.",
+        )
+
+    risk = (
+        db.query(RiskAssessment)
+        .filter(
+            RiskAssessment.RiskID == explanation.RiskID,
+            RiskAssessment.UserID == user_id,
+        )
+        .first()
+    )
+    if not risk:
+        raise HTTPException(
+            status_code=404,
+            detail="The assessment associated with this explanation is no longer available.",
+        )
+
+    return {
+        "RiskLevel": risk.RiskLevel,
+        "MenopauseStage": risk.MenopauseStage,
+        "Confidence": risk.RiskScore,
+        "Factors": json.loads(explanation.Factors),
+        "Inputs": json.loads(explanation.InputData),
+        "PersonalizedInsight": explanation.PersonalizedInsight,
+        "ExplanationMethod": explanation.ExplanationMethod,
     }
 
 # --------------------------------------------------

@@ -8,6 +8,7 @@ const menuLinks = [
   ...bottomNavLinks,
   { to: "/nutrition", icon: "restaurant", label: "Nutrition" },
   { to: "/assessment", icon: "fact_check", label: "Assessment" },
+  { to: "/xai", icon: "psychology", label: "AI Explanation" },
   { to: "/journal", icon: "mic", label: "Voice Journal" },
   { to: "/exercise", icon: "fitness_center", label: "Exercise" },
   { to: "/education", icon: "menu_book", label: "Education" },

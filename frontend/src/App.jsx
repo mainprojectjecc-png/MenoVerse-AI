@@ -22,6 +22,7 @@ import PostureExercise from "./pages/PostureExercise";
 import Profile from "./pages/Profile";
 import PerimenopauseGuide from "./pages/PerimenopauseGuide";
 import SymptomEducation from "./pages/SymptomEducation";
+import XAI from "./pages/XAI";
 
 function ProtectedRoute({ children }) {
   const user = localStorage.getItem("user")
@@ -82,6 +83,11 @@ function App() {
           <Route
             path="/insights"
             element={<Insights />}
+          />
+
+          <Route
+            path="/xai"
+            element={<XAI />}
           />
 
           {/* Nutrition */}

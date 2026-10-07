@@ -133,7 +133,23 @@ export default function Assessment() {
                 </article>
               ))}
             </div>
-            <button type="button" onClick={() => navigate("/dashboard")} className="mt-6 text-primary font-label-md font-bold hover:underline">Return to dashboard</button>
+              <div className="mt-6 flex flex-wrap items-center gap-5">
+                <button
+                  type="button"
+                  onClick={() => navigate("/xai")}
+                  className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-5 py-3 font-label-md font-bold text-white hover:bg-[#535845] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                >
+                  Explore my AI explanation
+                  <span className="material-symbols-outlined text-[19px]" aria-hidden="true">arrow_forward</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate("/dashboard")}
+                  className="text-primary font-label-md font-bold hover:underline"
+                >
+                  Return to dashboard
+                </button>
+              </div>
           </section>
         )}
       </main>

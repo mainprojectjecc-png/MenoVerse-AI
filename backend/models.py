@@ -71,6 +71,19 @@ class RiskAssessment(Base):
         }
         return stage_mapping.get(self.RiskLevel)
 
+
+class AssessmentExplanation(Base):
+    __tablename__ = "AssessmentExplanations"
+    __table_args__ = {"schema": "dbo"}
+
+    ExplanationID = Column("ExplanationID", Integer, primary_key=True, index=True)
+    RiskID = Column("RiskID", Integer, nullable=False, index=True)
+    UserID = Column("UserID", Integer, nullable=False, index=True)
+    InputData = Column("InputData", Text, nullable=False)
+    Factors = Column("Factors", Text, nullable=False)
+    PersonalizedInsight = Column("PersonalizedInsight", Text, nullable=False)
+    ExplanationMethod = Column("ExplanationMethod", Text, nullable=False)
+
 class Recommendation(Base):
     __tablename__ = "Recommendation"
     __table_args__ = {"schema": "dbo"}
