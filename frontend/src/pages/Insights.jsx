@@ -15,11 +15,6 @@ export default function Insights() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!userId) {
-      setLoading(false)
-      return
-    }
-
     const loadInsights = async () => {
       try {
         const [
@@ -69,7 +64,16 @@ export default function Insights() {
       }
     }
 
-    loadInsights()
+    const loadInitialInsights = async () => {
+      await Promise.resolve()
+      if (!userId) {
+        setLoading(false)
+        return
+      }
+      await loadInsights()
+    }
+
+    void loadInitialInsights()
   }, [userId])
 
   const riskText = loading

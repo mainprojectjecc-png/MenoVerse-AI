@@ -17,11 +17,6 @@ function Dashboard() {
   const [loadingRisk, setLoadingRisk] = useState(true)
 
   useEffect(() => {
-    if (!userId) {
-      setLoadingRisk(false)
-      return
-    }
-
     const loadDashboardData = async () => {
       try {
         const [
@@ -71,7 +66,16 @@ function Dashboard() {
       }
     }
 
-    loadDashboardData()
+    const loadInitialData = async () => {
+      await Promise.resolve()
+      if (!userId) {
+        setLoadingRisk(false)
+        return
+      }
+      await loadDashboardData()
+    }
+
+    void loadInitialData()
   }, [userId])
 
   return (

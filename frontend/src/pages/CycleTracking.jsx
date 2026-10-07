@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import api from "../api/axios"
 
@@ -117,7 +117,7 @@ function CycleTracking() {
     Notes: "",
   })
 
-  const loadCycles = async () => {
+  const loadCycles = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -149,11 +149,16 @@ function CycleTracking() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
-    loadCycles()
-  }, [])
+    const loadInitialCycles = async () => {
+      await Promise.resolve()
+      await loadCycles()
+    }
+
+    void loadInitialCycles()
+  }, [loadCycles])
 
   const handleFormChange = (event) => {
     const { name, value } = event.target
