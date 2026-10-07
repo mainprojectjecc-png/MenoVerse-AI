@@ -6,7 +6,7 @@ import pandas as pd
 
 
 BACKEND_DIR = Path(__file__).resolve().parent
-MODEL_PATH = BACKEND_DIR / "menopause_stage_model.pkl"
+MODEL_PATH = BACKEND_DIR / "menopause_risk_model.pkl"
 DATA_PATH = (
     BACKEND_DIR.parent
     / "dataset"
@@ -48,30 +48,28 @@ FEATURE_LABELS = {
     "Diagnosed Conditions": "Diagnosed conditions",
     "Family History of Early Menopause?": "Family history of early menopause",
 }
-STAGE_ORDER = {
-    "Premenopause": 0,
-    "Early perimenopause": 0,
-    "Early": 0,
-    "Late perimenopause": 1,
-    "Perimenopause": 1,
-    "Postmenopause": 2,
-}
+RISK_ORDER = {"Low": 0, "Moderate": 1, "High": 2}
 EXPLANATION_METHOD = (
-    "For each answer, the model's expected menopause-stage position was "
+    "For each answer, the model's expected stage-derived proxy category was "
     "compared with estimates after substituting values observed for that "
-    "question in the training data. This local sensitivity comparison "
-    "describes model behavior, not causation."
+    "question in the training data. These local sensitivity comparisons "
+    "describe model behavior, not causation or clinical risk."
 )
 
 
 def _load_model() -> tuple[object, list[str]]:
     if not MODEL_PATH.is_file():
-        raise FileNotFoundError(f"ML model not found at {MODEL_PATH}")
+        raise FileNotFoundError(f"Risk model not found at {MODEL_PATH}")
 
     artifact = joblib.load(MODEL_PATH)
-    if not isinstance(artifact, dict) or "model" not in artifact:
+    if (
+        not isinstance(artifact, dict)
+        or "model" not in artifact
+        or artifact.get("target") != "RiskLevel"
+    ):
         raise ValueError(
-            "The model artifact is outdated. Retrain it with backend/trainmodel.py."
+            "The risk model artifact is missing or outdated. Retrain it with "
+            "backend/trainmodel.py."
         )
 
     features = artifact.get("features")
@@ -86,7 +84,7 @@ def _load_model() -> tuple[object, list[str]]:
 
 
 def _model_input(values: dict, features: list[str]) -> pd.DataFrame:
-    return pd.DataFrame(
+    model_input = pd.DataFrame(
         [
             {
                 feature: values[INPUT_COLUMNS[feature]]
@@ -95,21 +93,27 @@ def _model_input(values: dict, features: list[str]) -> pd.DataFrame:
         ],
         columns=features,
     )
+    for column in features:
+        if model_input[column].dtype == "object":
+            model_input[column] = model_input[column].astype(str).str.replace(
+                "\ufffd", "–", regex=False
+            )
+    return model_input
 
 
-def _stage_expectation(model, probabilities) -> float:
+def _risk_expectation(model, probabilities) -> float:
     try:
         return float(sum(
-            float(probability) * STAGE_ORDER[str(label)]
+            float(probability) * RISK_ORDER[str(label)]
             for label, probability in zip(model.classes_, probabilities)
         ))
     except KeyError as error:
         raise ValueError(
-            f"The trained model contains an unsupported menopause stage: {error.args[0]}"
+            f"The trained model contains an unsupported risk category: {error.args[0]}"
         ) from error
 
 
-def explain_stage(values: dict) -> dict:
+def explain_risk(values: dict) -> dict:
     if not DATA_PATH.is_file():
         raise FileNotFoundError(f"ML training dataset not found at {DATA_PATH}")
 
@@ -117,12 +121,17 @@ def explain_stage(values: dict) -> dict:
     model_input = _model_input(values, features)
     probabilities = model.predict_proba(model_input)[0]
     predicted_index = int(np.argmax(probabilities))
-    menopause_stage = str(model.classes_[predicted_index])
+    risk_level = str(model.classes_[predicted_index])
     confidence = float(probabilities[predicted_index])
-    current_expectation = _stage_expectation(model, probabilities)
+    current_expectation = _risk_expectation(model, probabilities)
 
     background = pd.read_excel(DATA_PATH)
     background.columns = background.columns.str.strip()
+    for feature in features:
+        if background[feature].dtype == "object":
+            background[feature] = background[feature].astype(str).str.replace(
+                "\ufffd", "–", regex=False
+            )
     missing_features = sorted(set(features) - set(background.columns))
     if missing_features:
         raise ValueError(
@@ -143,7 +152,7 @@ def explain_stage(values: dict) -> dict:
             alternatives[feature] = value_counts.index.tolist()
             alternative_probabilities = model.predict_proba(alternatives)
             alternative_expectations = [
-                _stage_expectation(model, row)
+                _risk_expectation(model, row)
                 for row in alternative_probabilities
             ]
             reference_expectation = float(
@@ -187,10 +196,10 @@ def explain_stage(values: dict) -> dict:
             "moves_to_later_stage" if factor["effect"] > 0
             else "moves_to_earlier_stage"
         )
-        direction_text = "later" if factor["effect"] > 0 else "earlier"
+        direction_text = "higher" if factor["effect"] > 0 else "lower"
         factor["explanation"] = (
             f"{factor['feature']} ({factor['value']}) shifted the model's "
-            f"expected stage {direction_text} compared with alternatives "
+            f"expected proxy category {direction_text} compared with alternatives "
             "observed for this answer in the training data."
         )
 
@@ -216,33 +225,32 @@ def explain_stage(values: dict) -> dict:
 
     if later_factor and earlier_factor:
         insight = (
-            f"The model matched your answers most closely with {menopause_stage}. "
-            f"{later_factor['feature']} had the strongest influence toward a "
-            f"later stage, while {earlier_factor['feature']} shifted the "
-            "estimate earlier in this comparison."
+            f"The model matched your answers most closely with the {risk_level} "
+            f"proxy category. {later_factor['feature']} showed the strongest "
+            f"shift toward a higher category, while {earlier_factor['feature']} "
+            "shifted the estimate lower in this comparison."
         )
     elif later_factor:
         insight = (
-            f"The model matched your answers most closely with {menopause_stage}. "
-            f"{later_factor['feature']} had the strongest influence toward a "
-            "later stage in this comparison."
+            f"The model matched your answers most closely with the {risk_level} "
+            f"proxy category. {later_factor['feature']} showed the strongest "
+            "shift toward a higher category in this comparison."
         )
     elif earlier_factor:
         insight = (
-            f"The model matched your answers most closely with {menopause_stage}. "
-            f"{earlier_factor['feature']} had the strongest influence toward "
-            "an earlier stage in this comparison."
+            f"The model matched your answers most closely with the {risk_level} "
+            f"proxy category. {earlier_factor['feature']} showed the strongest "
+            "shift toward a lower category in this comparison."
         )
     else:
         insight = (
-            f"The model matched your answers most closely with {menopause_stage}. "
-            "No individual answer shifted the expected stage substantially "
-            "compared with observed alternatives."
+            f"The model matched your answers most closely with the {risk_level} "
+            "proxy category. No individual answer shifted the expected "
+            "category substantially compared with observed alternatives."
         )
 
     return {
-        "MenopauseStage": menopause_stage,
-        "RiskLevel": menopause_stage,
+        "RiskLevel": risk_level,
         "Confidence": confidence,
         "Factors": public_factors,
         "PersonalizedInsight": insight,
@@ -250,6 +258,6 @@ def explain_stage(values: dict) -> dict:
     }
 
 
-def predict_stage(values: dict) -> tuple[str, float]:
-    prediction = explain_stage(values)
-    return prediction["MenopauseStage"], prediction["Confidence"]
+def predict_risk(values: dict) -> tuple[str, float]:
+    prediction = explain_risk(values)
+    return prediction["RiskLevel"], prediction["Confidence"]

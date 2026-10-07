@@ -150,7 +150,10 @@ export default function XAI() {
           Number.isFinite(Number(factor.contribution)),
       )
     : []
+  const isProxyResult =
+    explanation?.PredictionType === "Stage-derived proxy; not clinical risk"
   const isStageResult =
+    isProxyResult ||
     typeof explanation?.MenopauseStage === "string" ||
     ["Early", "Perimenopause", "Postmenopause"].includes(explanation?.RiskLevel)
   const higherInfluenceFactors = factors
@@ -241,6 +244,11 @@ export default function XAI() {
               <XAIRiskSummary
                 riskLevel={explanation.RiskLevel}
               />
+              {isProxyResult && (
+                <aside className="rounded-xl border border-tertiary/20 bg-tertiary/5 p-4 text-sm leading-relaxed text-on-surface-variant">
+                  This is a dataset-derived proxy, not a clinical risk estimate. Low maps to Premenopause, Moderate to Early perimenopause, and High to Late perimenopause or Postmenopause in the training labels.
+                </aside>
+              )}
             </div>
 
             <section

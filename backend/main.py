@@ -68,7 +68,7 @@ from schemas import (
     HydrationUpdate
 )
 
-from ml_predictor import explain_stage
+from ml_predictor import explain_risk
 from auth import hash_password, verify_password, get_current_user, create_access_token
 
 
@@ -919,8 +919,8 @@ def predict(
         )
 
     try:
-        prediction = explain_stage(data.model_dump(exclude={"UserID"}))
-        menopause_stage = prediction["MenopauseStage"]
+        prediction = explain_risk(data.model_dump(exclude={"UserID"}))
+        risk_level = prediction["RiskLevel"]
         confidence = prediction["Confidence"]
 
     except FileNotFoundError as e:
@@ -935,15 +935,15 @@ def predict(
             detail=f"Invalid prediction input: {e}"
         )
 
-    # The existing database column stores the model's predicted stage.
     new_risk = RiskAssessment(
         UserID=current_user.UserID,
         RiskScore=confidence,
-        RiskLevel=menopause_stage,
+        RiskLevel=risk_level,
         Explanation=(
-            f"AI-predicted {menopause_stage} based on "
-            f"survey responses "
-            f"(model confidence: {confidence:.2f})"
+            f"Random Forest predicted {risk_level} stage-derived proxy "
+            f"category from survey responses "
+            f"(model confidence: {confidence:.2f}); "
+            "not a clinical risk estimate."
         ),
     )
 
@@ -967,7 +967,7 @@ def predict(
 
     # Generate recommendations
     rec_content = generate_recommendation(
-        menopause_stage,
+        "Stage-derived risk proxy",
         data.model_dump()
     )
 
@@ -985,8 +985,14 @@ def predict(
     db.refresh(new_rec)
 
     return {
-        "MenopauseStage": menopause_stage,
+        "RiskLevel": risk_level,
         "Confidence": confidence,
+        "PredictionType": "Stage-derived proxy; not clinical risk",
+        "RiskMapping": {
+            "Low": "Premenopause",
+            "Moderate": "Early perimenopause",
+            "High": "Late perimenopause or Postmenopause",
+        },
         "SavedRiskID": new_risk.RiskID,
         "SavedRecommendationID": new_rec.RecommendationID,
         "Recommendation": rec_content,
@@ -1037,6 +1043,11 @@ def get_latest_explanation(
     return {
         "RiskLevel": risk.RiskLevel,
         "MenopauseStage": risk.MenopauseStage,
+        "PredictionType": (
+            "Stage-derived proxy; not clinical risk"
+            if risk.RiskLevel in {"Low", "Moderate", "High"}
+            else "Historical menopause-stage result"
+        ),
         "Confidence": risk.RiskScore,
         "Factors": json.loads(explanation.Factors),
         "Inputs": json.loads(explanation.InputData),

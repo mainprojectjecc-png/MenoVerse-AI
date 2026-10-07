@@ -144,9 +144,18 @@ Full interactive testing is available at /docs (Swagger UI).
 AI Prediction
 POST /predict
 
-Runs the trained Random Forest model on survey responses to predict a menopause
-stage, saves the result, a matching Recommendation, and an assessment-specific
-explanation snapshot, then returns the prediction and explanation.
+Runs a Random Forest classifier on survey responses to predict a **stage-derived proxy category**, saves the result, a matching Recommendation, and an assessment-specific explanation snapshot. The result is not a clinical risk assessment.
+
+The proxy target is created from the workbook's `Menopause Stage (Label)` column:
+
+| Dataset stage | Proxy category |
+|---|---|
+| Premenopause | Low |
+| Early perimenopause | Moderate |
+| Late perimenopause | High |
+| Postmenopause | High |
+
+These mappings are modeling labels only; they do not represent medically validated Low/Moderate/High risk definitions.
 
 Body:
 
@@ -175,8 +184,14 @@ Requires a valid JWT access token. The prediction is performed for the authentic
 Returns:
 
 {
-  "MenopauseStage": "Early" | "Perimenopause" | "Postmenopause",
+  "RiskLevel": "Low" | "Moderate" | "High",
   "Confidence": float,
+  "PredictionType": "Stage-derived proxy; not clinical risk",
+  "RiskMapping": {
+    "Low": "Premenopause",
+    "Moderate": "Early perimenopause",
+    "High": "Late perimenopause or Postmenopause"
+  },
   "SavedRiskID": int,
   "SavedRecommendationID": int,
   "Recommendation": {
@@ -204,8 +219,8 @@ Notes:
 
 Text values must match the categories expected by the trained model.
 Weight_kg and Stress_Level must be numbers.
-The result is automatically saved to the RiskAssessment table under the authenticated user's UserID.
-GET /risk/{user_id} includes a `MenopauseStage` field for new stage predictions. The legacy `RiskLevel` field remains for compatibility; older Low/Moderate/High assessments do not have a menopause-stage result.
+The result is automatically saved to the RiskAssessment table under the authenticated user's UserID, with the proxy class in `RiskLevel` and the classifier confidence in `RiskScore`.
+`GET /risk/{user_id}` returns the saved risk category in `RiskLevel`; `MenopauseStage` is only populated for historical records that stored stage labels.
 A personalized Recommendation is automatically generated and saved.
 Recommendations consider the individual's survey responses and relevant symptoms.
 
@@ -213,13 +228,18 @@ GET /xai/{user_id}
 
 Returns the authenticated user's latest saved prediction, assessment answers,
 per-answer local sensitivity comparisons, personalized interpretation, and
-explanation method. Cross-user requests return 403. If no prediction snapshot
+explanation method, plus `PredictionType` to distinguish current proxy
+predictions from historical stage results. Cross-user requests return 403. If no prediction snapshot
 exists (including assessments created before explanation snapshots were added),
 the endpoint returns 404 and the user should complete a new assessment.
 
 The per-answer comparisons vary one answer at a time across values observed for
 that question in the model's training data. They describe model sensitivity for
 this assessment; they are not causal effects or medical risk percentages.
+
+Training
+
+Run `..\.venv\Scripts\python.exe trainmodel.py` from the `backend` directory. Training uses a stratified 80/20 holdout, tunes the Random Forest with 5-fold stratified cross-validation, prints per-class metrics and a confusion matrix, then saves `menopause_risk_model.pkl`.
 Voice Journal
 POST /voicejournal
 

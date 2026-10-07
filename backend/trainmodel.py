@@ -19,14 +19,13 @@ script_dir = Path(__file__).resolve().parent
 dataset_path = (
     script_dir.parent / "dataset" / "menopause_synthetic_500_age45-49_v4.xlsx"
 )
-model_path = script_dir / "menopause_stage_model.pkl"
-test_samples = 350
+model_path = script_dir / "menopause_risk_model.pkl"
 target = "Menopause Stage (Label)"
-stage_mapping = {
-    "Premenopause": "Early",
-    "Early perimenopause": "Early",
-    "Late perimenopause": "Perimenopause",
-    "Postmenopause": "Postmenopause",
+risk_mapping = {
+    "Premenopause": "Low",
+    "Early perimenopause": "Moderate",
+    "Late perimenopause": "High",
+    "Postmenopause": "High",
 }
 features = [
     "Age Group",
@@ -58,17 +57,17 @@ if missing_columns:
 
 df = df.dropna(subset=[target]).copy()
 df[target] = df[target].astype(str).str.strip()
-unknown_stages = sorted(set(df[target]) - set(stage_mapping))
+unknown_stages = sorted(set(df[target]) - set(risk_mapping))
 if unknown_stages:
-    raise ValueError(f"Dataset contains unsupported menopause stages: {unknown_stages}")
-df[target] = df[target].map(stage_mapping)
+    raise ValueError(
+        f"Dataset contains unsupported menopause stages: {unknown_stages}"
+    )
+df[target] = df[target].map(risk_mapping)
+for column in features:
+    if df[column].dtype == "object":
+        df[column] = df[column].astype(str).str.replace("\ufffd", "–", regex=False)
 if df[target].nunique() < 2:
     raise ValueError("The dataset must contain at least two target classes.")
-if len(df) <= test_samples:
-    raise ValueError(
-        f"At least {test_samples + 1} labeled rows are required to reserve "
-        f"{test_samples} test samples; found {len(df)}."
-    )
 
 X = df[features]
 y = df[target]
@@ -120,7 +119,7 @@ parameter_grid = {
 X_train, X_test, y_train, y_test = train_test_split(
     X,
     y,
-    test_size=test_samples,
+    test_size=0.2,
     random_state=42,
     stratify=y,
 )
@@ -139,11 +138,13 @@ print(f"Dataset: {dataset_path}")
 print(f"Rows: {len(df)}")
 print(f"Training samples: {len(X_train)}")
 print(f"Test samples: {len(X_test)}")
-print("Model: Random Forest")
+print("Model: Random Forest risk-classification proxy")
+print(f"Risk label mapping: {risk_mapping}")
 print(f"Best training 5-fold cross-validation accuracy: {search.best_score_:.2%}")
 print(f"Best parameters: {search.best_params_}")
-print(f"Target distribution:\n{y.value_counts().to_string()}")
-print(f"\n350-row holdout accuracy: {accuracy_score(y_test, y_pred):.2%}")
+print(f"Risk class distribution:\n{y.value_counts().to_string()}")
+
+print(f"\nHoldout accuracy: {accuracy_score(y_test, y_pred):.2%}")
 print(
     "\nClassification report:\n",
     classification_report(y_test, y_pred, zero_division=0),
@@ -155,5 +156,14 @@ print(
 
 # Evaluate on the held-out split, then train the deployable model on all rows.
 model.fit(X, y)
-joblib.dump({"model": model, "features": features}, model_path)
-print(f"\nFull-data Random Forest model saved to: {model_path}")
+joblib.dump(
+    {
+        "model": model,
+        "features": features,
+        "target": "RiskLevel",
+        "risk_mapping": risk_mapping,
+        "prediction_type": "stage-derived proxy; not clinical risk",
+    },
+    model_path,
+)
+print(f"\nFull-data Random Forest risk model saved to: {model_path}")

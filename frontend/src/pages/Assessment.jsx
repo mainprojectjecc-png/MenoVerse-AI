@@ -85,7 +85,7 @@ export default function Assessment() {
         <div className="mb-8">
           <p className="text-label-md text-primary uppercase tracking-[0.1em] font-bold">Personal assessment</p>
           <h1 className="font-headline-xl text-plum-deep mt-2">Understand your current pattern.</h1>
-          <p className="text-on-surface-variant mt-3 max-w-2xl">Answer these questions to receive a personalized screening result. This is educational guidance, not a medical diagnosis.</p>
+          <p className="text-on-surface-variant mt-3 max-w-2xl">Answer these questions to receive a dataset-derived category. This educational result is not a medical diagnosis or clinical risk assessment.</p>
         </div>
 
         <form onSubmit={submitAssessment} className="bg-surface rounded-2xl p-6 md:p-8 soft-shadow border border-outline-variant/20">
@@ -120,11 +120,14 @@ export default function Assessment() {
 
         {result && (
           <section className="mt-8 bg-surface rounded-2xl p-6 md:p-8 soft-shadow border border-outline-variant/20" aria-live="polite">
-            <p className="text-label-md text-primary uppercase tracking-[0.1em] font-bold">Your result</p>
+            <p className="text-label-md text-primary uppercase tracking-[0.1em] font-bold">Stage-derived risk category</p>
             <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mt-2">
-              <h2 className="font-headline-lg text-plum-deep">{result.MenopauseStage}</h2>
+              <h2 className="font-headline-lg text-plum-deep">{result.RiskLevel}</h2>
               <p className="text-on-surface-variant">Model confidence: {(result.Confidence * 100).toFixed(0)}%</p>
             </div>
+            <p className="mt-3 text-sm leading-relaxed text-on-surface-variant">
+              {result.PredictionType}. Low maps to Premenopause, Moderate to Early perimenopause, and High to Late perimenopause or Postmenopause in the dataset.
+            </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
               {Object.entries(result.Recommendation || {}).map(([key, value]) => (
                 <article key={key} className="bg-surface-container rounded-xl p-5">

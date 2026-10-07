@@ -146,7 +146,7 @@ function Dashboard() {
     : risk
     ? risk.MenopauseStage
       ? `Your latest assessment predicts ${risk.MenopauseStage}. Review your recommendations and recent symptoms to stay informed about your wellbeing.`
-      : `Your previous assessment recorded a ${risk.RiskLevel} risk rating. Review your recent symptoms to stay informed about your wellbeing.`
+      : `Your latest assessment recorded a ${risk.RiskLevel} stage-derived category. This dataset-based result is not a clinical risk estimate.`
     : "Complete an assessment to receive personalized health insights and recommendations."}
                 </p>
 
@@ -191,7 +191,7 @@ function Dashboard() {
               <div className="flex justify-between items-start mb-8">
 
                 <span className="font-label-md text-primary uppercase tracking-[0.1em] font-bold">
-                  Menopause Stage
+                  Risk Category
                 </span>
 
                 <div className="bg-primary/10 p-2 rounded-full">
@@ -203,7 +203,7 @@ function Dashboard() {
               </div>
 
               <h3 className="font-headline-md text-headline-md text-plum-deep mb-8">
-                Predicted menopause stage
+                Stage-derived risk category
               </h3>
 
               <div className="flex flex-col items-center py-6">
@@ -262,12 +262,14 @@ function Dashboard() {
                 >
                   {loadingRisk
                     ? "Loading..."
-                    : risk?.MenopauseStage || (
-                      risk?.RiskLevel
-                        ? `Legacy risk: ${risk.RiskLevel}`
-                        : "No Assessment"
-                    )}
+                    : risk?.MenopauseStage
+                      ? risk.MenopauseStage
+                      : risk?.RiskLevel || "No Assessment"}
                 </div>
+
+                <p className="mt-3 max-w-xs text-center text-xs leading-relaxed text-on-surface-variant">
+                  New predictions are derived from dataset menopause-stage labels, not clinical risk criteria.
+                </p>
 
               </div>
 
