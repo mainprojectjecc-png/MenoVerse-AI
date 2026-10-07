@@ -110,24 +110,24 @@ function readDietLog() {
 
 function MealCard({ meal, index }) {
   return (
-    <article className="rounded-3xl border border-[#e8e2cf] bg-white p-6 shadow-sm">
+    <article className="rounded-3xl border border-outline-variant/70 bg-white p-6 soft-shadow transition-transform duration-200 hover:-translate-y-1">
       <div className="mb-5 flex items-center justify-between">
-        <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[#f3efdf] text-[#535845]">
+        <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary-container text-secondary">
           <span className="material-symbols-outlined text-[25px]">{meal.icon}</span>
         </span>
-        <span className="text-sm font-medium text-[#77776d]">{meal.time}</span>
+        <span className="text-sm font-medium text-on-surface-variant">{meal.time}</span>
       </div>
-      <p className="mb-1 text-xs font-bold uppercase tracking-[0.16em] text-[#77776d]">
+      <p className="mb-1 text-xs font-bold uppercase tracking-[0.16em] text-tertiary">
         Meal {index + 1}
       </p>
-      <h3 className="mb-2 font-['Playfair_Display'] text-2xl font-semibold text-[#3f3d35]">
+      <h3 className="mb-2 font-['Playfair_Display'] text-2xl font-semibold text-plum-deep">
         {meal.title}
       </h3>
-      <p className="mb-5 text-sm leading-6 text-[#626258]">{meal.summary}</p>
+      <p className="mb-5 text-sm leading-6 text-on-surface-variant">{meal.summary}</p>
       <ul className="space-y-3">
         {meal.ideas.map((idea) => (
-          <li key={idea} className="flex gap-3 text-sm leading-6 text-[#3f3d35]">
-            <span className="material-symbols-outlined mt-0.5 text-[18px] text-[#6b705c]">
+          <li key={idea} className="flex gap-3 text-sm leading-6 text-on-surface">
+            <span className="material-symbols-outlined mt-0.5 text-[18px] text-tertiary">
               check_circle
             </span>
             <span>{idea}</span>
@@ -208,33 +208,33 @@ export default function Diet() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f0ead6] pb-24 text-[#3f3d35]">
+    <div className="min-h-screen bg-background pb-24 text-on-surface">
       <main className="mx-auto max-w-[1100px] px-5 py-8 md:px-8 md:py-12">
-        <section className="relative mb-10 overflow-hidden rounded-[32px] bg-[#535845] px-6 py-10 text-white md:px-12 md:py-14">
+        <section className="relative mb-10 overflow-hidden rounded-[32px] bg-gradient-to-br from-primary via-primary to-[#3D174B] px-6 py-10 text-white soft-shadow md:px-12 md:py-14">
           <div className="relative z-10 max-w-2xl">
-            <p className="mb-3 text-xs font-bold uppercase tracking-[0.22em] text-[#e5dfc8]">
+            <p className="mb-3 text-xs font-bold uppercase tracking-[0.22em] text-[#FFB3D1]">
               Everyday nourishment
             </p>
             <h1 className="mb-4 font-['Playfair_Display'] text-4xl font-semibold leading-tight md:text-5xl">
               A gentler guide to eating well
             </h1>
-            <p className="max-w-xl text-base leading-7 text-[#f3f0e6] md:text-lg">
+            <p className="max-w-xl text-base leading-7 text-white/90 md:text-lg">
               Simple, flexible meal ideas for breakfast, lunch, and dinner, plus
               a routine you can adapt to your day, appetite, and food preferences.
             </p>
           </div>
-          <span className="material-symbols-outlined absolute -bottom-12 -right-4 text-[210px] text-white/[0.07] md:right-10">
+          <span className="material-symbols-outlined absolute -bottom-12 -right-4 text-[210px] text-[#FFB3D1]/15 md:right-10">
             restaurant
           </span>
         </section>
 
         <section
-          className="mb-12 rounded-3xl border border-[#e8e2cf] bg-white p-6 shadow-sm md:p-8"
+          className="mb-12 rounded-3xl border border-outline-variant/70 bg-white p-6 soft-shadow md:p-8"
           aria-labelledby="daily-log-heading"
         >
           <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-[#77776d]">
+              <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-tertiary">
                 Personal daily record
               </p>
               <h2
@@ -243,18 +243,18 @@ export default function Diet() {
               >
                 Daily diet log
               </h2>
-              <p className="mt-2 text-sm leading-6 text-[#626258]">
+              <p className="mt-2 text-sm leading-6 text-on-surface-variant">
                 Record what you ate and review entries by date. Your log is saved in this browser.
               </p>
             </div>
-            <label className="flex flex-col gap-2 text-sm font-semibold text-[#535845]">
+            <label className="flex flex-col gap-2 text-sm font-semibold text-primary">
               View date
               <input
                 type="date"
                 required
                 value={selectedDate}
                 onChange={(event) => setSelectedDate(event.target.value)}
-                className="rounded-xl border border-[#d9d4c1] bg-[#faf7f0] px-4 py-3 text-[#3f3d35] outline-none focus:ring-2 focus:ring-[#535845]/30"
+                className="rounded-xl border border-outline bg-surface-container px-4 py-3 text-on-surface outline-none focus:border-primary focus:ring-2 focus:ring-primary/30"
               />
             </label>
           </div>
@@ -262,7 +262,7 @@ export default function Diet() {
           {storageError && (
             <p
               role="alert"
-              className="mb-5 rounded-xl border border-[#d9a18f] bg-[#fff4ef] px-4 py-3 text-sm text-[#9b4937]"
+              className="mb-5 rounded-xl border border-risk-high/30 bg-tertiary-container px-4 py-3 text-sm text-on-tertiary-container"
             >
               {storageError}
             </p>
@@ -270,14 +270,14 @@ export default function Diet() {
 
           <form
             onSubmit={handleAddEntry}
-            className="mb-7 grid gap-4 rounded-2xl bg-[#faf7f0] p-4 md:grid-cols-2 md:p-5"
+            className="mb-7 grid gap-4 rounded-2xl bg-surface-container p-4 md:grid-cols-2 md:p-5"
           >
             <label className="flex flex-col gap-2 text-sm font-semibold">
               Meal
               <select
                 value={mealType}
                 onChange={(event) => setMealType(event.target.value)}
-                className="rounded-xl border border-[#e8e2cf] bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-[#535845]/30"
+                className="rounded-xl border border-outline-variant bg-white px-4 py-3 outline-none focus:border-primary focus:ring-2 focus:ring-primary/30"
               >
                 {["Breakfast", "Lunch", "Dinner", "Snack"].map((meal) => (
                   <option key={meal} value={meal}>{meal}</option>
@@ -291,22 +291,22 @@ export default function Diet() {
                 value={food}
                 onChange={(event) => setFood(event.target.value)}
                 placeholder="e.g. oats, banana, and yogurt"
-                className="rounded-xl border border-[#e8e2cf] bg-white px-4 py-3 font-normal outline-none focus:ring-2 focus:ring-[#535845]/30"
+                className="rounded-xl border border-outline-variant bg-white px-4 py-3 font-normal outline-none focus:border-primary focus:ring-2 focus:ring-primary/30"
               />
             </label>
             <label className="flex flex-col gap-2 text-sm font-semibold md:col-span-2">
-              Notes <span className="font-normal text-[#77776d]">(optional)</span>
+              Notes <span className="font-normal text-on-surface-variant">(optional)</span>
               <textarea
                 value={notes}
                 onChange={(event) => setNotes(event.target.value)}
                 placeholder="Anything you want to remember about this meal?"
                 rows={2}
-                className="resize-y rounded-xl border border-[#e8e2cf] bg-white px-4 py-3 font-normal outline-none focus:ring-2 focus:ring-[#535845]/30"
+                className="resize-y rounded-xl border border-outline-variant bg-white px-4 py-3 font-normal outline-none focus:border-primary focus:ring-2 focus:ring-primary/30"
               />
             </label>
             <button
               type="submit"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#535845] px-5 py-3 font-semibold text-white transition-colors hover:bg-[#444937] md:col-span-2 md:justify-self-end"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 font-semibold text-white transition-colors hover:bg-tertiary md:col-span-2 md:justify-self-end"
             >
               <span className="material-symbols-outlined text-[20px]">add</span>
               Add meal to log
@@ -322,11 +322,11 @@ export default function Diet() {
                     ? `Entries for ${new Date(`${selectedDate}T12:00:00`).toLocaleDateString()}`
                     : "Choose a date"}
               </h3>
-              <span className="rounded-full bg-[#f3efdf] px-3 py-1 text-xs font-semibold text-[#535845]">
+              <span className="rounded-full bg-primary-container px-3 py-1 text-xs font-semibold text-on-primary-container">
                 {todaysEntries.length} {todaysEntries.length === 1 ? "meal" : "meals"}
               </span>
             </div>
-            <p className="mb-4 text-sm text-[#626258]">
+            <p className="mb-4 text-sm text-on-surface-variant">
               {mainMealsLogged} of 3 main meal periods have entries. Snacks are optional.
             </p>
 
@@ -335,14 +335,14 @@ export default function Diet() {
                 <section
                   key={type}
                   aria-label={`${type} entries`}
-                  className="rounded-2xl border border-[#e8e2cf] p-4"
+                  className="rounded-2xl border border-outline-variant p-4"
                 >
                   <div className="mb-3 flex items-center justify-between">
                     <h4 className="font-semibold">{type}</h4>
                     <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
                       entriesByMeal[type].length
-                        ? "bg-[#eaf0e4] text-[#535845]"
-                        : "bg-[#f3efdf] text-[#77776d]"
+                        ? "bg-secondary-container text-on-secondary-container"
+                        : "bg-surface-container text-on-surface-variant"
                     }`}>
                       {entriesByMeal[type].length ? "Logged" : type === "Snack" ? "Optional" : "Not logged"}
                     </span>
@@ -352,13 +352,13 @@ export default function Diet() {
                       {entriesByMeal[type].map((entry) => (
                         <li
                           key={entry.id}
-                          className="flex items-start justify-between gap-3 rounded-xl bg-[#faf7f0] p-3"
+                          className="flex items-start justify-between gap-3 rounded-xl bg-surface-container p-3"
                         >
                           <div className="min-w-0">
                             <p className="break-words text-sm leading-6">{entry.food}</p>
-                            <p className="mt-1 text-xs text-[#77776d]">{entry.time}</p>
+                            <p className="mt-1 text-xs text-on-surface-variant">{entry.time}</p>
                             {entry.notes && (
-                              <p className="mt-1 whitespace-pre-wrap text-sm leading-5 text-[#77776d]">
+                              <p className="mt-1 whitespace-pre-wrap text-sm leading-5 text-on-surface-variant">
                                 {entry.notes}
                               </p>
                             )}
@@ -367,7 +367,7 @@ export default function Diet() {
                             type="button"
                             onClick={() => handleDeleteEntry(entry.id)}
                             aria-label={`Delete ${entry.mealType} entry`}
-                            className="rounded-full p-2 text-[#77776d] hover:bg-[#f3efdf] hover:text-[#9b4937]"
+                            className="rounded-full p-2 text-on-surface-variant hover:bg-tertiary-container hover:text-risk-high"
                           >
                             <span className="material-symbols-outlined text-[20px]">delete</span>
                           </button>
@@ -375,7 +375,7 @@ export default function Diet() {
                       ))}
                     </ul>
                   ) : (
-                    <p className="text-sm text-[#77776d]">
+                    <p className="text-sm text-on-surface-variant">
                       No {type.toLowerCase()} recorded for this date.
                     </p>
                   )}
@@ -387,16 +387,16 @@ export default function Diet() {
 
         <section className="mb-12" aria-labelledby="meal-ideas-heading">
           <div className="mb-6">
-            <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-[#77776d]">
+            <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-tertiary">
               Build a satisfying day
             </p>
             <h2
               id="meal-ideas-heading"
-              className="font-['Playfair_Display'] text-3xl font-semibold text-[#3f3d35]"
+              className="font-['Playfair_Display'] text-3xl font-semibold text-plum-deep"
             >
               Meal suggestions
             </h2>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-[#626258]">
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-on-surface-variant">
               Pick the ideas that suit you and swap ingredients freely. These
               are examples, not a strict meal plan.
             </p>
@@ -409,14 +409,14 @@ export default function Diet() {
         </section>
 
         <section className="mb-12 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="rounded-3xl bg-[#e5dfc8] p-6 md:p-8">
-            <span className="material-symbols-outlined mb-4 text-[30px] text-[#535845]">
+          <div className="rounded-3xl bg-secondary-container p-6 md:p-8">
+            <span className="material-symbols-outlined mb-4 text-[30px] text-secondary">
               nutrition
             </span>
             <h2 className="mb-3 font-['Playfair_Display'] text-2xl font-semibold">
               A flexible plate
             </h2>
-            <p className="mb-5 text-sm leading-6 text-[#55564b]">
+            <p className="mb-5 text-sm leading-6 text-on-secondary-container">
               When it works for you, include a variety of colorful vegetables
               or fruit, a protein-rich food, and a grain or other energy-giving
               food. Add nourishing fats and calcium-containing foods across the
@@ -426,7 +426,7 @@ export default function Diet() {
               {["Vegetables & fruit", "Protein", "Whole grains", "Calcium foods"].map((item) => (
                 <span
                   key={item}
-                  className="rounded-full bg-white/70 px-3 py-2 text-xs font-semibold text-[#535845]"
+                  className="rounded-full bg-white/80 px-3 py-2 text-xs font-semibold text-on-secondary-container"
                 >
                   {item}
                 </span>
@@ -434,33 +434,33 @@ export default function Diet() {
             </div>
           </div>
 
-          <div className="rounded-3xl border border-[#e8e2cf] bg-white p-6 md:p-8">
-            <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-[#77776d]">
+          <div className="rounded-3xl border border-outline-variant bg-white p-6 md:p-8 soft-shadow">
+            <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-tertiary">
               Make it your own
             </p>
             <h2 className="mb-5 font-['Playfair_Display'] text-2xl font-semibold">
               Small habits, no strict rules
             </h2>
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="rounded-2xl bg-[#faf7f0] p-4">
-                <span className="material-symbols-outlined mb-2 text-[#6b705c]">water_drop</span>
+              <div className="rounded-2xl bg-surface-container p-4">
+                <span className="material-symbols-outlined mb-2 text-secondary">water_drop</span>
                 <h3 className="mb-1 text-sm font-bold">Keep water nearby</h3>
-                <p className="text-sm leading-5 text-[#626258]">Drink regularly and adjust to your thirst, activity, and climate.</p>
+                <p className="text-sm leading-5 text-on-surface-variant">Drink regularly and adjust to your thirst, activity, and climate.</p>
               </div>
-              <div className="rounded-2xl bg-[#faf7f0] p-4">
-                <span className="material-symbols-outlined mb-2 text-[#6b705c]">schedule</span>
+              <div className="rounded-2xl bg-surface-container p-4">
+                <span className="material-symbols-outlined mb-2 text-secondary">schedule</span>
                 <h3 className="mb-1 text-sm font-bold">Find a steady rhythm</h3>
-                <p className="text-sm leading-5 text-[#626258]">A predictable meal pattern can help make planning easier.</p>
+                <p className="text-sm leading-5 text-on-surface-variant">A predictable meal pattern can help make planning easier.</p>
               </div>
-              <div className="rounded-2xl bg-[#faf7f0] p-4">
-                <span className="material-symbols-outlined mb-2 text-[#6b705c]">eco</span>
+              <div className="rounded-2xl bg-surface-container p-4">
+                <span className="material-symbols-outlined mb-2 text-secondary">eco</span>
                 <h3 className="mb-1 text-sm font-bold">Choose variety</h3>
-                <p className="text-sm leading-5 text-[#626258]">Rotate foods you enjoy rather than relying on one “perfect” menu.</p>
+                <p className="text-sm leading-5 text-on-surface-variant">Rotate foods you enjoy rather than relying on one “perfect” menu.</p>
               </div>
-              <div className="rounded-2xl bg-[#faf7f0] p-4">
-                <span className="material-symbols-outlined mb-2 text-[#6b705c]">favorite</span>
+              <div className="rounded-2xl bg-surface-container p-4">
+                <span className="material-symbols-outlined mb-2 text-tertiary">favorite</span>
                 <h3 className="mb-1 text-sm font-bold">Notice what suits you</h3>
-                <p className="text-sm leading-5 text-[#626258]">Personal comfort and dietary needs can differ from person to person.</p>
+                <p className="text-sm leading-5 text-on-surface-variant">Personal comfort and dietary needs can differ from person to person.</p>
               </div>
             </div>
           </div>
@@ -468,12 +468,12 @@ export default function Diet() {
 
         <section aria-labelledby="routine-heading">
           <div className="mb-6">
-            <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-[#77776d]">
+            <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-tertiary">
               A sample daily flow
             </p>
             <h2
               id="routine-heading"
-              className="font-['Playfair_Display'] text-3xl font-semibold text-[#3f3d35]"
+              className="font-['Playfair_Display'] text-3xl font-semibold text-plum-deep"
             >
               A routine that bends with your day
             </h2>
@@ -482,25 +482,25 @@ export default function Diet() {
             {routine.map((step, index) => (
               <article
                 key={step.time}
-                className="flex gap-4 rounded-2xl border border-[#e8e2cf] bg-white p-5"
+                className="flex gap-4 rounded-2xl border border-outline-variant bg-white p-5 soft-shadow"
               >
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#f3efdf] text-[#535845]">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary-container text-primary">
                   <span className="material-symbols-outlined">{step.icon}</span>
                 </span>
                 <div>
-                  <p className="mb-1 text-xs font-bold uppercase tracking-[0.12em] text-[#77776d]">
+                  <p className="mb-1 text-xs font-bold uppercase tracking-[0.12em] text-on-surface-variant">
                     {step.time} · {String(index + 1).padStart(2, "0")}
                   </p>
                   <h3 className="mb-1 font-semibold">{step.title}</h3>
-                  <p className="text-sm leading-6 text-[#626258]">{step.description}</p>
+                  <p className="text-sm leading-6 text-on-surface-variant">{step.description}</p>
                 </div>
               </article>
             ))}
           </div>
         </section>
 
-        <aside className="mt-10 rounded-2xl border border-[#d9d4c1] bg-[#faf7f0] p-5 text-sm leading-6 text-[#626258]">
-          <strong className="text-[#3f3d35]">A note about personal needs:</strong>{" "}
+        <aside className="mt-10 rounded-2xl border border-secondary/30 bg-secondary-container p-5 text-sm leading-6 text-on-secondary-container">
+          <strong className="text-primary">A note about personal needs:</strong>{" "}
           This is general wellness information, not a treatment plan. Allergies,
           medical conditions, medications, culture, and budget all affect what
           works. For tailored advice, speak with a registered dietitian or

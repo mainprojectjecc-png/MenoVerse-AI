@@ -3,42 +3,40 @@
 @import "tailwindcss";
 
 @theme {
-  /* MenoVerse Colors */
-  --color-primary: #6B705C;
-  --color-primary-container: #B7B7A4;
-  --color-on-primary-container: #3F4238;
+  --color-primary: #5B2A6E;
+  --color-primary-container: #E8D5F0;
+  --color-on-primary-container: #2B1538;
 
-  --color-secondary: #A5A58D;
-  --color-secondary-container: #DDBEA9;
-  --color-on-secondary-container: #6B4D3C;
+  --color-secondary: #0F6B6B;
+  --color-secondary-container: #E1F2F1;
+  --color-on-secondary-container: #0B4F4F;
 
-  --color-tertiary: #CB997E;
+  --color-tertiary: #C2336B;
 
-  --color-background: #F0EAD6;
-  --color-surface: #FAF7F0;
-  --color-surface-container: #F4F1E8;
-  --color-surface-container-high: #EBE7D9;
+  --color-background: #F7F1F6;
+  --color-surface: #FFFFFF;
+  --color-surface-container: #F3EAF4;
+  --color-surface-container-high: #EADCF0;
 
-  --color-on-surface: #3F3D35;
-  --color-on-surface-variant: #6B695E;
+  --color-on-surface: #2B1538;
+  --color-on-surface-variant: #6B5778;
 
-  --color-outline: #A8A596;
-  --color-outline-variant: #D1CEC0;
+  --color-outline: #9A7FA2;
+  --color-outline-variant: #D8C9DD;
 
-  --color-risk-high: #BC6C4D;
-  --color-risk-low: #84A59D;
+  --color-risk-high: #A51F55;
+  --color-risk-low: #0F6B6B;
 
-  --color-lavender-mist: #E7E4D5;
-  --color-plum-deep: #3F3D35;
+  --color-lavender-mist: #E8D5F0;
+  --color-plum-deep: #5B2A6E;
 
-  /* Added for Exercise/Nutrition/Profile pages */
   --color-on-primary: #ffffff;
   --color-on-tertiary: #ffffff;
-  --color-tertiary-container: #8f644c;
-  --color-on-tertiary-container: #ffeee6;
+  --color-tertiary-container: #F8DCE8;
+  --color-on-tertiary-container: #64183B;
   --color-surface-container-lowest: #ffffff;
-  --color-risk-moderate: #D9A05B;
-  --color-sage-soft: #C4C9B1;
+  --color-risk-moderate: #9A4A28;
+  --color-sage-soft: #E1F2F1;
   --color-error: #ba1a1a;
   --color-on-error: #ffffff;
   --color-error-container: #ffdad6;
@@ -97,15 +95,143 @@ body,
   min-height: 100%;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   margin: 0;
-  background-color: #F0EAD6;
-  color: #3F3D35;
+  background-color: #F7F1F6;
+  background-image:
+    radial-gradient(ellipse at 8% 0%, rgba(194, 51, 107, 0.06), transparent 32rem),
+    radial-gradient(ellipse at 95% 12%, rgba(15, 107, 107, 0.05), transparent 30rem);
+  color: #2B1538;
   font-family: "Plus Jakarta Sans", sans-serif;
 }
 
 * {
   box-sizing: border-box;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+a {
+  text-decoration-thickness: from-font;
+  text-underline-offset: 0.2em;
+}
+
+:focus-visible {
+  outline: 3px solid rgba(194, 51, 107, 0.55);
+  outline-offset: 3px;
+}
+
+input:not([type="checkbox"]):not([type="radio"]),
+select,
+textarea {
+  border-color: #D8C9DD;
+  border-radius: 0.8rem;
+  color: #2B1538;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):focus,
+select:focus,
+textarea:focus {
+  border-color: #5B2A6E;
+  box-shadow: 0 0 0 3px rgba(91, 42, 110, 0.12);
+  outline: none;
+}
+
+[class*="rounded-2xl"][class*="border"][class*="bg-white"],
+[class*="rounded-3xl"][class*="border"][class*="bg-white"] {
+  box-shadow: 0 14px 38px -24px rgba(43, 21, 56, 0.32);
+  transition: box-shadow 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+
+a[class*="rounded-2xl"][class*="bg-white"]:hover,
+a[class*="rounded-3xl"][class*="bg-white"]:hover {
+  border-color: #C9AFD2;
+  box-shadow: 0 18px 42px -22px rgba(91, 42, 110, 0.34);
+  transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  main > .min-h-screen {
+    animation: page-enter 360ms ease-out both;
+  }
+
+  @keyframes page-enter {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+@layer utilities {
+  [class*="bg-[#F0EAD6]"],
+  [class*="bg-[#fff9e8]"] {
+    background-color: #F7F1F6 !important;
+  }
+
+  [class*="bg-[#FAF7F0]"],
+  [class*="bg-[#faf4df]"],
+  [class*="bg-[#eee8d4]"],
+  [class*="bg-[#f3efdf]"] {
+    background-color: #FFFFFF !important;
+  }
+
+  [class*="bg-[#e8e2cf]"],
+  [class*="bg-[#D1CEC0]"],
+  [class*="bg-[#d1cec0]"],
+  [class*="bg-[#DDBEA9]"] {
+    background-color: #EADCF0 !important;
+  }
+
+  [class*="bg-[#535845]"],
+  [class*="bg-[#6B705C]"] {
+    background-color: #5B2A6E !important;
+  }
+
+  [class*="bg-[#B7B7A4]"] {
+    background-color: #E1F2F1 !important;
+  }
+
+  [class*="text-[#3F3D35]"],
+  [class*="text-[#1e1c10]"] {
+    color: #2B1538 !important;
+  }
+
+  [class*="text-[#464740]"],
+  [class*="text-[#6B695E]"],
+  [class*="text-[#77776d]"] {
+    color: #6B5778 !important;
+  }
+
+  [class*="text-[#535845]"],
+  [class*="text-[#6B705C]"] {
+    color: #5B2A6E !important;
+  }
+
+  [class*="text-[#BC6C4D]"] {
+    color: #A51F55 !important;
+  }
+
+  [class*="border-[#e8e2cf]"],
+  [class*="border-[#D1CEC0]"],
+  [class*="border-[#d1cec0]"] {
+    border-color: #D8C9DD !important;
+  }
 }
 
 .material-symbols-outlined {
@@ -126,19 +252,35 @@ body {
 }
 
 .soft-shadow {
-  box-shadow: 0 10px 30px -10px rgba(107, 112, 92, 0.15);
+  box-shadow: 0 18px 44px -22px rgba(91, 42, 110, 0.4);
 }
 
 .glass-warm {
-  background: rgba(255, 251, 240, 0.6);
+  background: rgba(255, 255, 255, 0.76);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(232, 213, 240, 0.8);
+}
+
+::selection {
+  background: #C2336B;
+  color: #ffffff;
 }
 
 @media (min-width: 1024px) {
   .desktop-content {
-    width: min(800px, calc(100vw - 18rem - 3rem));
-    margin-left: calc(18rem + max(0px, (100vw - 18rem - 800px) / 2));
+    width: min(880px, calc(100vw - 18rem - 3rem));
+    margin-left: calc(18rem + max(0px, (100vw - 18rem - 880px) / 2));
     margin-right: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

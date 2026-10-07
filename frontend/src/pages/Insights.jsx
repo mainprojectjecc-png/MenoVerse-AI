@@ -83,35 +83,36 @@ export default function Insights() {
     : "No assessment has been recorded yet."
 
   return (
-    <div className="min-h-screen bg-[#fff9e8] text-[#3F3D35] pb-24 md:pb-0">
+    <div className="min-h-screen bg-background text-on-surface pb-24 md:pb-0">
 
       <main className="max-w-[1100px] mx-auto px-margin-mobile md:px-margin-desktop py-10 space-y-10">
 
         {/* PAGE HEADER */}
         <section>
           <h2
-            className="text-[36px] font-bold text-[#3F3D35]"
+            className="text-[36px] font-bold text-plum-deep"
             style={{ fontFamily: "Playfair Display" }}
           >
             Your Health Insights
           </h2>
 
-          <p className="text-[#464740] mt-2">
+          <p className="text-on-surface-variant mt-2">
             Insights based on your recorded health data
           </p>
         </section>
 
         {/* ASSESSMENT INSIGHT */}
-        <div className="bg-[#535845] text-white rounded-3xl p-8 relative overflow-hidden">
-          <div className="absolute -right-20 -top-20 w-64 h-64 bg-white/10 rounded-full blur-2xl" />
+        <div className="bg-gradient-to-br from-primary via-primary to-[#3D174B] text-white rounded-3xl p-8 relative overflow-hidden soft-shadow">
+          <div className="absolute -right-20 -top-20 w-64 h-64 bg-tertiary/25 rounded-full blur-2xl" />
+          <div className="absolute right-24 -bottom-28 w-56 h-56 bg-secondary/25 rounded-full blur-3xl" />
 
           <div className="relative z-10">
             <div className="flex items-center gap-2 mb-4">
-              <span className="material-symbols-outlined text-[#e8e2cf]">
+              <span className="material-symbols-outlined text-[#FFB3D1]">
                 auto_awesome
               </span>
 
-              <span className="text-xs tracking-widest uppercase font-bold text-[#e8e2cf]">
+              <span className="text-xs tracking-widest uppercase font-bold text-[#E8D5F0]">
                 Personalized Insight
               </span>
             </div>
@@ -123,7 +124,7 @@ export default function Insights() {
               Latest Assessment
             </h3>
 
-            <p className="text-[#e8e2cf]/80 leading-relaxed mb-6">
+            <p className="text-white/90 leading-relaxed mb-6">
               {riskText}
             </p>
 
@@ -151,9 +152,9 @@ export default function Insights() {
         <div className="grid md:grid-cols-2 gap-6">
 
           {/* SYMPTOMS */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#D1CEC0]/20">
+          <div className="bg-white rounded-2xl p-6 soft-shadow border border-outline-variant/60">
             <h4 className="font-semibold flex items-center gap-2">
-              <span className="material-symbols-outlined text-[#BC6C4D]">
+              <span className="material-symbols-outlined text-tertiary">
                 monitor_heart
               </span>
 
@@ -162,7 +163,7 @@ export default function Insights() {
 
             {symptom ? (
               <>
-                <p className="text-sm text-[#464740] mt-3">
+                <p className="text-sm text-on-surface-variant mt-3">
                   Latest symptom log from {symptom.LogDate}.
                 </p>
 
@@ -216,16 +217,16 @@ export default function Insights() {
                 </div>
               </>
             ) : (
-              <p className="text-sm text-[#464740] mt-3">
+              <p className="text-sm text-on-surface-variant mt-3">
                 No symptom data has been recorded yet.
               </p>
             )}
           </div>
 
           {/* CYCLE */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#D1CEC0]/20">
+          <div className="bg-white rounded-2xl p-6 soft-shadow border border-outline-variant/60">
             <h4 className="font-semibold flex items-center gap-2">
-              <span className="material-symbols-outlined text-[#6B705C]">
+              <span className="material-symbols-outlined text-secondary">
                 calendar_month
               </span>
 
@@ -234,7 +235,7 @@ export default function Insights() {
 
             {cycle ? (
               <>
-                <p className="text-sm text-[#464740] mt-3">
+                <p className="text-sm text-on-surface-variant mt-3">
                   Your latest recorded cycle.
                 </p>
 
@@ -270,7 +271,7 @@ export default function Insights() {
                 </div>
               </>
             ) : (
-              <p className="text-sm text-[#464740] mt-3">
+              <p className="text-sm text-on-surface-variant mt-3">
                 No cycle data has been recorded yet.
               </p>
             )}
@@ -279,7 +280,7 @@ export default function Insights() {
         </div>
 
         {/* RECOMMENDATIONS */}
-        <div className="bg-white rounded-2xl p-8 shadow-sm border border-[#D1CEC0]/20">
+        <div className="bg-white rounded-2xl p-8 soft-shadow border border-outline-variant/60">
 
           <h4 className="font-semibold mb-6">
             Personalized Recommendations
@@ -288,8 +289,8 @@ export default function Insights() {
           {recommendation ? (
             <div className="space-y-4">
 
-              <div className="flex gap-4 p-4 bg-[#fff9e8] rounded-xl">
-                <span className="w-8 h-8 bg-[#6B705C] text-white rounded-full flex items-center justify-center text-sm shrink-0">
+              <div className="flex gap-4 p-4 bg-surface-container rounded-xl">
+                <span className="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm shrink-0">
                   1
                 </span>
 
@@ -299,8 +300,8 @@ export default function Insights() {
                 </p>
               </div>
 
-              <div className="flex gap-4 p-4 bg-[#fff9e8] rounded-xl">
-                <span className="w-8 h-8 bg-[#6B705C] text-white rounded-full flex items-center justify-center text-sm shrink-0">
+              <div className="flex gap-4 p-4 bg-surface-container rounded-xl">
+                <span className="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm shrink-0">
                   2
                 </span>
 
@@ -310,8 +311,8 @@ export default function Insights() {
                 </p>
               </div>
 
-              <div className="flex gap-4 p-4 bg-[#fff9e8] rounded-xl">
-                <span className="w-8 h-8 bg-[#6B705C] text-white rounded-full flex items-center justify-center text-sm shrink-0">
+              <div className="flex gap-4 p-4 bg-surface-container rounded-xl">
+                <span className="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm shrink-0">
                   3
                 </span>
 
@@ -321,8 +322,8 @@ export default function Insights() {
                 </p>
               </div>
 
-              <div className="flex gap-4 p-4 bg-[#fff9e8] rounded-xl">
-                <span className="w-8 h-8 bg-[#6B705C] text-white rounded-full flex items-center justify-center text-sm shrink-0">
+              <div className="flex gap-4 p-4 bg-surface-container rounded-xl">
+                <span className="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm shrink-0">
                   4
                 </span>
 
@@ -334,7 +335,7 @@ export default function Insights() {
 
             </div>
           ) : (
-            <p className="text-sm text-[#464740]">
+            <p className="text-sm text-on-surface-variant">
               Complete an assessment to receive personalized
               recommendations.
             </p>
@@ -343,17 +344,17 @@ export default function Insights() {
         </div>
 
         {/* WEARABLE DATA */}
-        <div className="bg-white rounded-2xl p-8 shadow-sm border border-[#D1CEC0]/20">
+        <div className="bg-white rounded-2xl p-8 soft-shadow border border-outline-variant/60">
 
           <h4 className="font-semibold mb-3 flex items-center gap-2">
-            <span className="material-symbols-outlined text-[#6B705C]">
+            <span className="material-symbols-outlined text-secondary">
               watch
             </span>
 
             Wearable Data
           </h4>
 
-          <p className="text-sm text-[#464740]">
+          <p className="text-sm text-on-surface-variant">
             No wearable device data is currently connected to
             MenoVerse. Heart rate, sleep duration, temperature,
             and activity insights will appear here when real
@@ -366,7 +367,7 @@ export default function Insights() {
         <div className="flex justify-center pt-2">
           <Link
             to="/dashboard"
-            className="inline-flex items-center gap-2 text-[#6B705C] font-semibold hover:underline"
+            className="inline-flex items-center gap-2 text-primary font-semibold hover:text-tertiary hover:underline"
           >
             <span className="material-symbols-outlined text-[20px]">
               arrow_back

@@ -9,17 +9,24 @@ const menuLinks = [
   { to: "/nutrition", icon: "restaurant", label: "Nutrition" },
   { to: "/assessment", icon: "fact_check", label: "Assessment" },
   { to: "/journal", icon: "mic", label: "Voice Journal" },
+  { to: "/exercise", icon: "fitness_center", label: "Exercise" },
+  { to: "/education", icon: "menu_book", label: "Education" },
+  { to: "/profile", icon: "person", label: "Profile" },
 ]
 
 export default function Layout() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const location = useLocation()
+  const isDesktop = window.matchMedia("(min-width: 1024px)").matches
 
   const stored = localStorage.getItem("user")
   const user = stored ? JSON.parse(stored) : null
 
   const name = user?.Name || "User"
+  const activeLink = menuLinks.find((link) =>
+    location.pathname === link.to || location.pathname.startsWith(`${link.to}/`)
+  )
 
   const initials = name
     .split(" ")
@@ -30,7 +37,7 @@ export default function Layout() {
     .toUpperCase()
 
   return (
-    <div className="min-h-screen bg-[#F0EAD6]">
+    <div className="min-h-screen bg-background text-on-surface">
 
       {/* COMMON SIDEBAR */}
       <Sidebar collapsed={sidebarCollapsed} />
@@ -44,40 +51,34 @@ export default function Layout() {
         `}
       >
 
-        {/* COMMON TOP HEADER */}
         <header
           className="
-            h-[86px]
-            bg-[#FAF7F0]
-            border-b border-[#e8e2cf]
-            flex items-center
-            px-6
-            sticky top-0
-            z-30
+            sticky top-0 z-30 flex h-[76px] items-center gap-4
+            border-b border-outline-variant/70 bg-white/85 px-4 backdrop-blur-xl
+            sm:px-6 lg:px-8
           "
         >
-
-          {/* MENU */}
           <div className="relative">
             <button
               onClick={() => {
-                setSidebarCollapsed((prev) => !prev)
-                setMenuOpen((prev) => !prev)
+                if (isDesktop) {
+                  setSidebarCollapsed((prev) => !prev)
+                } else {
+                  setMenuOpen((prev) => !prev)
+                }
               }}
               className="
-                w-10 h-10
-                rounded-full
-                hover:bg-[#e8e2cf]/60
-                flex items-center
-                justify-center
-                transition-all
+                flex h-10 w-10 items-center justify-center rounded-xl
+                text-on-surface-variant transition-colors hover:bg-surface-container
+                hover:text-primary
               "
-              aria-label="Toggle navigation menu"
-              aria-expanded={menuOpen}
-              aria-controls="header-navigation-menu"
+              aria-label="Toggle navigation"
+              aria-expanded={isDesktop ? !sidebarCollapsed : menuOpen}
             >
               <span className="material-symbols-outlined text-[24px]">
-                {menuOpen ? "close" : "menu"}
+                {isDesktop
+                  ? sidebarCollapsed ? "menu_open" : "menu"
+                  : menuOpen ? "close" : "menu"}
               </span>
             </button>
 
@@ -85,23 +86,22 @@ export default function Layout() {
               <nav
                 id="header-navigation-menu"
                 aria-label="Main navigation"
-                className="absolute left-0 top-full mt-3 w-64 rounded-2xl border border-[#e8e2cf] bg-[#FAF7F0] p-3 shadow-xl z-50"
+                className="absolute left-0 top-full z-50 mt-3 max-h-[calc(100dvh-10rem)] w-64 overflow-y-auto rounded-2xl border border-outline-variant bg-white p-3 shadow-xl lg:hidden"
               >
                 {menuLinks.map((link) => {
                   const active =
                     location.pathname === link.to ||
-                    (link.to === "/education" &&
-                      location.pathname.startsWith("/education/"))
+                    location.pathname.startsWith(`${link.to}/`)
 
                   return (
                     <Link
                       key={link.to}
                       to={link.to}
                       onClick={() => setMenuOpen(false)}
-                      className={`flex items-center gap-4 rounded-xl px-4 py-3 text-sm transition-colors ${
+                      className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm transition-colors ${
                         active
-                          ? "bg-[#535845] font-semibold text-white"
-                          : "text-[#3F3D35] hover:bg-[#e8e2cf]/60"
+                          ? "bg-primary font-semibold text-white"
+                          : "text-on-surface hover:bg-surface-container"
                       }`}
                     >
                       <span className="material-symbols-outlined text-[21px]">
@@ -115,94 +115,41 @@ export default function Layout() {
             )}
           </div>
 
-          {/* BRAND */}
-          <Link
-            to="/dashboard"
-            className="
-              ml-4
-              text-[#6B705C]
-              italic
-              text-[16px]
-            "
-            style={{ fontFamily: "Playfair Display" }}
-          >
-            MenoVerse AI
+          <Link to="/dashboard" className="flex min-w-0 items-center gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-sm font-bold text-white shadow-sm">
+              M
+            </span>
+            <span className="hidden font-headline-md text-lg font-semibold text-primary sm:inline">
+              MenoVerse
+            </span>
           </Link>
+
+          <div className="mx-1 h-8 w-px bg-outline-variant/70" />
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold text-on-surface">
+              {activeLink?.label || "Your wellness"}
+            </p>
+            <p className="hidden text-xs text-on-surface-variant sm:block">
+              Your personal wellness space
+            </p>
+          </div>
 
           <div className="flex-1" />
 
-          {/* TOP NAVIGATION */}
-          <nav className="hidden xl:flex items-center gap-8 mr-8">
+          <Link
+            to="/assessment"
+            className="hidden items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-plum-deep hover:shadow-md sm:inline-flex"
+          >
+            <span className="material-symbols-outlined text-[19px]">add</span>
+            New assessment
+          </Link>
 
-            <Link
-              to="/dashboard"
-              className="text-sm text-[#535845] hover:text-[#535845]"
-            >
-              Home
-            </Link>
-
-            <Link
-              to="/cycle"
-              className="text-sm text-[#77776d] hover:text-[#535845]"
-            >
-              Tracking
-            </Link>
-
-            <Link
-              to="/symptoms"
-              className="text-sm text-[#77776d] hover:text-[#535845]"
-            >
-              Symptoms
-            </Link>
-
-            <Link
-              to="/journal"
-              className="text-sm text-[#77776d] hover:text-[#535845]"
-            >
-              Journal
-            </Link>
-
-            <Link
-              to="/insights"
-              className="text-sm text-[#77776d] hover:text-[#535845]"
-            >
-              Insights
-            </Link>
-
-            <Link
-              to="/nutrition"
-              className="text-sm text-[#77776d] hover:text-[#535845]"
-            >
-              Nutrition
-            </Link>
-
-            <Link
-              to="/exercise"
-              className="text-sm text-[#77776d] hover:text-[#535845]"
-            >
-              Exercise
-            </Link>
-
-            <Link
-              to="/education"
-              className="text-sm text-[#77776d] hover:text-[#535845]"
-            >
-              Education
-            </Link>
-
-          </nav>
-
-          {/* PROFILE */}
           <Link
             to="/profile"
             className="
-              w-10 h-10
-              rounded-full
-              bg-[#B7B7A4]
-              flex items-center
-              justify-center
-              font-bold
-              text-sm
+              flex h-10 w-10 shrink-0 items-center justify-center rounded-full
+              border-2 border-white bg-secondary-container text-sm font-bold
+              text-on-secondary-container shadow-sm ring-1 ring-outline-variant/60
             "
             aria-label={`Open profile for ${name}`}
             title={name}
@@ -213,7 +160,7 @@ export default function Layout() {
         </header>
 
         {/* PAGE CONTENT */}
-        <main className="min-h-[calc(100vh-86px)]">
+        <main className="min-h-[calc(100vh-76px)]">
           <Outlet />
         </main>
 
