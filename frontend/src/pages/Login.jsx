@@ -19,6 +19,7 @@ export default function Login() {
         Password: form.password,
       })
       localStorage.setItem("user", JSON.stringify(res.data))
+      localStorage.setItem("token", res.data.access_token)
       navigate("/dashboard")
     } catch (err) {
       const message = err.response?.data?.detail || "Login failed. Please check your credentials."
