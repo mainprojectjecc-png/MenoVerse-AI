@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field
-from datetime import date
+from datetime import date, datetime
 from typing import Optional
 
 # --------------------------------------------------
@@ -167,3 +167,143 @@ class VoiceJournalOut(VoiceJournalCreate):
 
     class Config:
         from_attributes = True
+
+# --------------------------------------------------
+# DIET SUGGESTIONS
+# --------------------------------------------------
+
+class DietSuggestionOut(BaseModel):
+    SuggestionID: int
+    MealType: str
+    Title: str
+    Summary: str | None = None
+    FoodIdea: str | None = None
+    IsActive: int
+
+    class Config:
+        from_attributes = True
+
+class RecipeBase(BaseModel):
+    Name: str
+    MealType: str
+    Ingredients: str
+    Instructions: str
+    CookingTime: str | None = None
+    Notes: str | None = None
+    IsFavorite: int = 0
+    IsPublic: int = 0
+
+
+class RecipeCreate(RecipeBase):
+    pass
+
+
+class RecipeUpdate(BaseModel):
+    Name: str | None = None
+    MealType: str | None = None
+    Ingredients: str | None = None
+    Instructions: str | None = None
+    CookingTime: str | None = None
+    Notes: str | None = None
+    IsFavorite: int | None = None
+    IsPublic: int | None = None
+
+
+class RecipeOut(RecipeBase):
+    RecipeID: int
+    UserID: int | None = None
+
+    class Config:
+        from_attributes = True
+
+
+class RecipeAssistantRequest(BaseModel):
+    prompt: str = Field(..., min_length=1, max_length=1000)
+
+
+class DietLogCreate(BaseModel):
+    LogDate: date
+    MealType: str
+    Food: str
+    Portion: str | None = None
+    Notes: str | None = None
+
+
+class DietLogUpdate(BaseModel):
+    LogDate: date | None = None
+    MealType: str | None = None
+    Food: str | None = None
+    Portion: str | None = None
+    Notes: str | None = None
+
+
+class DietLogOut(BaseModel):
+    DietLogID: int
+    UserID: int
+    LogDate: date
+    MealType: str
+    Food: str
+    Portion: str | None = None
+    Notes: str | None = None
+    CreatedAt: datetime | None = None
+
+    class Config:
+        from_attributes = True
+
+
+class MealPlannerCreate(BaseModel):
+    PlanDate: date
+    MealType: str
+    RecipeID: int
+
+
+class MealPlannerOut(BaseModel):
+    PlannerID: int
+    UserID: int
+    PlanDate: date
+    MealType: str
+    RecipeID: int
+    CreatedAt: datetime | None = None
+
+    class Config:
+        from_attributes = True
+
+
+class PantryItemCreate(BaseModel):
+    ItemName: str
+
+
+class PantryItemOut(BaseModel):
+    PantryItemID: int
+    UserID: int
+    ItemName: str
+    CreatedAt: datetime | None = None
+
+    class Config:
+        from_attributes = True
+
+
+class ShoppingListCreate(BaseModel):
+    ItemName: str
+    IsChecked: int = 0
+
+
+class ShoppingListUpdate(BaseModel):
+    ItemName: str | None = None
+    IsChecked: int | None = None
+
+
+class ShoppingListOut(BaseModel):
+    ShoppingItemID: int
+    UserID: int
+    ItemName: str
+    IsChecked: int
+    CreatedAt: datetime | None = None
+
+    class Config:
+        from_attributes = True
+
+
+class HydrationUpdate(BaseModel):
+    LogDate: date
+    Glasses: int

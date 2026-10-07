@@ -2092,17 +2092,17 @@ export default function Diet() {
             </label>
           </div>
 
-          {storageError && (
+          {dietLogError && (
             <p
               role="alert"
               className="mb-5 rounded-xl border border-risk-high/30 bg-tertiary-container px-4 py-3 text-sm text-on-tertiary-container"
             >
-              {storageError}
+              {dietLogError}
             </p>
           )}
 
           <form
-            onSubmit={handleAddEntry}
+            onSubmit={addFoodEntry}
             className="mb-7 grid gap-4 rounded-2xl bg-surface-container p-4 md:grid-cols-2 md:p-5"
           >
             <label className="flex flex-col gap-2 text-sm font-semibold">
@@ -2212,6 +2212,7 @@ export default function Diet() {
               {mainMealsLogged} of 3 main meal periods have entries. Snacks are optional.
             </p>
 
+            <div>
               <p className="mt-2 text-2xl font-bold">
                 {mainMealsLogged}/3
               </p>
@@ -2276,7 +2277,7 @@ export default function Diet() {
                           </div>
                           <button
                             type="button"
-                            onClick={() => handleDeleteEntry(entry.id)}
+                            onClick={() => deleteFoodEntry(entry.DietLogID)}
                             aria-label={`Delete ${entry.mealType} entry`}
                             className="rounded-full p-2 text-on-surface-variant hover:bg-tertiary-container hover:text-risk-high"
                           >
@@ -2325,7 +2326,8 @@ export default function Diet() {
                                 </span>
                               </button>
                             </div>
-                          </li>
+                          </button>
+                        </li>
                         ),
                       )}
                     </ul>

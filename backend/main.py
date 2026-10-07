@@ -1,12 +1,19 @@
 import json
-
+from datetime import date, datetime
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from typing import List
 
-from database import Base, engine, get_db, ensure_voice_journal_columns
+from database import (
+    Base,
+    engine,
+    get_db,
+    ensure_voice_journal_columns,
+    ensure_diet_log_portion_column,
+    SessionLocal,
+)
 from models import (
     User,
     Cycle,
@@ -14,6 +21,14 @@ from models import (
     RiskAssessment,
     Recommendation,
     VoiceJournal,
+    DietSuggestion, 
+    Recipe,
+    RecipeFavorite,
+    DietLog,
+    MealPlanner,
+    PantryItem,
+    ShoppingListItem,
+    HydrationLog,
 )
 
 from schemas import (
@@ -33,7 +48,23 @@ from schemas import (
     PredictInput,
     VoiceJournalCreate,
     VoiceJournalOut,
-    JournalAnalysisRequest,
+    JournalAnalysisRequest, 
+    DietSuggestionOut,
+    RecipeCreate,
+    RecipeUpdate, 
+    RecipeOut,
+    RecipeAssistantRequest,
+    DietLogCreate,
+    DietLogUpdate,
+    DietLogOut,
+    MealPlannerCreate,
+    MealPlannerOut,
+    PantryItemCreate,
+    PantryItemOut,
+    ShoppingListCreate,
+    ShoppingListUpdate,
+    ShoppingListOut,
+    HydrationUpdate
 )
 
 from ml_predictor import predict_stage
@@ -42,8 +73,190 @@ from auth import hash_password, verify_password, get_current_user, create_access
 
 Base.metadata.create_all(bind=engine)
 ensure_voice_journal_columns()
+ensure_diet_log_portion_column()
+
+# Seed default diet suggestions
+def seed_diet_suggestions():
+    db = next(get_db())
+
+    try:
+        existing = db.query(DietSuggestion).count()
+
+        if existing == 0:
+            suggestions = [
+                DietSuggestion(
+                    MealType="Breakfast",
+                    Title="Breakfast",
+                    Summary="Combine a protein source with fiber-rich foods for a satisfying start.",
+                    FoodIdea="Oats with milk or fortified soy milk, fruit, nuts, and seeds",
+                    IsActive=1,
+                ),
+                DietSuggestion(
+                    MealType="Breakfast",
+                    Title="Breakfast",
+                    Summary="Combine a protein source with fiber-rich foods for a satisfying start.",
+                    FoodIdea="Eggs or tofu with whole-grain toast and vegetables",
+                    IsActive=1,
+                ),
+                DietSuggestion(
+                    MealType="Breakfast",
+                    Title="Breakfast",
+                    Summary="Combine a protein source with fiber-rich foods for a satisfying start.",
+                    FoodIdea="Idli or dosa with sambar and a side of fruit",
+                    IsActive=1,
+                ),
+                DietSuggestion(
+                    MealType="Lunch",
+                    Title="Lunch",
+                    Summary="Build a balanced plate with vegetables, protein, and a whole grain.",
+                    FoodIdea="Dal, brown rice or roti, and a generous serving of vegetables",
+                    IsActive=1,
+                ),
+                DietSuggestion(
+                    MealType="Lunch",
+                    Title="Lunch",
+                    Summary="Build a balanced plate with vegetables, protein, and a whole grain.",
+                    FoodIdea="Chickpea or paneer bowl with vegetables and whole grains",
+                    IsActive=1,
+                ),
+                DietSuggestion(
+                    MealType="Lunch",
+                    Title="Lunch",
+                    Summary="Build a balanced plate with vegetables, protein, and a whole grain.",
+                    FoodIdea="Fish or chicken with vegetables and rice, if included in your diet",
+                    IsActive=1,
+                ),
+                DietSuggestion(
+                    MealType="Dinner",
+                    Title="Dinner",
+                    Summary="Choose a comfortable, nourishing meal that fits your schedule and appetite.",
+                    FoodIdea="Vegetable khichdi with yogurt or a fortified alternative",
+                    IsActive=1,
+                ),
+                DietSuggestion(
+                    MealType="Dinner",
+                    Title="Dinner",
+                    Summary="Choose a comfortable, nourishing meal that fits your schedule and appetite.",
+                    FoodIdea="Tofu, paneer, or beans with cooked vegetables",
+                    IsActive=1,
+                ),
+                DietSuggestion(
+                    MealType="Dinner",
+                    Title="Dinner",
+                    Summary="Choose a comfortable, nourishing meal that fits your schedule and appetite.",
+                    FoodIdea="Soup with lentils and whole-grain bread or roti",
+                    IsActive=1,
+                ),
+            ]
+
+            db.add_all(suggestions)
+            db.commit()
+            print("Default diet suggestions inserted.")
+
+    finally:
+        db.close()
 
 
+seed_diet_suggestions()
+
+
+def seed_default_recipes():
+    db = SessionLocal()
+
+    try:
+        if db.query(Recipe).count() > 0:
+            print("Recipes already exist.")
+            return
+
+        recipes = [
+            Recipe(
+                UserID=None,
+                Name="Vegetable Oats Bowl",
+                MealType="Breakfast",
+                Ingredients="Oats, milk or yogurt, banana, apple, chia seeds, cinnamon",
+                Instructions="Cook oats with milk or water. Top with sliced banana, apple, chia seeds, and a little cinnamon.",
+                CookingTime="10 minutes",
+                Notes="Simple high-fibre breakfast.",
+                IsFavorite=0,
+                IsPublic=1,
+            ),
+            Recipe(
+                UserID=None,
+                Name="Vegetable Omelette",
+                MealType="Breakfast",
+                Ingredients="Eggs, onion, tomato, capsicum, spinach, pepper",
+                Instructions="Whisk the eggs. Add chopped vegetables and cook in a lightly greased pan until set.",
+                CookingTime="10 minutes",
+                Notes="Quick protein-rich breakfast option.",
+                IsFavorite=0,
+                IsPublic=1,
+            ),
+            Recipe(
+                UserID=None,
+                Name="Chickpea Vegetable Salad",
+                MealType="Lunch",
+                Ingredients="Cooked chickpeas, cucumber, tomato, carrot, onion, lemon juice, herbs",
+                Instructions="Combine all vegetables and chickpeas. Add lemon juice and herbs, then mix well.",
+                CookingTime="10 minutes",
+                Notes="Fresh and easy lunch.",
+                IsFavorite=0,
+                IsPublic=1,
+            ),
+            Recipe(
+                UserID=None,
+                Name="Vegetable Rice Bowl",
+                MealType="Lunch",
+                Ingredients="Cooked rice, mixed vegetables, beans, garlic, herbs",
+                Instructions="Cook vegetables with garlic. Add beans and serve over cooked rice.",
+                CookingTime="20 minutes",
+                Notes="Flexible meal using available vegetables.",
+                IsFavorite=0,
+                IsPublic=1,
+            ),
+            Recipe(
+                UserID=None,
+                Name="Vegetable Soup",
+                MealType="Dinner",
+                Ingredients="Carrot, beans, cabbage, tomato, onion, garlic, vegetable stock",
+                Instructions="Saute onion and garlic. Add vegetables and stock. Simmer until the vegetables are tender.",
+                CookingTime="25 minutes",
+                Notes="Warm and simple dinner option.",
+                IsFavorite=0,
+                IsPublic=1,
+            ),
+            Recipe(
+                UserID=None,
+                Name="Paneer Vegetable Wrap",
+                MealType="Dinner",
+                Ingredients="Whole-wheat wrap, paneer, cucumber, tomato, lettuce, yogurt",
+                Instructions="Cook paneer with simple spices. Add vegetables and paneer to the wrap and serve with yogurt.",
+                CookingTime="15 minutes",
+                Notes="Easy balanced wrap.",
+                IsFavorite=0,
+                IsPublic=1,
+            ),
+            Recipe(
+                UserID=None,
+                Name="Fruit Yogurt Bowl",
+                MealType="Snack",
+                Ingredients="Plain yogurt, banana, berries or seasonal fruit, nuts",
+                Instructions="Add yogurt to a bowl and top with chopped fruit and a small handful of nuts.",
+                CookingTime="5 minutes",
+                Notes="Simple snack with no cooking required.",
+                IsFavorite=0,
+                IsPublic=1,
+            ),
+        ]
+
+        db.add_all(recipes)
+        db.commit()
+
+        print(f"Inserted {len(recipes)} default recipes.")
+
+    finally:
+        db.close()
+
+seed_default_recipes()
 # --------------------------------------------------
 # RECOMMENDATION GENERATOR
 # --------------------------------------------------
@@ -195,6 +408,9 @@ app.add_middleware(
         "http://localhost:5173",
         "http://localhost:5174",
         "http://127.0.0.1:5173",
+        "http://127.0.0.1:5174",
+        "http://[::1]:5173",
+        "http://[::1]:5174",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -1045,6 +1261,878 @@ def delete_journal(
         "message": "Journal entry deleted successfully"
     }
 
+
+
+@app.get("/diet/suggestions", response_model=List[DietSuggestionOut])
+def get_diet_suggestions(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return (
+        db.query(DietSuggestion)
+        .filter(DietSuggestion.IsActive == 1)
+        .order_by(DietSuggestion.SuggestionID)
+        .all()
+    )
+
+# --------------------------------------------------
+# RECIPES
+# --------------------------------------------------
+
+@app.get("/recipes", response_model=List[RecipeOut])
+def get_recipes(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return (
+        db.query(Recipe)
+        .filter(
+            (Recipe.UserID == current_user.UserID) |
+            (Recipe.IsPublic == 1)
+        )
+        .order_by(Recipe.RecipeID.desc())
+        .all()
+    )
+
+
+@app.post("/recipes", response_model=RecipeOut)
+def create_recipe(
+    recipe: RecipeCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    new_recipe = Recipe(
+        UserID=current_user.UserID,
+        Name=recipe.Name,
+        MealType=recipe.MealType,
+        Ingredients=recipe.Ingredients,
+        Instructions=recipe.Instructions,
+        CookingTime=recipe.CookingTime,
+        Notes=recipe.Notes,
+        IsFavorite=0,
+        IsPublic=0,
+    )
+
+    db.add(new_recipe)
+    db.commit()
+    db.refresh(new_recipe)
+
+    return new_recipe
+
+
+@app.get("/recipes/favorites")
+def get_recipe_favorites(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    favorites = (
+        db.query(RecipeFavorite)
+        .filter(
+            RecipeFavorite.UserID == current_user.UserID
+        )
+        .order_by(RecipeFavorite.CreatedAt.desc())
+        .all()
+    )
+
+    return [
+        favorite.RecipeID
+        for favorite in favorites
+    ]
+
+
+@app.post("/recipes/assistant")
+def suggest_recipe(
+    request: RecipeAssistantRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    import re
+
+    prompt = request.prompt.strip()
+    prompt_lower = prompt.lower()
+    meal_type = next(
+        (
+            value
+            for value in ("Breakfast", "Lunch", "Dinner", "Snack")
+            if value.lower() in prompt_lower
+        ),
+        "Snack" if any(
+            word in prompt_lower for word in ("snack", "bite")
+        ) else "Dinner" if any(
+            word in prompt_lower for word in ("dinner", "supper")
+        ) else "Breakfast" if "breakfast" in prompt_lower else "Lunch",
+    )
+    meal_type_requested = any(
+        value.lower() in prompt_lower
+        for value in ("Breakfast", "Lunch", "Dinner", "Snack")
+    )
+    quick = any(
+        phrase in prompt_lower
+        for phrase in ("quick", "under 20", "20 minutes", "20 min")
+    )
+
+    candidate_words = [
+        word
+        for word in re.findall(r"[a-zA-Z]+", prompt_lower)
+        if len(word) > 2
+        and word not in {
+            "have", "with", "make", "what", "from", "give", "quick",
+            "under", "minutes", "minute", "min", "recipe", "please", "some",
+            "using", "want", "need", "dinner", "lunch", "breakfast",
+            "snack", "meal", "and", "the", "for", "ingredients",
+            "ingredient", "available", "could", "would", "suggest",
+            "show",
+        }
+    ]
+    recipes = (
+        db.query(Recipe)
+        .filter(
+            (Recipe.UserID == current_user.UserID)
+            | (Recipe.IsPublic == 1)
+        )
+        .all()
+    )
+    candidates = [
+        recipe
+        for recipe in recipes
+        if (not meal_type_requested or recipe.MealType == meal_type)
+        and (
+            not quick
+            or not re.search(r"\d+", recipe.CookingTime or "")
+            or int(re.search(r"\d+", recipe.CookingTime or "").group()) <= 20
+        )
+    ]
+    matching = sorted(
+        candidates,
+        key=lambda recipe: sum(
+            1
+            for word in candidate_words
+            if word in (
+                f"{recipe.Name} {recipe.Ingredients}".lower()
+            )
+        ),
+        reverse=True,
+    )
+    has_measured_ingredients = bool(
+        matching
+        and re.search(
+            r"\b\d+(?:/\d+)?\s*(?:cups?|tablespoons?|tbsp|teaspoons?|tsp|g|kg|ml|medium|large)\b",
+            matching[0].Ingredients or "",
+            re.IGNORECASE,
+        )
+    )
+    if matching and candidate_words and has_measured_ingredients and any(
+        word in f"{matching[0].Name} {matching[0].Ingredients}".lower()
+        for word in candidate_words
+    ):
+        recipe = matching[0]
+        return {
+            "Name": recipe.Name,
+            "MealType": recipe.MealType,
+            "Ingredients": recipe.Ingredients,
+            "Instructions": recipe.Instructions,
+            "CookingTime": recipe.CookingTime,
+            "Notes": recipe.Notes,
+            "SourceNote": "Matched from your saved and public recipes; no AI model was used.",
+        }
+
+    pantry = (
+        db.query(PantryItem)
+        .filter(PantryItem.UserID == current_user.UserID)
+        .all()
+    )
+    pantry_matches = [
+        item.ItemName
+        for item in pantry
+        if item.ItemName.lower() in prompt_lower
+    ]
+    ingredient_names = list(dict.fromkeys(pantry_matches or candidate_words))
+    if not ingredient_names:
+        ingredient_names = {
+            "Breakfast": ["oats", "milk", "banana"],
+            "Lunch": ["rice", "vegetables", "beans"],
+            "Dinner": ["vegetables", "lentils", "rice"],
+            "Snack": ["yogurt", "fruit", "nuts"],
+        }[meal_type]
+
+    def quantity_for(ingredient: str) -> str:
+        normalized = ingredient.lower()
+        if any(word in normalized for word in ("oat", "rice", "flour", "pasta")):
+            return f"1/2 cup {ingredient}"
+        if any(word in normalized for word in ("milk", "water", "broth")):
+            return f"1 cup {ingredient}"
+        if any(word in normalized for word in ("almond", "nut", "seed")):
+            return f"1 tablespoon {ingredient}"
+        if any(word in normalized for word in ("banana", "apple", "orange")):
+            return f"1 medium {ingredient}"
+        if any(word in normalized for word in ("salt", "pepper", "spice")):
+            return f"{ingredient}, to taste"
+        return f"1/2 cup {ingredient}, chopped if needed"
+
+    display_ingredients = [quantity_for(name) for name in ingredient_names[:8]]
+    recipe_title = " and ".join(ingredient_names[:2]).title()
+    suffix = "Bowl" if meal_type in ("Breakfast", "Snack") else "Skillet"
+    cooking_time = "10 minutes" if quick else "20 minutes"
+    instructions = (
+        "Combine the ingredients in a bowl and adjust the quantities "
+        "to your taste. "
+        if meal_type in ("Breakfast", "Snack")
+        else "Warm the ingredients together in a pan with a little water "
+        "or oil until heated through. Adjust seasoning to taste. "
+    )
+    return {
+        "Name": f"{recipe_title} {suffix}",
+        "MealType": meal_type,
+        "Ingredients": "\n".join(display_ingredients),
+        "Instructions": instructions,
+        "CookingTime": cooking_time,
+        "Notes": "Simple rule-based suggestion; quantities are estimates, not individualized advice.",
+        "SourceNote": "Rule-based recipe suggestion; no AI model is connected.",
+    }
+
+# ============================================================
+# DIET LOG
+# ============================================================
+
+@app.get("/diet/logs", response_model=List[DietLogOut])
+def get_diet_logs(
+    log_date: date | None = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    query = db.query(DietLog).filter(
+        DietLog.UserID == current_user.UserID
+    )
+
+    if log_date:
+        query = query.filter(
+            DietLog.LogDate == log_date
+        )
+
+    return (
+        query
+        .order_by(
+            DietLog.LogDate.desc(),
+            DietLog.CreatedAt.desc(),
+        )
+        .all()
+    )
+
+
+@app.post("/diet/logs", response_model=DietLogOut)
+def create_diet_log(
+    entry: DietLogCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    new_entry = DietLog(
+        UserID=current_user.UserID,
+        LogDate=entry.LogDate,
+        MealType=entry.MealType,
+        Food=entry.Food,
+        Portion=entry.Portion,
+        Notes=entry.Notes,
+    )
+
+    db.add(new_entry)
+    db.commit()
+    db.refresh(new_entry)
+
+    return new_entry
+
+
+@app.put("/diet/logs/{log_id}", response_model=DietLogOut)
+def update_diet_log(
+    log_id: int,
+    entry_data: DietLogUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    entry = (
+        db.query(DietLog)
+        .filter(
+            DietLog.DietLogID == log_id,
+            DietLog.UserID == current_user.UserID,
+        )
+        .first()
+    )
+
+    if not entry:
+        raise HTTPException(
+            status_code=404,
+            detail="Diet log not found",
+        )
+
+    for field, value in entry_data.model_dump(exclude_unset=True).items():
+        setattr(entry, field, value)
+
+    db.commit()
+    db.refresh(entry)
+    return entry
+
+
+@app.delete("/diet/logs/{log_id}")
+def delete_diet_log(
+    log_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    entry = (
+        db.query(DietLog)
+        .filter(
+            DietLog.DietLogID == log_id,
+            DietLog.UserID == current_user.UserID,
+        )
+        .first()
+    )
+
+    if not entry:
+        raise HTTPException(
+            status_code=404,
+            detail="Diet log not found",
+        )
+
+    db.delete(entry)
+    db.commit()
+
+    return {
+        "message": "Diet log deleted successfully"
+    }
+
+
+# ============================================================
+# MEAL PLANNER
+# ============================================================
+
+@app.get("/meal-planner", response_model=List[MealPlannerOut])
+def get_meal_planner(
+    plan_date: date | None = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    query = db.query(MealPlanner).filter(
+        MealPlanner.UserID == current_user.UserID
+    )
+
+    if plan_date:
+        query = query.filter(
+            MealPlanner.PlanDate == plan_date
+        )
+
+    return (
+        query
+        .order_by(
+            MealPlanner.PlanDate,
+            MealPlanner.PlannerID,
+        )
+        .all()
+    )
+
+
+@app.post("/meal-planner", response_model=MealPlannerOut)
+def create_meal_plan(
+    item: MealPlannerCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    recipe = (
+        db.query(Recipe)
+        .filter(
+            Recipe.RecipeID == item.RecipeID,
+            (
+                (Recipe.UserID == current_user.UserID)
+                |
+                (Recipe.IsPublic == 1)
+            ),
+        )
+        .first()
+    )
+
+    if not recipe:
+        raise HTTPException(
+            status_code=404,
+            detail="Recipe not found",
+        )
+
+    new_item = MealPlanner(
+        UserID=current_user.UserID,
+        PlanDate=item.PlanDate,
+        MealType=item.MealType,
+        RecipeID=item.RecipeID,
+    )
+
+    db.add(new_item)
+    db.commit()
+    db.refresh(new_item)
+
+    return new_item
+
+
+@app.delete("/meal-planner/{planner_id}")
+def delete_meal_plan(
+    planner_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    item = (
+        db.query(MealPlanner)
+        .filter(
+            MealPlanner.PlannerID == planner_id,
+            MealPlanner.UserID == current_user.UserID,
+        )
+        .first()
+    )
+
+    if not item:
+        raise HTTPException(
+            status_code=404,
+            detail="Meal plan not found",
+        )
+
+    db.delete(item)
+    db.commit()
+
+    return {
+        "message": "Meal plan deleted successfully"
+    }
+
+
+# ============================================================
+# PANTRY
+# ============================================================
+
+@app.get("/pantry", response_model=List[PantryItemOut])
+def get_pantry(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return (
+        db.query(PantryItem)
+        .filter(
+            PantryItem.UserID ==
+            current_user.UserID
+        )
+        .order_by(PantryItem.PantryItemID)
+        .all()
+    )
+
+
+@app.post("/pantry", response_model=PantryItemOut)
+def create_pantry_item(
+    item: PantryItemCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    existing = (
+        db.query(PantryItem)
+        .filter(
+            PantryItem.UserID ==
+            current_user.UserID,
+            PantryItem.ItemName ==
+            item.ItemName,
+        )
+        .first()
+    )
+
+    if existing:
+        return existing
+
+    new_item = PantryItem(
+        UserID=current_user.UserID,
+        ItemName=item.ItemName,
+    )
+
+    db.add(new_item)
+    db.commit()
+    db.refresh(new_item)
+
+    return new_item
+
+
+@app.delete("/pantry/{item_id}")
+def delete_pantry_item(
+    item_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    item = (
+        db.query(PantryItem)
+        .filter(
+            PantryItem.PantryItemID == item_id,
+            PantryItem.UserID == current_user.UserID,
+        )
+        .first()
+    )
+
+    if not item:
+        raise HTTPException(
+            status_code=404,
+            detail="Pantry item not found",
+        )
+
+    db.delete(item)
+    db.commit()
+
+    return {
+        "message": "Pantry item deleted successfully"
+    }
+
+
+# ============================================================
+# SHOPPING LIST
+# ============================================================
+
+@app.get(
+    "/shopping-list",
+    response_model=List[ShoppingListOut],
+)
+def get_shopping_list(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return (
+        db.query(ShoppingListItem)
+        .filter(
+            ShoppingListItem.UserID ==
+            current_user.UserID
+        )
+        .order_by(
+            ShoppingListItem.ShoppingItemID
+        )
+        .all()
+    )
+
+
+@app.post(
+    "/shopping-list",
+    response_model=ShoppingListOut,
+)
+def create_shopping_item(
+    item: ShoppingListCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    new_item = ShoppingListItem(
+        UserID=current_user.UserID,
+        ItemName=item.ItemName,
+        IsChecked=item.IsChecked,
+    )
+
+    db.add(new_item)
+    db.commit()
+    db.refresh(new_item)
+
+    return new_item
+
+
+@app.put(
+    "/shopping-list/{item_id}",
+    response_model=ShoppingListOut,
+)
+def update_shopping_item(
+    item_id: int,
+    item_data: ShoppingListUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    item = (
+        db.query(ShoppingListItem)
+        .filter(
+            ShoppingListItem.ShoppingItemID ==
+            item_id,
+            ShoppingListItem.UserID ==
+            current_user.UserID,
+        )
+        .first()
+    )
+
+    if not item:
+        raise HTTPException(
+            status_code=404,
+            detail="Shopping item not found",
+        )
+
+    update_data = item_data.model_dump(
+        exclude_unset=True
+    )
+
+    for field, value in update_data.items():
+        setattr(item, field, value)
+
+    db.commit()
+    db.refresh(item)
+
+    return item
+
+
+@app.delete("/shopping-list/{item_id}")
+def delete_shopping_item(
+    item_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    item = (
+        db.query(ShoppingListItem)
+        .filter(
+            ShoppingListItem.ShoppingItemID ==
+            item_id,
+            ShoppingListItem.UserID ==
+            current_user.UserID,
+        )
+        .first()
+    )
+
+    if not item:
+        raise HTTPException(
+            status_code=404,
+            detail="Shopping item not found",
+        )
+
+    db.delete(item)
+    db.commit()
+
+    return {
+        "message": "Shopping item deleted successfully"
+    }
+
+
+# ============================================================
+# HYDRATION
+# ============================================================
+
+@app.get("/hydration")
+def get_hydration(
+    log_date: date | None = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    query = db.query(HydrationLog).filter(
+        HydrationLog.UserID ==
+        current_user.UserID
+    )
+
+    if log_date:
+        query = query.filter(
+            HydrationLog.LogDate == log_date
+        )
+
+    return (
+        query
+        .order_by(
+            HydrationLog.LogDate.desc()
+        )
+        .all()
+    )
+
+
+@app.put("/hydration")
+def update_hydration(
+    data: HydrationUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if data.Glasses < 0:
+        raise HTTPException(
+            status_code=400,
+            detail="Glasses cannot be negative",
+        )
+
+    hydration = (
+        db.query(HydrationLog)
+        .filter(
+            HydrationLog.UserID ==
+            current_user.UserID,
+            HydrationLog.LogDate ==
+            data.LogDate,
+        )
+        .first()
+    )
+
+    if hydration:
+        hydration.Glasses = data.Glasses
+        hydration.UpdatedAt = datetime.utcnow()
+    else:
+        hydration = HydrationLog(
+            UserID=current_user.UserID,
+            LogDate=data.LogDate,
+            Glasses=data.Glasses,
+        )
+
+        db.add(hydration)
+
+    db.commit()
+    db.refresh(hydration)
+
+    return hydration
+
+@app.get("/recipes/{recipe_id}", response_model=RecipeOut)
+def get_recipe(
+    recipe_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    recipe = (
+        db.query(Recipe)
+        .filter(
+            Recipe.RecipeID == recipe_id,
+            (Recipe.UserID == current_user.UserID) |
+            (Recipe.IsPublic == 1)
+        )
+        .first()
+    )
+
+    if not recipe:
+        raise HTTPException(status_code=404, detail="Recipe not found")
+
+    return recipe
+
+
+@app.put("/recipes/{recipe_id}", response_model=RecipeOut)
+def update_recipe(
+    recipe_id: int,
+    recipe_data: RecipeUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    recipe = (
+        db.query(Recipe)
+        .filter(
+            Recipe.RecipeID == recipe_id,
+            Recipe.UserID == current_user.UserID
+        )
+        .first()
+    )
+
+    if not recipe:
+        raise HTTPException(status_code=404, detail="Recipe not found")
+
+    update_data = recipe_data.model_dump(exclude_unset=True)
+
+    for field, value in update_data.items():
+        setattr(recipe, field, value)
+
+    db.commit()
+    db.refresh(recipe)
+
+    return recipe
+
+
+@app.delete("/recipes/{recipe_id}")
+def delete_recipe(
+    recipe_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    recipe = (
+        db.query(Recipe)
+        .filter(
+            Recipe.RecipeID == recipe_id,
+            Recipe.UserID == current_user.UserID
+        )
+        .first()
+    )
+
+    if not recipe:
+        raise HTTPException(status_code=404, detail="Recipe not found")
+
+    db.delete(recipe)
+    db.commit()
+
+    return {"message": "Recipe deleted successfully"}
+
+
+
+
+@app.post("/recipes/{recipe_id}/favorite")
+def add_recipe_favorite(
+    recipe_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    recipe = (
+        db.query(Recipe)
+        .filter(
+            Recipe.RecipeID == recipe_id,
+            (
+                (Recipe.UserID == current_user.UserID)
+                |
+                (Recipe.IsPublic == 1)
+            ),
+        )
+        .first()
+    )
+
+    if not recipe:
+        raise HTTPException(
+            status_code=404,
+            detail="Recipe not found",
+        )
+
+    existing = (
+        db.query(RecipeFavorite)
+        .filter(
+            RecipeFavorite.UserID
+            == current_user.UserID,
+            RecipeFavorite.RecipeID
+            == recipe_id,
+        )
+        .first()
+    )
+
+    if existing:
+        return {
+            "RecipeID": recipe_id,
+            "IsFavorite": True,
+            "message": "Recipe is already a favorite",
+        }
+
+    favorite = RecipeFavorite(
+        UserID=current_user.UserID,
+        RecipeID=recipe_id,
+    )
+
+    db.add(favorite)
+    db.commit()
+
+    return {
+        "RecipeID": recipe_id,
+        "IsFavorite": True,
+        "message": "Recipe added to favorites",
+    }
+
+
+@app.delete("/recipes/{recipe_id}/favorite")
+def remove_recipe_favorite(
+    recipe_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    favorite = (
+        db.query(RecipeFavorite)
+        .filter(
+            RecipeFavorite.UserID
+            == current_user.UserID,
+            RecipeFavorite.RecipeID
+            == recipe_id,
+        )
+        .first()
+    )
+
+    if not favorite:
+        return {
+            "RecipeID": recipe_id,
+            "IsFavorite": False,
+            "message": "Recipe was not a favorite",
+        }
+
+    db.delete(favorite)
+    db.commit()
+
+    return {
+        "RecipeID": recipe_id,
+        "IsFavorite": False,
+        "message": "Recipe removed from favorites",
+    }
 
 if __name__ == "__main__":
     import uvicorn

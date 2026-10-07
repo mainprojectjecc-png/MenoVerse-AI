@@ -1,3 +1,17 @@
+from datetime import datetime
+
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Float,
+    Date,
+    Text,
+    DateTime,
+    UniqueConstraint,
+)
+
+from database import Base
 from sqlalchemy import Column, Integer, String, Float, Date, Text
 from database import Base
 
@@ -80,3 +94,284 @@ class VoiceJournal(Base):
     Mood = Column("Mood", String)
     Symptoms = Column("Symptoms", Text)
     Summary = Column("Summary", Text)
+
+class DietSuggestion(Base):
+    __tablename__ = "DietSuggestions"
+    __table_args__ = {"schema": "dbo"}
+
+    SuggestionID = Column("SuggestionID", Integer, primary_key=True, index=True)
+    MealType = Column("MealType", String)
+    Title = Column("Title", String)
+    Summary = Column("Summary", Text)
+    FoodIdea = Column("FoodIdea", Text)
+    IsActive = Column("IsActive", Integer)
+
+# --------------------------------------------------
+# RECIPES
+# --------------------------------------------------
+
+class Recipe(Base):
+    __tablename__ = "Recipes"
+    __table_args__ = {"schema": "dbo"}
+
+    RecipeID = Column("RecipeID", Integer, primary_key=True, index=True)
+    UserID = Column("UserID", Integer, nullable=True, index=True)
+    Name = Column("Name", String, nullable=False)
+    MealType = Column("MealType", String, nullable=False)
+    Ingredients = Column("Ingredients", Text, nullable=False)
+    Instructions = Column("Instructions", Text, nullable=False)
+    CookingTime = Column("CookingTime", String, nullable=True)
+    Notes = Column("Notes", Text, nullable=True)
+    IsFavorite = Column("IsFavorite", Integer, default=0)
+    IsPublic = Column("IsPublic", Integer, default=0)
+
+class RecipeFavorite(Base):
+    __tablename__ = "RecipeFavorites"
+    __table_args__ = (
+        UniqueConstraint(
+            "UserID",
+            "RecipeID",
+            name="uq_recipe_favorite_user_recipe",
+        ),
+        {"schema": "dbo"},
+    )
+
+    FavoriteID = Column(
+        "FavoriteID",
+        Integer,
+        primary_key=True,
+        index=True,
+    )
+
+    UserID = Column(
+        "UserID",
+        Integer,
+        nullable=False,
+        index=True,
+    )
+
+    RecipeID = Column(
+        "RecipeID",
+        Integer,
+        nullable=False,
+        index=True,
+    )
+
+    CreatedAt = Column(
+        "CreatedAt",
+        DateTime,
+        default=datetime.utcnow,
+    )
+
+class DietLog(Base):
+    __tablename__ = "DietLogs"
+    __table_args__ = {"schema": "dbo"}
+
+    DietLogID = Column(
+        "DietLogID",
+        Integer,
+        primary_key=True,
+        index=True,
+    )
+
+    UserID = Column(
+        "UserID",
+        Integer,
+        nullable=False,
+        index=True,
+    )
+
+    LogDate = Column(
+        "LogDate",
+        Date,
+        nullable=False,
+        index=True,
+    )
+
+    MealType = Column(
+        "MealType",
+        String,
+        nullable=False,
+    )
+
+    Food = Column(
+        "Food",
+        Text,
+        nullable=False,
+    )
+    Portion = Column(
+        "Portion", 
+        String, 
+        nullable=True
+    )
+
+    Notes = Column(
+        "Notes",
+        Text,
+        nullable=True,
+    )
+
+    CreatedAt = Column(
+        "CreatedAt",
+        DateTime,
+        default=datetime.utcnow,
+    )
+
+
+class MealPlanner(Base):
+    __tablename__ = "MealPlanner"
+    __table_args__ = {"schema": "dbo"}
+
+    PlannerID = Column(
+        "PlannerID",
+        Integer,
+        primary_key=True,
+        index=True,
+    )
+
+    UserID = Column(
+        "UserID",
+        Integer,
+        nullable=False,
+        index=True,
+    )
+
+    PlanDate = Column(
+        "PlanDate",
+        Date,
+        nullable=False,
+        index=True,
+    )
+
+    MealType = Column(
+        "MealType",
+        String,
+        nullable=False,
+    )
+
+    RecipeID = Column(
+        "RecipeID",
+        Integer,
+        nullable=False,
+        index=True,
+    )
+
+    CreatedAt = Column(
+        "CreatedAt",
+        DateTime,
+        default=datetime.utcnow,
+    )
+
+
+class PantryItem(Base):
+    __tablename__ = "PantryItems"
+    __table_args__ = {"schema": "dbo"}
+
+    PantryItemID = Column(
+        "PantryItemID",
+        Integer,
+        primary_key=True,
+        index=True,
+    )
+
+    UserID = Column(
+        "UserID",
+        Integer,
+        nullable=False,
+        index=True,
+    )
+
+    ItemName = Column(
+        "ItemName",
+        String,
+        nullable=False,
+    )
+
+    CreatedAt = Column(
+        "CreatedAt",
+        DateTime,
+        default=datetime.utcnow,
+    )
+
+
+class ShoppingListItem(Base):
+    __tablename__ = "ShoppingList"
+    __table_args__ = {"schema": "dbo"}
+
+    ShoppingItemID = Column(
+        "ShoppingItemID",
+        Integer,
+        primary_key=True,
+        index=True,
+    )
+
+    UserID = Column(
+        "UserID",
+        Integer,
+        nullable=False,
+        index=True,
+    )
+
+    ItemName = Column(
+        "ItemName",
+        String,
+        nullable=False,
+    )
+
+    IsChecked = Column(
+        "IsChecked",
+        Integer,
+        default=0,
+    )
+
+    CreatedAt = Column(
+        "CreatedAt",
+        DateTime,
+        default=datetime.utcnow,
+    )
+
+
+class HydrationLog(Base):
+    __tablename__ = "HydrationLogs"
+    __table_args__ = (
+        UniqueConstraint(
+            "UserID",
+            "LogDate",
+            name="uq_hydration_user_date",
+        ),
+        {"schema": "dbo"},
+    )
+
+    HydrationID = Column(
+        "HydrationID",
+        Integer,
+        primary_key=True,
+        index=True,
+    )
+
+    UserID = Column(
+        "UserID",
+        Integer,
+        nullable=False,
+        index=True,
+    )
+
+    LogDate = Column(
+        "LogDate",
+        Date,
+        nullable=False,
+        index=True,
+    )
+
+    Glasses = Column(
+        "Glasses",
+        Integer,
+        default=0,
+    )
+
+    UpdatedAt = Column(
+        "UpdatedAt",
+        DateTime,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+    )

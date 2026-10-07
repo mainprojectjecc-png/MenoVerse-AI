@@ -67,6 +67,29 @@ def ensure_voice_journal_columns():
     except Exception as error:
         print(f"VoiceJournal schema check skipped: {error}")
 
+
+def ensure_diet_log_portion_column():
+    try:
+        with engine.begin() as connection:
+            exists = connection.execute(
+                text(
+                    "SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS "
+                    "WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = 'DietLogs' "
+                    "AND COLUMN_NAME = 'Portion'"
+                )
+            ).first()
+            if not exists:
+                connection.execute(
+                    text(
+                        "ALTER TABLE dbo.DietLogs "
+                        "ADD Portion NVARCHAR(255) NULL"
+                    )
+                )
+    except Exception as error:
+        print(f"DietLogs schema check failed: {error}")
+        raise
+
+
 def get_db():
     db = SessionLocal()
     try:
