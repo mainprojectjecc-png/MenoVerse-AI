@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { Link } from "react-router-dom"
 import api from "../api/axios"
+import weeklyInsightsImage from "../../reference/front.png"
 
 const EMPTY_DATA = {
   risks: [],
@@ -121,6 +122,8 @@ function Dashboard() {
   const [retryCount, setRetryCount] = useState(0)
 
   useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" })
+
     let active = true
 
     async function loadDashboard() {
@@ -190,7 +193,12 @@ function Dashboard() {
   const latestCycle = latestRecord(data.cycles, "StartDate")
   const latestRisk = latestRecord(data.risks, "RiskID")
   const latestRecommendation = latestRecord(data.recommendations, "RecommendationID")
-  const latestSymptom = latestRecord(data.symptoms, "LogDate")
+  const latestSymptom = data.symptoms
+    .slice()
+    .sort((a, b) => {
+      const dateOrder = String(b.LogDate).localeCompare(String(a.LogDate))
+      return dateOrder || (b.SymptomID ?? 0) - (a.SymptomID ?? 0)
+    })[0] ?? null
   const cycleDay = latestCycle ? getDaysBetween(latestCycle.StartDate) : null
   const cycleLength = Number(latestCycle?.CycleLength) || 28
   const daysUntilNextPeriod = cycleDay ? Math.max(cycleLength - cycleDay, 0) : null
@@ -447,6 +455,37 @@ function Dashboard() {
               </div>
             </section>
 
+            <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-[#43234f] p-5 text-white shadow-[0_18px_42px_-24px_rgba(55,28,69,0.58)] sm:p-6">
+              <div className="relative z-10 max-w-full sm:max-w-[calc(100%-7rem)]">
+                <div className="flex items-center gap-2 text-tertiary-container">
+                  <span className="material-symbols-outlined text-[20px]">psychology</span>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.16em]">Assessment insight</p>
+                </div>
+                <h2 className="mt-3 font-headline-md text-xl font-semibold">
+                  {loading ? "Gathering your insights…" : assessmentStage || "Your story, understood"}
+                </h2>
+                <p className="mt-2 text-sm leading-6 text-white/75">
+                  {latestRisk?.Explanation
+                    ? shorten(latestRisk.Explanation, 170)
+                    : "Complete an assessment to explore a personalized, dataset-based overview of your current pattern."}
+                </p>
+                {typeof latestRisk?.RiskScore === "number" && (
+                  <p className="mt-3 text-xs text-white/65">
+                    Model confidence: {Math.round(latestRisk.RiskScore * 100)}% · Not a clinical risk estimate
+                  </p>
+                )}
+                <Link to={latestRisk ? "/insights" : "/assessment"} className="mt-5 inline-flex items-center gap-2 rounded-xl bg-white/12 px-3.5 py-2.5 text-xs font-semibold text-white transition hover:bg-white/20">
+                  {latestRisk ? "View full assessment" : "Begin your assessment"}
+                  <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                </Link>
+              </div>
+              <img
+                src={weeklyInsightsImage}
+                alt="A woman relaxing at home with a warm drink"
+                className="absolute right-6 top-1/2 hidden h-36 w-24 -translate-y-1/2 rounded-2xl object-cover sm:block"
+              />
+            </section>
+
             <section className="rounded-2xl border border-outline-variant/55 bg-white p-5 shadow-[0_14px_38px_-28px_rgba(43,21,56,0.36)] sm:p-6">
               <SectionHeading eyebrow="A thoughtful check-in" title="Your recent health notes" to="/insights" linkLabel="View insights" />
               <div className="grid gap-4 sm:grid-cols-3">
@@ -477,6 +516,30 @@ function Dashboard() {
                   </div>
                 </div>
               </div>
+            </section>
+
+            <section className="relative isolate flex min-h-[280px] flex-col justify-between overflow-hidden rounded-3xl border border-primary/10 bg-gradient-to-br from-white via-[#fbf5fa] to-[#efe1f1] p-6 shadow-[0_18px_44px_-30px_rgba(43,21,56,0.38)] sm:min-h-[320px] sm:p-8">
+              <div aria-hidden="true" className="absolute -right-12 -top-16 -z-10 h-56 w-56 rounded-full bg-tertiary/10 blur-2xl" />
+              <div aria-hidden="true" className="absolute -bottom-20 -left-10 -z-10 h-56 w-56 rounded-full bg-secondary/10 blur-2xl" />
+              <div>
+                <span className="inline-flex items-center gap-2 rounded-full border border-primary/10 bg-white/80 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
+                  <span className="material-symbols-outlined text-[16px]">self_improvement</span>
+                  A moment for you
+                </span>
+                <h2 className="mt-5 max-w-md font-headline-lg text-2xl font-semibold leading-tight text-primary sm:text-3xl">
+                  Make a little space for how you&apos;re feeling.
+                </h2>
+                <p className="mt-3 max-w-md text-sm leading-6 text-on-surface-variant">
+                  Pause, reflect, and put your thoughts into words. Your voice journal is here whenever you&apos;re ready.
+                </p>
+              </div>
+              <Link
+                to="/journal"
+                className="mt-7 inline-flex min-h-11 w-fit items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-plum-deep hover:shadow-md"
+              >
+                Open voice journal
+                <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+              </Link>
             </section>
           </div>
 
@@ -510,30 +573,6 @@ function Dashboard() {
               <p className="mt-3 border-t border-outline-variant/50 pt-3 text-xs leading-5 text-on-surface-variant">
                 Cycle dates are estimates based on the information you have logged.
               </p>
-            </section>
-
-            <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-[#43234f] p-5 text-white shadow-[0_18px_42px_-24px_rgba(55,28,69,0.58)] sm:p-6">
-              <div className="flex items-center gap-2 text-tertiary-container">
-                <span className="material-symbols-outlined text-[20px]">psychology</span>
-                <p className="text-[10px] font-bold uppercase tracking-[0.16em]">Assessment insight</p>
-              </div>
-              <h2 className="mt-3 font-headline-md text-xl font-semibold">
-                {loading ? "Gathering your insights…" : assessmentStage || "Your story, understood"}
-              </h2>
-              <p className="mt-2 text-sm leading-6 text-white/75">
-                {latestRisk?.Explanation
-                  ? shorten(latestRisk.Explanation, 170)
-                  : "Complete an assessment to explore a personalized, dataset-based overview of your current pattern."}
-              </p>
-              {typeof latestRisk?.RiskScore === "number" && (
-                <p className="mt-3 text-xs text-white/65">
-                  Model confidence: {Math.round(latestRisk.RiskScore * 100)}% · Not a clinical risk estimate
-                </p>
-              )}
-              <Link to={latestRisk ? "/insights" : "/assessment"} className="mt-5 inline-flex items-center gap-2 rounded-xl bg-white/12 px-3.5 py-2.5 text-xs font-semibold text-white transition hover:bg-white/20">
-                {latestRisk ? "View full assessment" : "Begin your assessment"}
-                <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-              </Link>
             </section>
 
             <section className="rounded-2xl border border-outline-variant/55 bg-white p-5 shadow-[0_14px_38px_-28px_rgba(43,21,56,0.36)] sm:p-6">
