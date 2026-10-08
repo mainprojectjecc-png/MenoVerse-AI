@@ -1,4 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
+import bananaOatSkilletImage from "../assets/recipes/banana-oat-skillet.jpeg"
+import chickpeaVegetableSaladImage from "../assets/recipes/chickpea-vegetable-salad.jpeg"
+import fruitYogurtBowlImage from "../assets/recipes/fruit-yogurt-bowl.jpeg"
+import paneerVegetableWrapImage from "../assets/recipes/paneer-vegetable-wrap.jpeg"
+import vegetableOatsBowlImage from "../assets/recipes/vegetable-oats-bowl.jpeg"
+import vegetableOmeletteImage from "../assets/recipes/vegetable-omelette.jpeg"
+import vegetableRiceBowlImage from "../assets/recipes/vegetable-rice-bowl.jpeg"
+import vegetableSoupImage from "../assets/recipes/vegetable-soup.jpeg"
 
 const API_BASE_URL =
   import.meta.env.VITE_API_URL || "http://127.0.0.1:8000"
@@ -121,6 +129,31 @@ function authHeaders() {
   return token ? { Authorization: `Bearer ${token}` } : {}
 }
 
+function getRecipeVisual(recipe) {
+  const name = (recipe.Name || "").toLowerCase()
+  const details = `${name} ${recipe.Ingredients || ""}`.toLowerCase()
+  const visuals = [
+    { match: /banana/, image: bananaOatSkilletImage, label: "Banana & oats" },
+    { match: /yogurt|yoghurt|berries|fruit bowl/, image: fruitYogurtBowlImage, label: "Fruit & yogurt" },
+    { match: /paneer/, image: paneerVegetableWrapImage, label: "Paneer wrap" },
+    { match: /soup/, image: vegetableSoupImage, label: "Vegetable soup" },
+    { match: /rice/, image: vegetableRiceBowlImage, label: "Rice bowl" },
+    { match: /chickpea|chana/, image: chickpeaVegetableSaladImage, label: "Chickpea salad" },
+    { match: /omelette|omelet|egg/, image: vegetableOmeletteImage, label: "Vegetable omelette" },
+    { match: /oat/, image: vegetableOatsBowlImage, label: "Savoury oats" },
+    { match: /salad/, image: chickpeaVegetableSaladImage, label: "Fresh salad" },
+    { match: /wrap|roll/, image: paneerVegetableWrapImage, label: "Fresh wrap" },
+    { match: /pasta|noodle/, label: "Pasta bowl" },
+    { match: /smoothie|shake/, label: "Fresh smoothie" },
+  ]
+
+  return visuals.find((visual) => visual.match.test(name))
+    || visuals.find((visual) => visual.match.test(details))
+    || {
+    label: recipe.MealType ? `${recipe.MealType} idea` : "A nourishing dish",
+  }
+}
+
 function MealCard({ meal, index }) {
   return (
     <article className="rounded-3xl border border-outline-variant/70 bg-white p-6 soft-shadow transition-transform duration-200 hover:-translate-y-1">
@@ -161,8 +194,27 @@ function RecipeCard({
   onAddIngredients,
   onOpen,
 }) {
+  const visual = getRecipeVisual(recipe)
+
   return (
     <article className="rounded-3xl border border-[#e8e2cf] bg-white p-6 shadow-sm">
+      <div
+        role="img"
+        aria-label={`Illustration for ${recipe.Name}: ${visual.label}`}
+        className="relative mb-5 flex h-36 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-primary-container/70 via-white to-secondary-container"
+      >
+        {visual.image && (
+          <img
+            src={visual.image}
+            alt={visual.label}
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        )}
+        <span className="absolute bottom-3 left-3 rounded-full border border-white/70 bg-white/80 px-3 py-1 text-[10px] font-semibold tracking-wide text-on-surface-variant backdrop-blur-sm">
+          {visual.label}
+        </span>
+      </div>
+
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="flex flex-wrap gap-2">
           <span className="rounded-full bg-[#f3efdf] px-3 py-1 text-xs font-semibold text-[#535845]">
