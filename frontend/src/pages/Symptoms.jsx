@@ -15,6 +15,7 @@ export default function Symptoms() {
 
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
+  const [success, setSuccess] = useState("")
 
   const handleChange = (key, value) => {
     setFormData((prev) => ({
@@ -39,6 +40,7 @@ export default function Symptoms() {
   const handleSave = async () => {
     setSaving(true)
     setError("")
+    setSuccess("")
 
     try {
       const user = JSON.parse(localStorage.getItem("user") || "null")
@@ -58,7 +60,9 @@ export default function Symptoms() {
         Headache: severityToNumber(formData.headache),
       })
 
-      navigate("/dashboard")
+      setSuccess("Your symptoms have been saved and loaded.")
+      await new Promise((resolve) => window.setTimeout(resolve, 2500))
+      navigate("/dashboard", { state: { symptomsUpdated: true } })
     } catch (err) {
       console.error("Failed to save symptoms:", err)
       setError(
@@ -206,9 +210,18 @@ export default function Symptoms() {
             </div>
           )}
 
+          {success && (
+            <div
+              role="status"
+              className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-center text-sm font-medium text-emerald-800"
+            >
+              {success} Opening your dashboard…
+            </div>
+          )}
+
           <button
             onClick={handleSave}
-            disabled={saving}
+            disabled={saving || Boolean(success)}
             className="
               w-full
               bg-[#535845]
@@ -223,7 +236,7 @@ export default function Symptoms() {
               transition
             "
           >
-            {saving ? "Saving..." : "Save Entry"}
+            {saving ? (success ? "Saved" : "Saving...") : "Save Entry"}
           </button>
 
         </div>

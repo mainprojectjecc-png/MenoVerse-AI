@@ -166,12 +166,18 @@ export default function PerimenopauseGuide() {
           </article>
 
           <div className="fade-in-section flex flex-col items-center py-8">
-            <button className="w-full rounded-lg bg-[#3F3D35] px-5 py-5 text-lg font-semibold uppercase tracking-[0.08em] text-white shadow-xl transition-transform active:scale-95 sm:w-auto sm:min-w-[280px]">
+            <Link
+              to="/dashboard"
+              className="w-full rounded-lg bg-[#3F3D35] px-5 py-5 text-center text-lg font-semibold uppercase tracking-[0.08em] text-white shadow-xl transition-transform active:scale-95 sm:w-auto sm:min-w-[280px]"
+            >
               Start Your Journey
-            </button>
-            <button className="mt-6 text-[14px] font-semibold text-[#535845] underline decoration-[#d1cec0] underline-offset-4 transition-colors hover:text-[#744c36]">
+            </Link>
+            <Link
+              to="/education/articles"
+              className="mt-6 text-[14px] font-semibold text-[#535845] underline decoration-[#d1cec0] underline-offset-4 transition-colors hover:text-[#744c36]"
+            >
               Read More Articles
-            </button>
+            </Link>
           </div>
         </div>
       </main>

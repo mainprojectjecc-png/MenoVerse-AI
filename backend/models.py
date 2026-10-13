@@ -27,6 +27,19 @@ class User(Base):
     Email = Column("Email", String)
     Password = Column("Password", String)
 
+
+class PasswordResetToken(Base):
+    __tablename__ = "PasswordResetTokens"
+    __table_args__ = {"schema": "dbo"}
+
+    ResetID = Column("ResetID", Integer, primary_key=True, index=True)
+    UserID = Column("UserID", Integer, nullable=False, index=True)
+    TokenHash = Column("TokenHash", String(64), nullable=False, unique=True)
+    CreatedAt = Column("CreatedAt", DateTime, nullable=False)
+    ExpiresAt = Column("ExpiresAt", DateTime, nullable=False)
+    UsedAt = Column("UsedAt", DateTime, nullable=True)
+
+
 class Cycle(Base):
     __tablename__ = "Cycles"
     __table_args__ = {"schema": "dbo"}

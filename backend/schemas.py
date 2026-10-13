@@ -36,6 +36,21 @@ class Token(BaseModel):
     token_type: str = "bearer"
     UserID: int
     Name: str
+
+
+class PasswordResetRequest(BaseModel):
+    Email: EmailStr
+
+
+class PasswordResetConfirm(BaseModel):
+    Token: str = Field(..., min_length=1)
+    Password: str = Field(..., min_length=6)
+
+
+class PasswordResetResponse(BaseModel):
+    message: str
+
+
 # --------------------------------------------------
 # CYCLE
 # --------------------------------------------------

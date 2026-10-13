@@ -19,6 +19,41 @@ Body: { "Email": string, "Password": string }
 
 Returns: { "access_token", "token_type", "UserID", "Name" }
 
+POST /password-reset/request
+
+Requests a single-use password reset link by email. The response is the same
+whether or not the email belongs to an account.
+
+Body: { "Email": string }
+
+Returns: { "message": string }
+
+POST /password-reset/confirm
+
+Sets a new password using the reset token from the email. Links expire after
+30 minutes and can only be used once.
+
+Body: { "Token": string, "Password": string }
+
+Returns: { "message": string }
+
+Password reset email configuration
+
+Copy `backend/.env.example` to `backend/.env` and set:
+
+- `JWT_SECRET_KEY`: a unique, randomly generated secret of at least 32 characters.
+- `SMTP_HOST`: the SMTP server hostname.
+- `SMTP_PORT`: usually `587` for STARTTLS or `465` for implicit TLS.
+- `SMTP_USERNAME` and `SMTP_PASSWORD`: SMTP credentials (use an app password if required).
+- `SMTP_FROM_EMAIL`: a sender address permitted by the SMTP account.
+- `SMTP_USE_SSL`: `false` for port 587/STARTTLS; `true` for port 465/implicit TLS.
+- `FRONTEND_URL`: the frontend origin, for example `http://localhost:5173` locally.
+
+Do not commit `.env` or share SMTP credentials. Non-local frontend URLs must use
+HTTPS. Restart the backend after changing these settings; reset links are
+unavailable until all settings are valid. The backend creates the
+`dbo.PasswordResetTokens` table on startup.
+
 GET /users
 
 Returns a list of registered users without passwords.

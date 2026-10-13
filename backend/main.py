@@ -1,10 +1,13 @@
 import json
-from datetime import date, datetime
+from datetime import date, datetime, timedelta, timezone
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import update
 from typing import List
+import hashlib
 
 from database import (
     Base,
@@ -16,6 +19,7 @@ from database import (
 )
 from models import (
     User,
+    PasswordResetToken,
     Cycle,
     Symptom,
     RiskAssessment,
@@ -37,6 +41,9 @@ from schemas import (
     UserCreate,
     UserUpdate,
     UserLogin,
+    PasswordResetRequest,
+    PasswordResetConfirm,
+    PasswordResetResponse,
     Token,
     CycleCreate,
     CycleOut,
@@ -71,6 +78,14 @@ from schemas import (
 from ml_predictor import explain_risk
 from auth import hash_password, verify_password, get_current_user, create_access_token
 from community import router as community_router, seed_community_groups
+from password_reset import (
+    PasswordResetConfigurationError,
+    PasswordResetDeliveryError,
+    create_password_reset_token,
+    send_password_reset_email,
+    validate_password_reset_configuration,
+    verify_password_reset_token,
+)
 
 
 Base.metadata.create_all(bind=engine)
@@ -521,9 +536,10 @@ def register(
     user: UserCreate,
     db: Session = Depends(get_db)
 ):
+    normalized_email = str(user.Email).strip().lower()
     existing = (
         db.query(User)
-        .filter(User.Email == user.Email)
+        .filter(func.lower(func.trim(User.Email)) == normalized_email)
         .first()
     )
 
@@ -536,7 +552,7 @@ def register(
     new_user = User(
         Name=user.Name,
         Age=user.Age,
-        Email=user.Email,
+        Email=normalized_email,
         Password=hash_password(user.Password),
     )
 
@@ -555,9 +571,10 @@ def login(
     credentials: UserLogin,
     db: Session = Depends(get_db)
 ):
+    normalized_email = str(credentials.Email).strip().lower()
     user = (
         db.query(User)
-        .filter(User.Email == credentials.Email)
+        .filter(func.lower(func.trim(User.Email)) == normalized_email)
         .first()
     )
 
@@ -578,6 +595,154 @@ def login(
     "UserID": user.UserID,
     "Name": user.Name,
 }
+
+
+@app.post("/password-reset/request", response_model=PasswordResetResponse)
+def request_password_reset(
+    request: PasswordResetRequest,
+    db: Session = Depends(get_db),
+):
+    try:
+        configuration = validate_password_reset_configuration()
+    except PasswordResetConfigurationError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="Password reset email is not configured. Please contact the administrator.",
+        ) from exc
+    normalized_email = str(request.Email).strip().lower()
+    user = (
+        db.query(User)
+        .filter(func.lower(func.trim(User.Email)) == normalized_email)
+        .first()
+    )
+    response = {
+        "message": "If an account with that email exists, a password reset link has been sent."
+    }
+    if user is None:
+        return response
+
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    db.query(PasswordResetToken).filter(
+        PasswordResetToken.ExpiresAt < now - timedelta(days=1)
+    ).delete(synchronize_session=False)
+    recent_requests = (
+        db.query(PasswordResetToken)
+        .filter(
+            PasswordResetToken.UserID == user.UserID,
+            PasswordResetToken.CreatedAt >= now - timedelta(hours=1),
+        )
+        .count()
+    )
+    if recent_requests >= 3:
+        db.commit()
+        return response
+
+    token = create_password_reset_token(user.UserID, normalized_email)
+    token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()
+    db.add(
+        PasswordResetToken(
+            UserID=user.UserID,
+            TokenHash=token_hash,
+            CreatedAt=now,
+            ExpiresAt=now + timedelta(minutes=30),
+        )
+    )
+    db.commit()
+
+    try:
+        send_password_reset_email(
+            configuration,
+            normalized_email,
+            token,
+        )
+    except PasswordResetDeliveryError as exc:
+        db.query(PasswordResetToken).filter(
+            PasswordResetToken.TokenHash == token_hash,
+            PasswordResetToken.UsedAt.is_(None),
+        ).update(
+            {PasswordResetToken.UsedAt: datetime.now(timezone.utc).replace(tzinfo=None)},
+            synchronize_session=False,
+        )
+        db.commit()
+        raise HTTPException(
+            status_code=503,
+            detail="Password reset email could not be sent. Please try again later.",
+        ) from exc
+
+    db.query(PasswordResetToken).filter(
+        PasswordResetToken.UserID == user.UserID,
+        PasswordResetToken.TokenHash != token_hash,
+        PasswordResetToken.UsedAt.is_(None),
+    ).update(
+        {PasswordResetToken.UsedAt: datetime.now(timezone.utc).replace(tzinfo=None)},
+        synchronize_session=False,
+    )
+    db.commit()
+    return response
+
+
+@app.post("/password-reset/confirm", response_model=PasswordResetResponse)
+def confirm_password_reset(
+    request: PasswordResetConfirm,
+    db: Session = Depends(get_db),
+):
+    try:
+        claims = verify_password_reset_token(request.Token)
+    except PasswordResetConfigurationError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="Password reset is not configured. Please contact the administrator.",
+        ) from exc
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail="This reset link is invalid or expired. Request a new one.",
+        ) from exc
+    token_hash = hashlib.sha256(request.Token.encode("utf-8")).hexdigest()
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    user_id = int(claims["sub"])
+    consumed = db.execute(
+        update(PasswordResetToken)
+        .where(
+            PasswordResetToken.TokenHash == token_hash,
+            PasswordResetToken.UserID == user_id,
+            PasswordResetToken.UsedAt.is_(None),
+            PasswordResetToken.ExpiresAt > now,
+        )
+        .values(UsedAt=now)
+    )
+    if consumed.rowcount != 1:
+        db.rollback()
+        raise HTTPException(
+            status_code=400,
+            detail="This reset link is invalid or expired. Request a new one.",
+        )
+
+    user = (
+        db.query(User)
+        .filter(
+            User.UserID == user_id,
+            func.lower(func.trim(User.Email)) == claims["email"].lower(),
+        )
+        .first()
+    )
+    if user is None:
+        db.rollback()
+        raise HTTPException(
+            status_code=400,
+            detail="This reset link is invalid or expired. Request a new one.",
+        )
+
+    user.Password = hash_password(request.Password)
+    db.query(PasswordResetToken).filter(
+        PasswordResetToken.UserID == user.UserID,
+        PasswordResetToken.UsedAt.is_(None),
+    ).update(
+        {PasswordResetToken.UsedAt: now},
+        synchronize_session=False,
+    )
+    db.commit()
+    return {"message": "Your password has been reset. You can now sign in."}
 
 
 # --------------------------------------------------

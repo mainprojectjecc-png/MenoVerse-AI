@@ -43,12 +43,10 @@ export default function Login() {
         <h2 className="font-['Playfair_Display'] text-[40px] font-bold text-primary mb-2">MenoVerse</h2>
         <div className="w-12 h-[2px] bg-tertiary mx-auto rounded-full mb-8"></div>
 
-        <div className="w-28 h-28 mb-8 rounded-full overflow-hidden bg-secondary-container border-4 border-white">
-          <img
-            src="https://images.unsplash.com/photo-1551836022-deb4988cc6c0?w=300&h=300&fit=crop&crop=face&auto=format"
-            alt="woman 45 years"
-            className="w-full h-full object-cover object-top"
-          />
+        <div className="w-28 h-28 mb-8 rounded-full bg-secondary-container border-4 border-white flex items-center justify-center shadow-[0_8px_20px_-10px_rgba(91,42,110,0.3)]">
+          <span className="material-symbols-outlined text-primary text-[48px]" aria-hidden="true">
+            spa
+          </span>
         </div>
 
         <div className="w-full max-w-sm bg-white rounded-[28px] p-8 border border-outline-variant soft-shadow">
@@ -69,6 +67,12 @@ export default function Login() {
               <button type="button" onClick={()=>setShowPass(!showPass)} className="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant">
                 <span className="material-symbols-outlined text-[20px]">{showPass? "visibility_off" : "visibility"}</span>
               </button>
+            </div>
+
+            <div className="-mt-2 text-right">
+              <Link to="/forgot-password" className="text-[13px] font-semibold text-primary hover:text-tertiary hover:underline">
+                Forgot your password?
+              </Link>
             </div>
 
             {error && (

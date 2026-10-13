@@ -10,6 +10,8 @@ import Layout from "./components/Layout";
 
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import Register from "./pages/Register";
 import Assessment from "./pages/Assessment";
 import CycleTracking from "./pages/CycleTracking";
@@ -23,6 +25,7 @@ import PostureExercise from "./pages/PostureExercise";
 import Profile from "./pages/Profile";
 import PerimenopauseGuide from "./pages/PerimenopauseGuide";
 import SymptomEducation from "./pages/SymptomEducation";
+import MedicalArticles from "./pages/MedicalArticles";
 import XAI from "./pages/XAI";
 const Community = lazy(() => import("./pages/Community"));
 
@@ -38,6 +41,8 @@ function App() {
       <Routes>
 
         <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/register" element={<Register />} />
 
         {/* ================================
@@ -127,6 +132,11 @@ function App() {
           <Route
             path="/education"
             element={<PerimenopauseGuide />}
+          />
+
+          <Route
+            path="/education/articles"
+            element={<MedicalArticles />}
           />
 
           <Route
