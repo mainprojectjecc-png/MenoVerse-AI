@@ -121,10 +121,7 @@ export default function Assessment() {
         {result && (
           <section className="mt-8 bg-surface rounded-2xl p-6 md:p-8 soft-shadow border border-outline-variant/20" aria-live="polite">
             <p className="text-label-md text-primary uppercase tracking-[0.1em] font-bold">Stage-derived risk category</p>
-            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mt-2">
-              <h2 className="font-headline-lg text-plum-deep">{result.RiskLevel}</h2>
-              <p className="text-on-surface-variant">Model confidence: {(result.Confidence * 100).toFixed(0)}%</p>
-            </div>
+            <h2 className="mt-2 font-headline-lg text-plum-deep">{result.RiskLevel}</h2>
             <p className="mt-3 text-sm leading-relaxed text-on-surface-variant">
               {result.PredictionType}. Low maps to Premenopause, Moderate to Early perimenopause, and High to Late perimenopause or Postmenopause in the dataset.
             </p>

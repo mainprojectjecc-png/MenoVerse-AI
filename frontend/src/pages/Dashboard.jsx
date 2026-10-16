@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { Link } from "react-router-dom"
 import api from "../api/axios"
-import weeklyInsightsImage from "../../reference/front.png"
+import weeklyInsightsImage from "../assets/hero.png"
 
 const EMPTY_DATA = {
   risks: [],
@@ -469,11 +469,6 @@ function Dashboard() {
                     ? shorten(latestRisk.Explanation, 170)
                     : "Complete an assessment to explore a personalized, dataset-based overview of your current pattern."}
                 </p>
-                {typeof latestRisk?.RiskScore === "number" && (
-                  <p className="mt-3 text-xs text-white/65">
-                    Model confidence: {Math.round(latestRisk.RiskScore * 100)}% · Not a clinical risk estimate
-                  </p>
-                )}
                 <Link to={latestRisk ? "/insights" : "/assessment"} className="mt-5 inline-flex items-center gap-2 rounded-xl bg-white/12 px-3.5 py-2.5 text-xs font-semibold text-white transition hover:bg-white/20">
                   {latestRisk ? "View full assessment" : "Begin your assessment"}
                   <span className="material-symbols-outlined text-[16px]">arrow_forward</span>

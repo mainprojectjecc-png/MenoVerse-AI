@@ -80,9 +80,7 @@ export default function Insights() {
     ? "Loading your latest assessment..."
     : risk
     ? risk.MenopauseStage
-      ? `Your latest assessment predicts ${risk.MenopauseStage}. Model confidence: ${Math.round(
-          (risk.RiskScore || 0) * 100
-        )}%.`
+      ? `Your latest assessment predicts ${risk.MenopauseStage}.`
       : `Your latest assessment recorded a ${risk.RiskLevel} stage-derived category. This dataset-based result is not a clinical risk estimate.`
     : "No assessment has been recorded yet."
 
@@ -141,13 +139,6 @@ export default function Insights() {
                   : "Risk category: No result"}
               </span>
 
-              <span className="px-4 py-2 bg-white/10 rounded-full text-xs">
-                {risk
-                  ? `Model confidence: ${Math.round(
-                      (risk.RiskScore || 0) * 100
-                    )}%`
-                  : "Confidence: —"}
-              </span>
             </div>
             <p className="mt-5 max-w-3xl text-xs leading-relaxed text-white/75">
               For new assessments, Low/Moderate/High are mapped from the dataset’s menopause-stage labels; they are not medically defined risk levels.
