@@ -15,6 +15,7 @@ from database import (
     get_db,
     ensure_voice_journal_columns,
     ensure_diet_log_portion_column,
+    ensure_recipe_image_column,
     SessionLocal,
 )
 from models import (
@@ -92,84 +93,74 @@ Base.metadata.create_all(bind=engine)
 seed_community_groups()
 ensure_voice_journal_columns()
 ensure_diet_log_portion_column()
+ensure_recipe_image_column()
 
 # Seed default diet suggestions
 def seed_diet_suggestions():
-    db = next(get_db())
+    db = SessionLocal()
 
     try:
-        existing = db.query(DietSuggestion).count()
+        suggestions = [
+            ("Breakfast", "Oats with fruit and seeds", "Combine a protein source with fibre-rich foods for a satisfying start.", "Oats with milk or fortified soy milk, fruit, nuts, and seeds"),
+            ("Breakfast", "Eggs or tofu with vegetables", "A protein-rich breakfast with vegetables and a grain.", "Eggs or tofu with whole-grain toast and vegetables"),
+            ("Lunch", "Dal, rice, and vegetables", "Build a balanced plate with vegetables, protein, and a grain.", "Dal, brown rice or roti, and a generous serving of vegetables"),
+            ("Lunch", "Chickpea or paneer bowl", "Pair protein-rich chickpeas or paneer with vegetables and grains.", "Chickpea or paneer bowl with vegetables and whole grains"),
+            ("Lunch", "Fish or chicken with rice", "A protein food with rice and vegetables, if included in your diet.", "Fish or chicken with vegetables and rice, if included in your diet"),
+            ("Dinner", "Vegetable khichdi", "Choose a comfortable, nourishing meal that fits your schedule and appetite.", "Vegetable khichdi with yogurt or a fortified alternative"),
+            ("Dinner", "Tofu, paneer, or beans", "Pair a protein food with cooked vegetables for a flexible dinner.", "Tofu, paneer, or beans with cooked vegetables"),
+            ("Dinner", "Lentil soup and roti", "A warm soup with lentils and a satisfying grain.", "Soup with lentils and whole-grain bread or roti"),
+            ("Breakfast", "Palappam with vegetable stew", "A soft, fermented rice-and-coconut appam with a mild vegetable stew.", "Palappam with vegetable stew or egg curry"),
+            ("Breakfast", "Puttu and kadala curry", "Steamed rice flour and coconut served with black chickpea curry.", "Puttu with kadala curry; add banana or fruit if you like"),
+            ("Breakfast", "Idiyappam with egg curry", "String hoppers pair well with egg curry or a coconut-based vegetable stew.", "Idiyappam with egg curry or vegetable stew"),
+            ("Breakfast", "Dosa with sambar", "A familiar fermented rice-and-lentil breakfast with lentil and vegetable sambar.", "Dosa with sambar and coconut chutney"),
+            ("Breakfast", "Idli with sambar", "Steamed rice-and-lentil idli with sambar makes a filling breakfast.", "Idli with sambar and a little coconut chutney"),
+            ("Breakfast", "Appam with kadala curry", "Fermented appam with protein-rich black chickpeas in curry.", "Appam with kadala curry"),
+            ("Breakfast", "Kanji with payar", "Rice porridge with green gram and a simple vegetable side.", "Rice kanji with cherupayar (green gram) and thoran"),
+            ("Lunch", "Kerala matta rice meals", "Build a plate around red matta rice, vegetables, and a protein of choice.", "Matta rice with avial, thoran, and parippu or sambar"),
+            ("Lunch", "Avial and matta rice", "Mixed vegetables in a coconut and yogurt-based avial served with matta rice.", "Matta rice with avial and a spoon of parippu"),
+            ("Lunch", "Thoran with matta rice", "A vegetable thoran with grated coconut adds vegetables and texture to lunch.", "Matta rice with cabbage, beans, or carrot thoran and sambar"),
+            ("Lunch", "Kerala fish curry meal", "A tangy fish curry served with rice and a vegetable side.", "Matta rice with Kerala fish curry and vegetable thoran"),
+            ("Lunch", "Sambar and vegetable lunch", "A lentil-based curry with vegetables served alongside rice.", "Matta rice with sambar, avial, and a small serving of pickle"),
+            ("Lunch", "Moru curry and vegetables", "A light yogurt-based moru curry pairs with rice and seasonal vegetables.", "Matta rice with moru curry and cabbage thoran"),
+            ("Dinner", "Idiyappam with vegetable stew", "A gentle dinner of steamed string hoppers and coconut-milk vegetable stew.", "Idiyappam with vegetable stew"),
+            ("Dinner", "Appam with egg curry", "Soft appam served with egg curry or a bean-based curry.", "Appam with egg curry and a side of vegetables"),
+            ("Dinner", "Puttu with kadala curry", "Puttu and chickpea curry make a satisfying, familiar evening meal.", "Puttu with kadala curry and cucumber"),
+            ("Dinner", "Kanji, payar, and thoran", "Rice kanji, green gram, and a vegetable side make a comforting dinner.", "Kanji with cherupayar and a small serving of thoran"),
+            ("Dinner", "Fish curry with vegetables", "A home-style fish curry served with rice and vegetables.", "Kerala fish curry with matta rice and seasonal vegetables"),
+            ("Snack", "Pazham pori", "Ripe banana fritters are a classic tea-time snack; enjoy freshly made.", "Pazham pori with tea or coffee"),
+            ("Snack", "Parippu vada", "Crisp lentil fritters made with chana dal, onion, curry leaves, and spices.", "Parippu vada with unsweetened tea"),
+            ("Snack", "Kerala-style samosa", "A savoury pastry snack with a spiced vegetable or meat filling.", "Vegetable samosa with mint or coconut chutney"),
+            ("Snack", "Unniyappam", "Small rice, jaggery, and banana fritters flavored with cardamom.", "Unniyappam as a tea-time treat"),
+            ("Snack", "Steamed kozhukatta", "A steamed rice dumpling filled with coconut and jaggery.", "Kozhukatta with tea"),
+            ("Snack", "Roasted banana and nuts", "A quick snack pairing ripe banana with a small handful of nuts.", "Ripe banana with roasted peanuts or other nuts"),
+        ]
+        existing_names = {
+            title.lower()
+            for (title,) in db.query(DietSuggestion.Title)
+            .filter(
+                func.lower(DietSuggestion.Title).in_(
+                    [item[1].lower() for item in suggestions]
+                )
+            )
+            .all()
+            if title
+        }
+        new_suggestions = [
+            DietSuggestion(
+                MealType=meal_type,
+                Title=title,
+                Summary=summary,
+                FoodIdea=food_idea,
+                IsActive=1,
+            )
+            for meal_type, title, summary, food_idea in suggestions
+            if title.lower() not in existing_names
+        ]
 
-        if existing == 0:
-            suggestions = [
-                DietSuggestion(
-                    MealType="Breakfast",
-                    Title="Breakfast",
-                    Summary="Combine a protein source with fiber-rich foods for a satisfying start.",
-                    FoodIdea="Oats with milk or fortified soy milk, fruit, nuts, and seeds",
-                    IsActive=1,
-                ),
-                DietSuggestion(
-                    MealType="Breakfast",
-                    Title="Breakfast",
-                    Summary="Combine a protein source with fiber-rich foods for a satisfying start.",
-                    FoodIdea="Eggs or tofu with whole-grain toast and vegetables",
-                    IsActive=1,
-                ),
-                DietSuggestion(
-                    MealType="Breakfast",
-                    Title="Breakfast",
-                    Summary="Combine a protein source with fiber-rich foods for a satisfying start.",
-                    FoodIdea="Idli or dosa with sambar and a side of fruit",
-                    IsActive=1,
-                ),
-                DietSuggestion(
-                    MealType="Lunch",
-                    Title="Lunch",
-                    Summary="Build a balanced plate with vegetables, protein, and a whole grain.",
-                    FoodIdea="Dal, brown rice or roti, and a generous serving of vegetables",
-                    IsActive=1,
-                ),
-                DietSuggestion(
-                    MealType="Lunch",
-                    Title="Lunch",
-                    Summary="Build a balanced plate with vegetables, protein, and a whole grain.",
-                    FoodIdea="Chickpea or paneer bowl with vegetables and whole grains",
-                    IsActive=1,
-                ),
-                DietSuggestion(
-                    MealType="Lunch",
-                    Title="Lunch",
-                    Summary="Build a balanced plate with vegetables, protein, and a whole grain.",
-                    FoodIdea="Fish or chicken with vegetables and rice, if included in your diet",
-                    IsActive=1,
-                ),
-                DietSuggestion(
-                    MealType="Dinner",
-                    Title="Dinner",
-                    Summary="Choose a comfortable, nourishing meal that fits your schedule and appetite.",
-                    FoodIdea="Vegetable khichdi with yogurt or a fortified alternative",
-                    IsActive=1,
-                ),
-                DietSuggestion(
-                    MealType="Dinner",
-                    Title="Dinner",
-                    Summary="Choose a comfortable, nourishing meal that fits your schedule and appetite.",
-                    FoodIdea="Tofu, paneer, or beans with cooked vegetables",
-                    IsActive=1,
-                ),
-                DietSuggestion(
-                    MealType="Dinner",
-                    Title="Dinner",
-                    Summary="Choose a comfortable, nourishing meal that fits your schedule and appetite.",
-                    FoodIdea="Soup with lentils and whole-grain bread or roti",
-                    IsActive=1,
-                ),
-            ]
-
-            db.add_all(suggestions)
+        if new_suggestions:
+            db.add_all(new_suggestions)
             db.commit()
-            print("Default diet suggestions inserted.")
+            print(f"Inserted {len(new_suggestions)} Kerala diet suggestions.")
 
     finally:
         db.close()
@@ -182,94 +173,112 @@ def seed_default_recipes():
     db = SessionLocal()
 
     try:
-        if db.query(Recipe).count() > 0:
-            print("Recipes already exist.")
-            return
-
         recipes = [
-            Recipe(
-                UserID=None,
-                Name="Vegetable Oats Bowl",
-                MealType="Breakfast",
-                Ingredients="Oats, milk or yogurt, banana, apple, chia seeds, cinnamon",
-                Instructions="Cook oats with milk or water. Top with sliced banana, apple, chia seeds, and a little cinnamon.",
-                CookingTime="10 minutes",
-                Notes="Simple high-fibre breakfast.",
-                IsFavorite=0,
-                IsPublic=1,
-            ),
-            Recipe(
-                UserID=None,
-                Name="Vegetable Omelette",
-                MealType="Breakfast",
-                Ingredients="Eggs, onion, tomato, capsicum, spinach, pepper",
-                Instructions="Whisk the eggs. Add chopped vegetables and cook in a lightly greased pan until set.",
-                CookingTime="10 minutes",
-                Notes="Quick protein-rich breakfast option.",
-                IsFavorite=0,
-                IsPublic=1,
-            ),
-            Recipe(
-                UserID=None,
-                Name="Chickpea Vegetable Salad",
-                MealType="Lunch",
-                Ingredients="Cooked chickpeas, cucumber, tomato, carrot, onion, lemon juice, herbs",
-                Instructions="Combine all vegetables and chickpeas. Add lemon juice and herbs, then mix well.",
-                CookingTime="10 minutes",
-                Notes="Fresh and easy lunch.",
-                IsFavorite=0,
-                IsPublic=1,
-            ),
-            Recipe(
-                UserID=None,
-                Name="Vegetable Rice Bowl",
-                MealType="Lunch",
-                Ingredients="Cooked rice, mixed vegetables, beans, garlic, herbs",
-                Instructions="Cook vegetables with garlic. Add beans and serve over cooked rice.",
-                CookingTime="20 minutes",
-                Notes="Flexible meal using available vegetables.",
-                IsFavorite=0,
-                IsPublic=1,
-            ),
-            Recipe(
-                UserID=None,
-                Name="Vegetable Soup",
-                MealType="Dinner",
-                Ingredients="Carrot, beans, cabbage, tomato, onion, garlic, vegetable stock",
-                Instructions="Saute onion and garlic. Add vegetables and stock. Simmer until the vegetables are tender.",
-                CookingTime="25 minutes",
-                Notes="Warm and simple dinner option.",
-                IsFavorite=0,
-                IsPublic=1,
-            ),
-            Recipe(
-                UserID=None,
-                Name="Paneer Vegetable Wrap",
-                MealType="Dinner",
-                Ingredients="Whole-wheat wrap, paneer, cucumber, tomato, lettuce, yogurt",
-                Instructions="Cook paneer with simple spices. Add vegetables and paneer to the wrap and serve with yogurt.",
-                CookingTime="15 minutes",
-                Notes="Easy balanced wrap.",
-                IsFavorite=0,
-                IsPublic=1,
-            ),
-            Recipe(
-                UserID=None,
-                Name="Fruit Yogurt Bowl",
-                MealType="Snack",
-                Ingredients="Plain yogurt, banana, berries or seasonal fruit, nuts",
-                Instructions="Add yogurt to a bowl and top with chopped fruit and a small handful of nuts.",
-                CookingTime="5 minutes",
-                Notes="Simple snack with no cooking required.",
-                IsFavorite=0,
-                IsPublic=1,
-            ),
+            ("Palappam with Vegetable Stew", "Breakfast", "Raw rice, cooked rice, grated coconut or coconut milk, yeast, sugar, mixed vegetables, coconut milk, onion, ginger", "Soak and grind the rice with coconut and cooked rice; ferment the batter until bubbly. Swirl a ladle of batter in a hot appachatti to make a lacy appam. Simmer vegetables with onion, ginger, and coconut milk for the stew.", "45 minutes plus fermentation", "Kerala breakfast classic; fermentation time varies."),
+            ("Puttu and Kadala Curry", "Breakfast", "Puttu podi (rice flour), grated coconut, water, salt, black chickpeas, onion, tomato, ginger, garlic, curry leaves, coriander, spices", "Soak black chickpeas and pressure-cook until tender. Prepare a curry with onion, tomato, ginger, garlic, curry leaves, and spices. Moisten rice flour with salted water until crumbly, layer with coconut in a puttu steamer, and steam until cooked.", "45 minutes", "Traditional Kerala breakfast with black chickpea curry."),
+            ("Idiyappam with Egg Curry", "Breakfast", "Rice flour, hot water, salt, grated coconut, eggs, onion, tomato, ginger, garlic, curry leaves, spices", "Make a soft dough from rice flour, hot water, and salt. Press through an idiyappam maker onto steamer plates, top with coconut, and steam. Cook eggs in an onion, tomato, curry-leaf, and spice gravy.", "40 minutes", "Serve the string hoppers with egg curry or vegetable stew."),
+            ("Idiyappam with Vegetable Stew", "Dinner", "Rice flour, hot water, salt, coconut, potato, carrot, green beans, onion, ginger, coconut milk, curry leaves", "Press a soft rice-flour dough into nests and steam until tender. Simmer the vegetables with onion, ginger, curry leaves, and thin coconut milk; finish with thick coconut milk.", "40 minutes", "A mild Kerala dinner option."),
+            ("Appam with Egg Curry", "Dinner", "Raw rice, cooked rice, coconut milk, yeast, sugar, eggs, onion, tomato, ginger, curry leaves, spices", "Ferment a smooth rice-and-coconut batter and cook appams in a covered appachatti. Prepare an egg curry by simmering boiled eggs in an onion, tomato, ginger, and spice gravy.", "45 minutes plus fermentation", "A popular Kerala pairing."),
+            ("Dosa with Sambar", "Breakfast", "Dosa batter (rice and urad dal), toor dal, mixed vegetables, tomato, tamarind, sambar powder, mustard seeds, curry leaves", "Spread fermented batter thinly on a hot griddle and cook until golden. Simmer cooked dal, vegetables, tamarind, and sambar powder; finish with a mustard-seed and curry-leaf tempering.", "35 minutes", "Serve with coconut chutney if desired."),
+            ("Idli with Sambar", "Breakfast", "Idli batter (rice and urad dal), toor dal, mixed vegetables, tomato, tamarind, sambar powder, mustard seeds, curry leaves", "Steam the batter in idli moulds until set. Cook dal and vegetables with tamarind and sambar powder, then add a mustard-seed and curry-leaf tempering.", "30 minutes", "Steamed idli with a hearty lentil and vegetable sambar."),
+            ("Kerala Matta Rice, Avial and Thoran", "Lunch", "Kerala matta rice, mixed vegetables (drumstick, carrot, beans, yam), grated coconut, yogurt, cumin, green chilli, cabbage, mustard seeds, curry leaves", "Rinse and cook matta rice until tender. Simmer mixed vegetables with a ground coconut, cumin, and chilli paste; finish avial with yogurt and coconut oil. Make cabbage thoran with coconut, mustard seeds, and curry leaves.", "50 minutes", "A vegetable-rich Kerala lunch; use seasonal vegetables."),
+            ("Kerala Fish Curry with Matta Rice", "Lunch", "Fish (such as sardine or kingfish), Kerala matta rice, shallots, ginger, garlic, kudampuli (Malabar tamarind), chilli powder, turmeric, curry leaves", "Soak kudampuli. Simmer shallots, ginger, garlic, chilli, turmeric, and kudampuli with water. Add fish and cook gently until just done. Serve with cooked matta rice and a vegetable thoran.", "40 minutes", "Traditional tangy fish curry; adjust chilli to taste."),
+            ("Avial with Matta Rice", "Lunch", "Kerala matta rice, mixed vegetables, grated coconut, cumin, green chilli, yogurt, curry leaves, coconut oil", "Cook the cut vegetables until just tender. Add a coarse coconut, cumin, and green-chilli paste; simmer briefly, then fold in yogurt, curry leaves, and coconut oil. Serve with matta rice.", "40 minutes", "Kerala mixed-vegetable avial."),
+            ("Cabbage Thoran with Matta Rice", "Lunch", "Kerala matta rice, cabbage, grated coconut, shallots, green chilli, mustard seeds, curry leaves, turmeric", "Cook chopped cabbage with shallots, chilli, turmeric, and a splash of water. Stir in grated coconut. Temper mustard seeds and curry leaves, then toss through and serve with matta rice.", "35 minutes", "Use beans or carrot instead of cabbage if preferred."),
+            ("Sambar with Matta Rice", "Lunch", "Kerala matta rice, toor dal, drumstick, pumpkin, carrot, tomato, tamarind, sambar powder, mustard seeds, curry leaves", "Cook the dal until soft. Simmer vegetables with tamarind and sambar powder, combine with dal, and finish with mustard seeds and curry leaves tempered in oil. Serve with matta rice.", "45 minutes", "A comforting lentil and vegetable curry."),
+            ("Moru Curry with Cabbage Thoran", "Dinner", "Cooked rice or matta rice, yogurt, turmeric, ginger, green chilli, coconut, cumin, mustard seeds, curry leaves, cabbage", "Whisk yogurt with turmeric and water; warm gently with ginger and chilli without boiling. Add a ground coconut and cumin paste if desired. Serve with rice and a simple cabbage thoran.", "35 minutes", "Kerala yogurt-based curry; avoid boiling after adding yogurt."),
+            ("Kanji with Cherupayar and Thoran", "Dinner", "Rice, water, whole green gram (cherupayar), grated coconut, garlic, cumin, cabbage or greens, curry leaves", "Simmer rice with plenty of water to make kanji. Cook soaked green gram until tender and season with garlic and cumin. Serve with a small vegetable thoran.", "50 minutes", "A homestyle rice porridge meal."),
+            ("Pazham Pori (Banana Fritters)", "Snack", "Ripe nendran banana, all-purpose flour or rice flour, turmeric, sugar, salt, water, oil", "Slice the banana lengthwise. Make a smooth, lightly salted batter with flour, turmeric, and water. Dip each slice and shallow- or deep-fry until golden, turning once.", "25 minutes", "Classic Kerala tea-time snack; frying method affects oil content."),
+            ("Parippu Vada (Lentil Fritters)", "Snack", "Chana dal, shallots, ginger, green chilli, curry leaves, fennel, salt, oil", "Soak chana dal, drain, and pulse most of it coarsely while leaving some whole. Mix with chopped shallots, ginger, chilli, curry leaves, fennel, and salt. Shape into patties and fry until crisp.", "45 minutes", "Serve warm with tea; can also be pan-fried."),
+            ("Kerala Vegetable Samosa", "Snack", "Pastry sheets, potato, green peas, onion, ginger, green chilli, curry leaves, garam masala, coriander, oil", "Cook potato and peas with onion, ginger, chilli, curry leaves, and spices. Fill samosa pastry, seal the edges, and bake or fry until golden and crisp.", "45 minutes", "A savoury snack; use baked pastry for a lower-oil option."),
+            ("Unniyappam", "Snack", "Rice flour, ripe banana, jaggery, grated coconut, sesame seeds, cardamom, ghee or oil", "Melt jaggery with a little water and cool. Mix with mashed banana, rice flour, coconut, sesame, and cardamom into a thick batter. Rest briefly and cook in an unniyappam pan until browned.", "35 minutes", "Traditional small rice-and-jaggery fritters."),
+            ("Kozhukatta (Steamed Coconut Dumplings)", "Snack", "Rice flour, hot water, salt, grated coconut, jaggery, cardamom", "Make a soft dough with rice flour, hot water, and salt. Cook coconut with jaggery and cardamom for the filling. Shape dough around the filling and steam until cooked.", "40 minutes", "Steamed Kerala rice dumplings."),
+            ("Puttu with Cherupayar Curry", "Breakfast", "Puttu podi (rice flour), grated coconut, water, salt, whole green gram, onion, tomato, curry leaves, spices", "Steam moistened rice flour in layers with grated coconut. Cook soaked green gram until tender and simmer with onion, tomato, curry leaves, and spices for a simple curry.", "45 minutes", "A variation on the classic puttu breakfast."),
+            ("Kerala Vegetable Stew with Appam", "Dinner", "Raw rice, cooked rice, coconut milk, yeast, potato, carrot, green beans, onion, ginger, curry leaves, whole spices", "Prepare fermented appam batter and cook in a covered appachatti. Simmer vegetables with onion, ginger, curry leaves, and whole spices in coconut milk until tender.", "45 minutes plus fermentation", "Mild coconut-milk stew served with appam."),
+            ("Oats and Banana Breakfast Bowl", "Breakfast", "Oats, milk or yogurt, banana, apple, chia seeds, cinnamon", "Cook oats with milk or water. Top with sliced banana, apple, chia seeds, and cinnamon.", "10 minutes", "Existing simple high-fibre breakfast."),
+            ("Vegetable Omelette", "Breakfast", "Eggs, onion, tomato, capsicum, spinach, pepper", "Whisk the eggs. Add chopped vegetables and cook in a lightly greased pan until set.", "10 minutes", "Quick protein-rich breakfast option."),
+            ("Chickpea Vegetable Salad", "Lunch", "Cooked chickpeas, cucumber, tomato, carrot, onion, lemon juice, herbs", "Combine all vegetables and chickpeas. Add lemon juice and herbs, then mix well.", "10 minutes", "Fresh and easy lunch."),
+            ("Vegetable Rice Bowl", "Lunch", "Cooked rice, mixed vegetables, beans, garlic, herbs", "Cook vegetables with garlic. Add beans and serve over cooked rice.", "20 minutes", "Flexible meal using available vegetables."),
+            ("Vegetable Soup", "Dinner", "Carrot, beans, cabbage, tomato, onion, garlic, vegetable stock", "Saute onion and garlic. Add vegetables and stock. Simmer until the vegetables are tender.", "25 minutes", "Warm and simple dinner option."),
+            ("Paneer Vegetable Wrap", "Dinner", "Whole-wheat wrap, paneer, cucumber, tomato, lettuce, yogurt", "Cook paneer with simple spices. Add vegetables and paneer to the wrap and serve with yogurt.", "15 minutes", "Easy balanced wrap."),
+            ("Fruit Yogurt Bowl", "Snack", "Plain yogurt, banana, berries or seasonal fruit, nuts", "Add yogurt to a bowl and top with chopped fruit and a small handful of nuts.", "5 minutes", "Simple snack with no cooking required."),
+        ]
+        removed_recipe_names = {
+            "Palappam with Vegetable Stew",
+            "Puttu and Kadala Curry",
+            "Idiyappam with Egg Curry",
+            "Idiyappam with Vegetable Stew",
+            "Appam with Egg Curry",
+            "Dosa with Sambar",
+            "Idli with Sambar",
+            "Kerala Matta Rice, Avial and Thoran",
+            "Kerala Fish Curry with Matta Rice",
+            "Avial with Matta Rice",
+            "Cabbage Thoran with Matta Rice",
+            "Sambar with Matta Rice",
+            "Moru Curry with Cabbage Thoran",
+            "Kanji with Cherupayar and Thoran",
+            "Pazham Pori (Banana Fritters)",
+            "Parippu Vada (Lentil Fritters)",
+            "Kerala Vegetable Samosa",
+            "Unniyappam",
+            "Kozhukatta (Steamed Coconut Dumplings)",
+            "Puttu with Cherupayar Curry",
+            "Kerala Vegetable Stew with Appam",
+        }
+
+        removed_count = db.query(Recipe).filter(
+            Recipe.UserID.is_(None),
+            Recipe.IsPublic == 1,
+            Recipe.Name.in_(removed_recipe_names),
+        ).delete(synchronize_session=False)
+        if removed_count:
+            db.commit()
+            print(f"Removed {removed_count} unrequested default recipes.")
+        recipes = [
+            recipe
+            for recipe in recipes
+            if recipe[0] not in removed_recipe_names
         ]
 
-        db.add_all(recipes)
-        db.commit()
+        existing_names = {
+            name.lower()
+            for (name,) in db.query(Recipe.Name)
+            .filter(
+                func.lower(Recipe.Name).in_(
+                    [item[0].lower() for item in recipes]
+                )
+            )
+            .all()
+            if name
+        }
+        new_recipes = [
+            Recipe(
+                UserID=None,
+                Name=name,
+                MealType=meal_type,
+                Ingredients=ingredients,
+                Instructions=instructions,
+                CookingTime=cooking_time,
+                Notes=notes,
+                IsFavorite=0,
+                IsPublic=1,
+            )
+            for (
+                name,
+                meal_type,
+                ingredients,
+                instructions,
+                cooking_time,
+                notes,
+            ) in recipes
+            if name.lower() not in existing_names
+        ]
 
-        print(f"Inserted {len(recipes)} default recipes.")
+        if new_recipes:
+            db.add_all(new_recipes)
+            db.commit()
+            print(f"Inserted {len(new_recipes)} default recipes.")
 
     finally:
         db.close()
@@ -1555,6 +1564,7 @@ def create_recipe(
         Instructions=recipe.Instructions,
         CookingTime=recipe.CookingTime,
         Notes=recipe.Notes,
+        ImageData=recipe.ImageData,
         IsFavorite=0,
         IsPublic=0,
     )
@@ -1596,6 +1606,10 @@ def suggest_recipe(
 
     prompt = request.prompt.strip()
     prompt_lower = prompt.lower()
+    kerala_request = any(
+        term in prompt_lower
+        for term in ("kerala", "malabar", "south indian")
+    )
     meal_type = next(
         (
             value
@@ -1627,7 +1641,7 @@ def suggest_recipe(
             "using", "want", "need", "dinner", "lunch", "breakfast",
             "snack", "meal", "and", "the", "for", "ingredients",
             "ingredient", "available", "could", "would", "suggest",
-            "show",
+            "show", "kerala", "malabar", "indian", "authentic",
         }
     ]
     recipes = (
@@ -1636,6 +1650,7 @@ def suggest_recipe(
             (Recipe.UserID == current_user.UserID)
             | (Recipe.IsPublic == 1)
         )
+        .order_by(Recipe.RecipeID)
         .all()
     )
     candidates = [
@@ -1654,24 +1669,34 @@ def suggest_recipe(
             1
             for word in candidate_words
             if word in (
-                f"{recipe.Name} {recipe.Ingredients}".lower()
-            )
+                f"{recipe.Name} {recipe.Ingredients} "
+                f"{recipe.Instructions} {recipe.Notes or ''}"
+            ).lower()
         ),
         reverse=True,
     )
-    has_measured_ingredients = bool(
+    direct_match = bool(
         matching
-        and re.search(
-            r"\b\d+(?:/\d+)?\s*(?:cups?|tablespoons?|tbsp|teaspoons?|tsp|g|kg|ml|medium|large)\b",
-            matching[0].Ingredients or "",
-            re.IGNORECASE,
+        and candidate_words
+        and any(
+            word in (
+                f"{matching[0].Name} {matching[0].Ingredients} "
+                f"{matching[0].Instructions} {matching[0].Notes or ''}"
+            ).lower()
+            for word in candidate_words
         )
     )
-    if matching and candidate_words and has_measured_ingredients and any(
-        word in f"{matching[0].Name} {matching[0].Ingredients}".lower()
-        for word in candidate_words
-    ):
-        recipe = matching[0]
+    if direct_match or (kerala_request and candidates):
+        recipe = matching[0] if direct_match else next(
+            (
+                item
+                for item in candidates
+                if "kerala" in (
+                    f"{item.Name} {item.Ingredients} {item.Notes or ''}"
+                ).lower()
+            ),
+            candidates[0],
+        )
         return {
             "Name": recipe.Name,
             "MealType": recipe.MealType,

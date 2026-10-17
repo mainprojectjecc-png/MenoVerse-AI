@@ -1,8 +1,29 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import bananaOatSkilletImage from "../assets/recipes/banana-oat-skillet.jpeg"
+import breakfastAppamKadalaImage from "../assets/recipes/breakfast-appam-kadala.jpg"
+import breakfastDosaSambarImage from "../assets/recipes/breakfast-dosa-sambar.jpg"
+import breakfastEggTofuVegetablesImage from "../assets/recipes/breakfast-egg-tofu-vegetables.jpg"
+import breakfastIdliSambarImage from "../assets/recipes/breakfast-idli-sambar.jpg"
+import breakfastKanjiPayarImage from "../assets/recipes/breakfast-kanji-payar.jpg"
+import breakfastOatsFruitSeedsImage from "../assets/recipes/breakfast-oats-fruit-seeds.jpg"
 import chickpeaVegetableSaladImage from "../assets/recipes/chickpea-vegetable-salad.jpeg"
 import fruitYogurtBowlImage from "../assets/recipes/fruit-yogurt-bowl.jpeg"
+import keralaAppamImage from "../assets/recipes/kerala-appam-stew.jpg"
+import keralaAviyalImage from "../assets/recipes/kerala-aviyal.jpg"
+import keralaFishCurryImage from "../assets/recipes/kerala-fish-curry.jpg"
+import keralaIdiyappamImage from "../assets/recipes/kerala-idiyappam-vegetable-stew.jpg"
+import keralaKozhukattaImage from "../assets/recipes/kerala-kozhukatta.jpg"
+import keralaParippuVadaImage from "../assets/recipes/kerala-parippu-vada.jpg"
+import keralaPazhamPoriImage from "../assets/recipes/kerala-pazham-pori.jpg"
+import keralaPuttuImage from "../assets/recipes/kerala-puttu-kadala.jpg"
+import keralaSadyaImage from "../assets/recipes/kerala-sadya.jpg"
+import keralaSamosaImage from "../assets/recipes/kerala-samosa.jpg"
+import keralaUnniyappamImage from "../assets/recipes/kerala-unniyappam.jpg"
 import paneerVegetableWrapImage from "../assets/recipes/paneer-vegetable-wrap.jpeg"
+import snackParippuVadaImage from "../assets/recipes/snack-parippu-vada.jpg"
+import snackPazhamPoriImage from "../assets/recipes/snack-pazham-pori.jpg"
+import snackRoastedBananaNutsImage from "../assets/recipes/snack-roasted-banana-nuts.jpg"
+import snackSamosaImage from "../assets/recipes/snack-samosa.jpg"
 import vegetableOatsBowlImage from "../assets/recipes/vegetable-oats-bowl.jpeg"
 import vegetableOmeletteImage from "../assets/recipes/vegetable-omelette.jpeg"
 import vegetableRiceBowlImage from "../assets/recipes/vegetable-rice-bowl.jpeg"
@@ -28,36 +49,464 @@ const plannerDays = [
   "Sunday",
 ]
 
-const routine = [
+const keralaRecipeDetails = [
   {
-    time: "Morning",
-    title: "Ease into breakfast",
-    description:
-      "Have water when you wake, then eat when it suits your appetite and routine.",
-    icon: "sunny",
+    RecipeID: "local-kerala-puttu",
+    Name: "Puttu with Kadala Curry",
+    MealType: "Breakfast",
+    CookingTime: "45 minutes, plus chickpea soaking",
+    Ingredients:
+      "For puttu: 2 cups puttu podi (rice flour), 1/2 cup grated coconut, about 3/4 cup water, salt. For kadala curry: 1 cup dried black chickpeas, 1 onion, 1 tomato, 1 teaspoon ginger-garlic, curry leaves, turmeric, coriander and chilli powder, oil, salt.",
+    Instructions:
+      "Soak the black chickpeas overnight, then pressure-cook until tender. For the curry, soften onion with curry leaves; add ginger-garlic, tomato, turmeric, coriander and chilli powder. Add the cooked chickpeas with some cooking liquid and simmer until thick. Mix salt into the rice flour and sprinkle in water gradually until it resembles damp crumbs when pressed. Layer the flour and grated coconut in a puttu steamer and steam for about 8–10 minutes, until hot and cooked through. Serve together.",
+    Notes: "Traditional Kerala breakfast. Seasonings and water vary by rice flour; add water gradually.",
+    SearchTerms: "puttu with kadala curry|puttu and kadala curry|puttu",
   },
   {
-    time: "Midday",
-    title: "Make lunch balanced",
-    description:
-      "Include vegetables, a protein food, and a grain or other satisfying carbohydrate.",
-    icon: "lunch_dining",
+    RecipeID: "local-kerala-appam",
+    Name: "Palappam with Vegetable Stew",
+    MealType: "Breakfast",
+    CookingTime: "40 minutes, plus batter fermentation",
+    Ingredients:
+      "For appam: 2 cups raw rice, 1/2 cup cooked rice, 1/2 cup coconut milk, yeast, sugar, salt, water. For stew: potato, carrot, green beans, onion, ginger, curry leaves, thin and thick coconut milk, whole spices.",
+    Instructions:
+      "Soak the raw rice, then grind with cooked rice, coconut milk and enough water to make a smooth batter. Activate the yeast with a little warm water and sugar, mix into the batter and leave covered until risen. Season with salt. For the stew, gently cook onion, ginger, curry leaves and whole spices; add vegetables and thin coconut milk and simmer until tender. Finish with thick coconut milk without boiling hard. Pour a ladle of batter into a hot appachatti, swirl to coat the sides, cover and cook until the centre is set and the edge is lacy. Serve with stew.",
+    Notes: "Fermentation time depends on room temperature and yeast; appam is cooked in an appachatti.",
+    SearchTerms: "palappam with vegetable stew|palappam",
   },
   {
-    time: "Afternoon",
-    title: "Plan a snack if hungry",
-    description:
-      "Try fruit with nuts, yogurt, or roasted chickpeas; a snack is optional.",
-    icon: "nutrition",
-  },
-  {
-    time: "Evening",
-    title: "Keep dinner flexible",
-    description:
-      "Choose a meal that feels comfortable. There is no single required dinner time.",
-    icon: "nightlight",
+    RecipeID: "local-kerala-avial",
+    Name: "Avial",
+    MealType: "Lunch",
+    CookingTime: "35 minutes",
+    Ingredients:
+      "3 cups mixed firm vegetables (such as drumstick, carrot, green beans, raw plantain, yam or ash gourd), 1 cup grated coconut, 1 teaspoon cumin, 2 green chillies, 1/2 cup thick yogurt, curry leaves, coconut oil, salt.",
+    Instructions:
+      "Cut vegetables into even batons. Cook the firmer vegetables first with salt and a small splash of water; add quicker-cooking vegetables later and cook until just tender, not mushy. Coarsely grind coconut, cumin and green chillies. Fold this mixture into the vegetables and warm gently for a few minutes. Turn off the heat, stir in whisked yogurt, curry leaves and a drizzle of coconut oil. Do not boil after adding the yogurt. Serve as a side with rice.",
+    Notes: "Kerala-style mixed vegetable avial; vegetable combinations vary by household and season.",
+    SearchTerms: "avial|aviyal",
   },
 ]
+
+const mealSuggestionRecipeDetails = [
+  {
+    Name: "Oats with Fruit and Seeds",
+    MealType: "Breakfast",
+    CookingTime: "10 minutes",
+    SearchTerms: "oats with fruit and seeds|oats fruit seeds",
+    Ingredients:
+      "1/2 cup rolled oats, 1 cup milk or fortified soy milk, 1/2 cup chopped seasonal fruit, 1 tablespoon mixed seeds, and cinnamon to taste.",
+    Instructions:
+      "Simmer the oats with milk or water, stirring until soft. Spoon into a bowl and top with fruit, seeds, and cinnamon.",
+  },
+  {
+    Name: "Eggs or Tofu with Vegetables",
+    MealType: "Breakfast",
+    CookingTime: "15 minutes",
+    SearchTerms: "eggs or tofu with vegetables|egg tofu vegetables",
+    Ingredients:
+      "2 eggs or 150 g firm tofu, 1 cup chopped vegetables such as spinach, tomato, and capsicum, 1 teaspoon oil, and salt and pepper.",
+    Instructions:
+      "Heat the oil and cook the vegetables until tender. For eggs, whisk and pour them into the pan, stirring until set. For tofu, crumble it into the pan and cook with the vegetables for 4–5 minutes. Season and serve.",
+  },
+  {
+    Name: "Idiyappam with Egg Curry",
+    MealType: "Breakfast",
+    CookingTime: "40 minutes",
+    SearchTerms: "idiyappam with egg curry|idiyappam egg curry",
+    Ingredients:
+      "For idiyappam: rice flour, hot water, salt, and grated coconut. For curry: boiled eggs, onion, tomato, ginger, garlic, curry leaves, turmeric, chilli powder, coriander powder, and oil.",
+    Instructions:
+      "Mix rice flour and salt, then add hot water gradually to form a soft dough. Press into nests, sprinkle with coconut, and steam until cooked. For the curry, soften onion with curry leaves, ginger, and garlic; add tomato and spices and cook until soft. Add water and simmer, then add the boiled eggs and heat through.",
+  },
+  {
+    Name: "Dosa with Sambar",
+    MealType: "Breakfast",
+    CookingTime: "35 minutes",
+    SearchTerms: "dosa with sambar|dosa sambar",
+    Ingredients:
+      "Fermented dosa batter, 1/2 cup toor dal, 2 cups chopped mixed vegetables, tomato, tamarind, sambar powder, mustard seeds, curry leaves, and oil.",
+    Instructions:
+      "Cook the dal until soft. Simmer the vegetables with tomato, tamarind, and sambar powder until tender; stir in the dal and simmer. Temper mustard seeds and curry leaves in oil and add to the sambar. Spread dosa batter thinly on a hot griddle and cook until crisp at the edges, then serve with sambar.",
+  },
+  {
+    Name: "Idli with Sambar",
+    MealType: "Breakfast",
+    CookingTime: "30 minutes",
+    SearchTerms: "idli with sambar|idli sambar",
+    Ingredients:
+      "Fermented idli batter, 1/2 cup toor dal, 2 cups chopped mixed vegetables, tomato, tamarind, sambar powder, mustard seeds, curry leaves, and oil.",
+    Instructions:
+      "Pour the batter into greased idli moulds and steam until set. Cook the dal until soft. Simmer vegetables with tomato, tamarind, and sambar powder, stir in the dal, and cook until tender. Finish with mustard seeds and curry leaves tempered in oil; serve with the idli.",
+  },
+  {
+    Name: "Appam with Kadala Curry",
+    MealType: "Breakfast",
+    CookingTime: "45 minutes plus batter fermentation",
+    SearchTerms: "appam with kadala curry|appam kadala curry",
+    Ingredients:
+      "Fermented appam batter. For kadala curry: 1 cup dried black chickpeas, onion, tomato, ginger, garlic, curry leaves, turmeric, coriander powder, chilli powder, and oil.",
+    Instructions:
+      "Soak the chickpeas overnight, then pressure-cook until tender. Soften onion with curry leaves, ginger, and garlic; add tomato and spices and cook until soft. Add the chickpeas with some cooking liquid and simmer until the curry thickens. Pour batter into a hot appachatti, swirl, cover, and cook until the centre is set and the edges are lacy. Serve together.",
+  },
+  {
+    Name: "Kanji with Payar",
+    MealType: "Breakfast",
+    CookingTime: "45 minutes",
+    SearchTerms: "kanji with payar|rice kanji cherupayar|kanji payar",
+    Ingredients:
+      "1/2 cup rice, 4 cups water, 1/2 cup whole green gram (cherupayar), 1 garlic clove, cumin, salt, and a vegetable thoran to serve.",
+    Instructions:
+      "Simmer the rice in water until very soft and porridge-like, adding more water if needed. Separately cook soaked green gram until tender, then season with crushed garlic, cumin, and salt. Serve the kanji with payar and thoran.",
+  },
+  {
+    Name: "Dal, Rice, and Vegetables",
+    MealType: "Lunch",
+    CookingTime: "35 minutes",
+    SearchTerms: "dal rice and vegetables|dal rice vegetables",
+    Ingredients:
+      "1/2 cup lentils, 1/2 cup rice, 2 cups mixed vegetables, onion, tomato, turmeric, cumin, salt, and oil.",
+    Instructions:
+      "Rinse and cook the rice. Simmer lentils with turmeric until soft. Cook onion, tomato, and vegetables with a little water until tender; stir in the lentils and season. Serve the dal and vegetables with rice.",
+  },
+  {
+    Name: "Chickpea or Paneer Bowl",
+    MealType: "Lunch",
+    CookingTime: "20 minutes",
+    SearchTerms: "chickpea or paneer bowl|chickpea paneer bowl",
+    Ingredients:
+      "1 cup cooked chickpeas or 150 g paneer, 1/2 cup cooked whole grain, 1 cup chopped vegetables, lemon juice, cumin, and plain yogurt or chutney to serve.",
+    Instructions:
+      "Warm the chickpeas with cumin and a splash of water, or lightly brown the paneer in a pan. Arrange over the cooked grain with the vegetables. Finish with lemon juice and yogurt or chutney.",
+  },
+  {
+    Name: "Kerala Matta Rice Meal",
+    MealType: "Lunch",
+    CookingTime: "50 minutes",
+    SearchTerms: "kerala matta rice meals|matta rice meal",
+    Ingredients:
+      "Kerala matta rice, mixed vegetables, grated coconut, cumin, green chilli, yogurt, curry leaves, coconut oil, and parippu or sambar.",
+    Instructions:
+      "Rinse and cook the matta rice until tender. Prepare a vegetable side by cooking mixed vegetables until just tender, then fold in a coarse paste of coconut, cumin, and green chilli. Finish with curry leaves and coconut oil. Serve with parippu or sambar.",
+  },
+  {
+    Name: "Avial with Matta Rice",
+    MealType: "Lunch",
+    CookingTime: "45 minutes",
+    SearchTerms: "avial and matta rice|avial with matta rice|aviyal matta rice",
+    Ingredients:
+      "1/2 cup Kerala matta rice, 3 cups mixed vegetables, 1 cup grated coconut, cumin, green chillies, 1/2 cup yogurt, curry leaves, coconut oil, and salt.",
+    Instructions:
+      "Cook the rice until tender. Cut the vegetables into even pieces and cook with salt and a splash of water until just tender. Coarsely grind coconut, cumin, and green chillies; fold into the vegetables and warm briefly. Turn off the heat, stir in whisked yogurt, curry leaves, and coconut oil. Serve with the rice.",
+  },
+  {
+    Name: "Thoran with Matta Rice",
+    MealType: "Lunch",
+    CookingTime: "35 minutes",
+    SearchTerms: "thoran with matta rice|cabbage thoran with matta rice",
+    Ingredients:
+      "1/2 cup Kerala matta rice, 2 cups finely chopped cabbage or beans, 1/3 cup grated coconut, shallots, green chilli, mustard seeds, curry leaves, turmeric, and oil.",
+    Instructions:
+      "Rinse and cook the matta rice until tender. Cook the chopped vegetables with shallots, chilli, turmeric, and a splash of water until just tender. Stir in grated coconut. Temper mustard seeds and curry leaves in oil, toss through the thoran, and serve with rice.",
+  },
+  {
+    Name: "Kerala Fish Curry with Matta Rice",
+    MealType: "Lunch",
+    CookingTime: "40 minutes",
+    SearchTerms: "kerala fish curry meal|fish curry with matta rice|fish curry vegetables",
+    Ingredients:
+      "Fish portions, 1/2 cup Kerala matta rice, shallots, ginger, garlic, kudampuli (Malabar tamarind), chilli powder, turmeric, curry leaves, and a vegetable thoran.",
+    Instructions:
+      "Rinse and cook the rice until tender. Soak the kudampuli. Simmer shallots, ginger, garlic, chilli, turmeric, and kudampuli with water until fragrant. Add the fish and cook gently until just done. Serve with the rice and thoran.",
+  },
+  {
+    Name: "Sambar and Vegetable Lunch",
+    MealType: "Lunch",
+    CookingTime: "45 minutes",
+    SearchTerms: "sambar and vegetable lunch|sambar matta rice",
+    Ingredients:
+      "1/2 cup Kerala matta rice, 1/2 cup toor dal, drumstick or other mixed vegetables, tomato, tamarind, sambar powder, mustard seeds, and curry leaves.",
+    Instructions:
+      "Rinse and cook the rice until tender. Cook the dal until soft. Simmer vegetables and tomato with tamarind and sambar powder until tender, then combine with the dal and adjust the consistency with water. Finish with mustard seeds and curry leaves tempered in oil; serve with rice.",
+  },
+  {
+    Name: "Moru Curry with Vegetables",
+    MealType: "Lunch",
+    CookingTime: "30 minutes",
+    SearchTerms: "moru curry and vegetables|moru curry with cabbage thoran",
+    Ingredients:
+      "1 cup plain yogurt, 1/2 cup water, turmeric, ginger, green chilli, grated coconut, cumin, mustard seeds, curry leaves, and a vegetable thoran to serve.",
+    Instructions:
+      "Whisk the yogurt with water and turmeric. Grind coconut and cumin to a paste and stir it in if desired. Warm gently with ginger and green chilli without letting the curry boil. Temper mustard seeds and curry leaves in oil and add on top. Serve with cooked rice and vegetables.",
+  },
+  {
+    Name: "Vegetable Khichdi",
+    MealType: "Dinner",
+    CookingTime: "30 minutes",
+    SearchTerms: "vegetable khichdi",
+    Ingredients:
+      "1/2 cup rice, 1/3 cup moong dal, 1 cup chopped vegetables, 1/2 teaspoon turmeric, cumin, 3 cups water, and salt.",
+    Instructions:
+      "Rinse the rice and dal. Add them to a pot with vegetables, turmeric, cumin, salt, and water. Simmer covered, stirring occasionally, until the rice, dal, and vegetables are soft. Add hot water for a looser consistency.",
+  },
+  {
+    Name: "Tofu, Paneer, or Beans with Vegetables",
+    MealType: "Dinner",
+    CookingTime: "25 minutes",
+    SearchTerms: "tofu paneer beans with cooked vegetables|tofu paneer beans vegetables",
+    Ingredients:
+      "150 g tofu or paneer, or 1 cup cooked beans; 2 cups chopped vegetables; onion, garlic, cumin, oil, and salt.",
+    Instructions:
+      "Cook onion and garlic in a little oil until soft. Add the vegetables and a splash of water; cover and cook until tender. Add tofu, paneer, or beans with cumin and salt, then heat through. Serve as a warm bowl or with cooked grain.",
+  },
+  {
+    Name: "Lentil Soup and Roti",
+    MealType: "Dinner",
+    CookingTime: "35 minutes",
+    SearchTerms: "lentil soup and roti|lentil soup whole grain bread",
+    Ingredients:
+      "1/2 cup lentils, 1/2 onion, 1 carrot, 1 tomato, 3 cups vegetable stock or water, cumin, salt, and whole-grain roti.",
+    Instructions:
+      "Soften the onion in a pot, then add carrot, tomato, lentils, cumin, and stock. Simmer until the lentils are soft, adding water if needed. Season and serve hot with roti.",
+  },
+  {
+    Name: "Idiyappam with Vegetable Stew",
+    MealType: "Dinner",
+    CookingTime: "40 minutes",
+    SearchTerms: "idiyappam with vegetable stew|idiyappam vegetable stew",
+    Ingredients:
+      "For idiyappam: rice flour, hot water, salt, and grated coconut. For stew: potato, carrot, green beans, onion, ginger, curry leaves, thin and thick coconut milk, and whole spices.",
+    Instructions:
+      "Mix rice flour and salt, then add hot water gradually to make a soft dough. Press into nests, sprinkle with coconut, and steam until cooked. For the stew, soften onion, ginger, curry leaves, and whole spices; add vegetables and thin coconut milk and simmer until tender. Stir in thick coconut milk and warm gently without boiling.",
+  },
+  {
+    Name: "Appam with Egg Curry",
+    MealType: "Dinner",
+    CookingTime: "45 minutes plus batter fermentation",
+    SearchTerms: "appam with egg curry|appam egg curry",
+    Ingredients:
+      "Fermented appam batter, 3 boiled eggs, onion, tomato, ginger, garlic, curry leaves, turmeric, chilli powder, coriander powder, and oil.",
+    Instructions:
+      "Pour appam batter into a hot appachatti, swirl, cover, and cook until the centre is set and the edges are lacy. For the curry, soften onion with curry leaves, ginger, and garlic; add tomato and spices and cook until soft. Add water to make a gravy, simmer, then add the boiled eggs and heat through.",
+  },
+  {
+    Name: "Kanji, Payar, and Thoran",
+    MealType: "Dinner",
+    CookingTime: "50 minutes",
+    SearchTerms: "kanji payar and thoran|kanji with cherupayar and thoran",
+    Ingredients:
+      "1/2 cup rice, 4 cups water, 1/2 cup whole green gram (cherupayar), garlic, cumin, and a small serving of cabbage or greens thoran.",
+    Instructions:
+      "Simmer rice with plenty of water until it becomes a soft kanji. Cook soaked green gram until tender and season with garlic, cumin, and salt. Prepare a simple vegetable thoran by cooking chopped greens or cabbage until tender and tossing with grated coconut. Serve together.",
+  },
+  {
+    Name: "Fish Curry with Vegetables",
+    MealType: "Dinner",
+    CookingTime: "40 minutes",
+    SearchTerms: "fish curry with vegetables|kerala fish curry with matta rice",
+    Ingredients:
+      "Fish portions, shallots, ginger, garlic, kudampuli (Malabar tamarind), chilli powder, turmeric, curry leaves, cooked rice, and seasonal vegetables.",
+    Instructions:
+      "Soak the kudampuli. Simmer shallots, ginger, garlic, chilli, turmeric, and kudampuli with water until fragrant. Add fish and cook gently until just done. Serve with cooked rice and a side of vegetables.",
+  },
+  {
+    Name: "Pazham Pori (Banana Fritters)",
+    MealType: "Snack",
+    CookingTime: "25 minutes",
+    SearchTerms: "pazham pori|banana fritters",
+    Ingredients:
+      "2 ripe nendran bananas, 1/2 cup all-purpose or rice flour, a pinch of turmeric, salt, water, and oil for frying.",
+    Instructions:
+      "Slice the bananas lengthwise. Mix flour, turmeric, salt, and enough water to make a smooth coating batter. Dip each slice and shallow- or deep-fry until golden, turning once. Drain and serve warm.",
+  },
+  {
+    Name: "Parippu Vada (Lentil Fritters)",
+    MealType: "Snack",
+    CookingTime: "45 minutes",
+    SearchTerms: "parippu vada|lentil fritters",
+    Ingredients:
+      "1 cup chana dal, shallots, ginger, green chilli, curry leaves, fennel, salt, and oil for frying.",
+    Instructions:
+      "Soak the chana dal, drain well, and pulse most of it coarsely while leaving some whole. Mix with finely chopped shallots, ginger, chilli, curry leaves, fennel, and salt. Shape into small patties and fry over medium heat until crisp and cooked through.",
+  },
+  {
+    Name: "Kerala Vegetable Samosa",
+    MealType: "Snack",
+    CookingTime: "45 minutes",
+    SearchTerms: "kerala style samosa|kerala vegetable samosa|vegetable samosa",
+    Ingredients:
+      "Samosa pastry sheets, potato, green peas, onion, ginger, green chilli, curry leaves, garam masala, coriander, and oil.",
+    Instructions:
+      "Cook the potato and peas until tender. Soften onion, ginger, chilli, and curry leaves in a pan; add the vegetables and garam masala and mix. Fill and seal the pastry sheets into samosas. Bake or fry until golden and crisp.",
+  },
+  {
+    Name: "Unniyappam",
+    MealType: "Snack",
+    CookingTime: "35 minutes",
+    SearchTerms: "unniyappam",
+    Ingredients:
+      "1 cup rice flour, 1 ripe banana, 1/2 cup grated jaggery, grated coconut, sesame seeds, cardamom, and ghee or oil.",
+    Instructions:
+      "Melt the jaggery with a little water and cool. Mix with mashed banana, rice flour, coconut, sesame, and cardamom to make a thick batter; rest briefly. Cook small portions in a lightly greased unniyappam pan, turning until browned and cooked through.",
+  },
+  {
+    Name: "Kozhukatta (Steamed Coconut Dumplings)",
+    MealType: "Snack",
+    CookingTime: "40 minutes",
+    SearchTerms: "kozhukatta|steamed coconut dumplings",
+    Ingredients:
+      "1 cup rice flour, hot water, salt, 1 cup grated coconut, 1/3 cup jaggery, and cardamom.",
+    Instructions:
+      "Cook the coconut with jaggery and cardamom until the filling comes together. Gradually mix hot water and salt into the rice flour to make a soft dough. Shape small cups of dough around the filling and seal. Steam until the dumplings are cooked through.",
+  },
+  {
+    Name: "Roasted Banana and Nuts",
+    MealType: "Snack",
+    CookingTime: "10 minutes",
+    SearchTerms: "roasted banana and nuts|banana with roasted peanuts",
+    Ingredients:
+      "1 ripe banana and a small handful of roasted peanuts or mixed nuts.",
+    Instructions:
+      "Warm the banana in a dry pan over medium heat, turning until lightly browned and heated through. Serve with the roasted nuts.",
+  },
+]
+
+function normalizePantryIngredient(value) {
+  const normalized = String(value || "")
+    .toLowerCase()
+    .replace(/\bwhole milk\b|\bfull[- ]cream milk\b|\bfull[- ]fat milk\b|\bskim milk\b|\blow[- ]fat milk\b|\bdairy milk\b/g, "milk")
+    .replace(/\brolled oats\b|\bporridge oats\b|\boatmeal\b/g, "oats")
+    .replace(/\byogh?urt\b|\bcurd\b/g, "yogurt")
+    .replace(/\bblack chickpeas?\b|\bchana\b|\bkadala\b/g, "chickpea")
+    .replace(/\bchickpeas\b/g, "chickpea")
+    .replace(/\bmatta rice\b|\bred rice\b/g, "rice")
+    .replace(/\bkodumpuli\b|\bkodampuli\b/g, "kudampuli")
+    .replace(/[^\w\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+
+  return normalized.replace(
+    /\b(eggs|bananas|apples|tomatoes|potatoes|onions|beans|nuts|seeds|vegetables|leaves|berries)\b/g,
+    (word) =>
+      ({
+        eggs: "egg",
+        bananas: "banana",
+        apples: "apple",
+        tomatoes: "tomato",
+        potatoes: "potato",
+        onions: "onion",
+        beans: "bean",
+        nuts: "nut",
+        seeds: "seed",
+        vegetables: "vegetable",
+        leaves: "leaf",
+        berries: "berry",
+      })[word],
+  )
+}
+
+function splitRecipeIngredients(value) {
+  return String(value || "")
+    .split(/[,;\n]+/)
+    .map((ingredient) =>
+      ingredient
+        .replace(/^[\s•*-]+/, "")
+        .replace(/^(?:for\s+[^:]+:\s*)/i, "")
+        .replace(/^\d+(?:[./]\d+)?\s*/, "")
+        .replace(
+          /^(?:(?:cups?|tbsp|tablespoons?|tsp|teaspoons?|g|kg|ml|litres?|liters?|cloves?|pieces?|medium|large|small)\s+)+/i,
+          "",
+        )
+        .trim(),
+    )
+    .filter(Boolean)
+}
+
+function pantryIngredientMatches(recipeIngredient, pantryItems) {
+  const recipeNames = String(recipeIngredient || "")
+    .replace(/\(([^)]+)\)/g, " | $1 | ")
+    .split(/\s+(?:or|\/|\|)\s+/i)
+    .map(normalizePantryIngredient)
+    .filter(Boolean)
+  if (!recipeNames.length) {
+    return false
+  }
+
+  return pantryItems.some((item) => {
+    const pantryName = normalizePantryIngredient(item.ItemName)
+    if (!pantryName) {
+      return false
+    }
+
+    return recipeNames.some((recipeName) => {
+      const riceFlourMismatch =
+        (recipeName === "rice flour" && pantryName === "rice") ||
+        (pantryName === "rice flour" && recipeName === "rice")
+      const coconutMilkMismatch =
+        (recipeName === "coconut milk" && pantryName === "milk") ||
+        (pantryName === "coconut milk" && recipeName === "milk")
+      return (
+        !riceFlourMismatch &&
+        !coconutMilkMismatch &&
+        (recipeName === pantryName ||
+          ` ${recipeName} `.includes(` ${pantryName} `))
+      )
+    })
+  })
+}
+
+function getClosePantryIngredientMatches(recipeIngredients, pantryItems) {
+  const closeMatches = []
+  const maxDistance = (left, right) => {
+    const previousRow = Array.from(
+      { length: right.length + 1 },
+      (_, index) => index,
+    )
+
+    for (let leftIndex = 1; leftIndex <= left.length; leftIndex += 1) {
+      const currentRow = [leftIndex]
+      for (let rightIndex = 1; rightIndex <= right.length; rightIndex += 1) {
+        currentRow[rightIndex] = Math.min(
+          currentRow[rightIndex - 1] + 1,
+          previousRow[rightIndex] + 1,
+          previousRow[rightIndex - 1] +
+            (left[leftIndex - 1] === right[rightIndex - 1] ? 0 : 1),
+        )
+      }
+      previousRow.splice(0, previousRow.length, ...currentRow)
+    }
+
+    return previousRow[right.length]
+  }
+
+  recipeIngredients.forEach((ingredient) => {
+    const normalizedIngredients = String(ingredient)
+      .replace(/\(([^)]+)\)/g, " | $1 | ")
+      .split(/\s+(?:or|\/|\|)\s+/i)
+      .map(normalizePantryIngredient)
+      .filter((name) => name.length >= 6)
+
+    pantryItems.forEach((item) => {
+      const pantryName = normalizePantryIngredient(item.ItemName)
+      const closeName = normalizedIngredients.find(
+        (name) => pantryName.length >= 6 && maxDistance(name, pantryName) === 1,
+      )
+      if (
+        closeName &&
+        !closeMatches.some(
+          (match) => match.ingredient === ingredient && match.pantryName === item.ItemName,
+        )
+      ) {
+        closeMatches.push({
+          ingredient,
+          pantryName: item.ItemName,
+        })
+      }
+    })
+  })
+
+  return closeMatches
+}
 
 function getLocalDate() {
   const date = new Date()
@@ -124,14 +573,125 @@ function getHydrationTargetKey() {
   return `dietHydrationTarget:${getCurrentUserId() || "guest"}`
 }
 
+function getWellnessHabitsKey() {
+  return `dietWellnessHabits:${getCurrentUserId() || "guest"}`
+}
+
+function getStoredWellnessHabits() {
+  try {
+    const stored = JSON.parse(
+      localStorage.getItem(getWellnessHabitsKey()) || "{}",
+    )
+    return stored && typeof stored === "object" ? stored : {}
+  } catch {
+    return {}
+  }
+}
+
 function authHeaders() {
   const token = getToken()
   return token ? { Authorization: `Bearer ${token}` } : {}
 }
 
 function getRecipeVisual(recipe) {
+  if (recipe.ImageData) {
+    return {
+      image: recipe.ImageData,
+      label: `${recipe.Name} photo`,
+    }
+  }
+
+  if (recipe.UserID) {
+    return { label: "Add your own recipe photo if you like" }
+  }
+
   const name = (recipe.Name || "").toLowerCase()
   const details = `${name} ${recipe.Ingredients || ""}`.toLowerCase()
+  const keralaPhotos = [
+    {
+      match: /kozhukatta|kozukkata|kozhukattai/,
+      image: keralaKozhukattaImage,
+      label: "Kozhukatta",
+    },
+    {
+      match: /unniyappam|unni appam/,
+      image: keralaUnniyappamImage,
+      label: "Unniyappam",
+    },
+    {
+      match: /pazham pori/,
+      image: keralaPazhamPoriImage,
+      label: "Pazham pori",
+      credit: "Photo: Vis M · CC BY-SA 4.0",
+      source: "https://commons.wikimedia.org/wiki/File:Pazham_pori_04.jpg",
+    },
+    {
+      match: /parippu vada|parippuvada/,
+      image: keralaParippuVadaImage,
+      label: "Parippu vada",
+      credit: "Photo: Daniel Zemans · CC BY 2.0",
+      source: "https://commons.wikimedia.org/wiki/File:Parippu_Vada_aka_Paruppu_Vadai_-_Vada_made_with_Lentil.jpg",
+    },
+    {
+      match: /samosa/,
+      image: keralaSamosaImage,
+      label: "Samosa and chai",
+      credit: "Photo: Sarkar Sayantan · CC BY-SA 4.0",
+      source: "https://commons.wikimedia.org/wiki/File:Indian_evening_snack_-_samosa_and_dalmoth_with_cutting_chai.jpg",
+    },
+    {
+      match: /idiyappam.*vegetable stew|vegetable stew.*idiyappam/,
+      image: keralaIdiyappamImage,
+      label: "Idiyappam and vegetable stew",
+      imagePosition: "center 35%",
+    },
+    {
+      match: /puttu.*kadala|kadala.*puttu/,
+      image: keralaPuttuImage,
+      label: "Puttu and kadala curry",
+    },
+    {
+      match: /appam.*(stew|ishtu)|(stew|ishtu).*appam/,
+      image: keralaAppamImage,
+      label: "Appam and stew",
+      imagePosition: "center 35%",
+    },
+    {
+      match: /fish curry|meen curry/,
+      image: keralaFishCurryImage,
+      label: "Kerala fish curry",
+      credit: "Photo: stu_spivack · CC BY-SA 2.0",
+      source: "https://commons.wikimedia.org/wiki/File:Kerala_fish_curry_(2303829166).jpg",
+    },
+    {
+      match: /kerala matta rice, avial and thoran/,
+      image: keralaSadyaImage,
+      label: "Kerala sadya meal",
+      credit: "Photo: George Augustine · CC BY 2.0",
+      source: "https://commons.wikimedia.org/wiki/File:Onam_vannae_-_Flickr_-_George_Augustine.jpg",
+    },
+    {
+      match: /avial|aviyal/,
+      image: keralaAviyalImage,
+      label: "Aviyal",
+      credit: "Photo: Samphotography · CC BY-SA 4.0",
+      source: "https://commons.wikimedia.org/wiki/File:Aviyal,Kerala_cuisine.jpg",
+    },
+  ]
+  const keralaVisual = keralaPhotos.find((visual) => visual.match.test(name))
+
+  if (keralaVisual) {
+    return keralaVisual
+  }
+
+  if (
+    /\b(kerala|pazham pori|parippu vada|parippuvada|unniyappam|kozhukatta|puttu|idiyappam|appam|palappam|avial|aviyal|thoran|matta rice|meen curry|moru curry|kanji|cherupayar|sambar|dosa|idli)\b/.test(
+      name,
+    )
+  ) {
+    return { label: "Dish photo not available yet" }
+  }
+
   const visuals = [
     { match: /banana/, image: bananaOatSkilletImage, label: "Banana & oats" },
     { match: /yogurt|yoghurt|berries|fruit bowl/, image: fruitYogurtBowlImage, label: "Fruit & yogurt" },
@@ -154,7 +714,7 @@ function getRecipeVisual(recipe) {
   }
 }
 
-function MealCard({ meal, index }) {
+function MealCard({ meal, index, onOpenIdea }) {
   return (
     <article className="rounded-3xl border border-outline-variant/70 bg-white p-6 soft-shadow transition-transform duration-200 hover:-translate-y-1">
       <div className="mb-5 flex items-center justify-between">
@@ -171,15 +731,133 @@ function MealCard({ meal, index }) {
       </h3>
       <p className="mb-5 text-sm leading-6 text-on-surface-variant">{meal.summary}</p>
       <ul className="space-y-3">
-        {meal.ideas.map((idea) => (
-          <li key={idea} className="flex gap-3 text-sm leading-6 text-on-surface">
-            <span className="material-symbols-outlined mt-0.5 text-[18px] text-tertiary">
-              check_circle
-            </span>
+        {meal.ideas.map((idea) => {
+          const ideaTitle = String(idea.title || "").trim().toLowerCase()
+          const breakfastVisuals = {
+            "oats with fruit and seeds": {
+              image: breakfastOatsFruitSeedsImage,
+              label: "Oats with fruit and seeds",
+            },
+            "eggs or tofu with vegetables": {
+              image: breakfastEggTofuVegetablesImage,
+              label: "Eggs or tofu with vegetables",
+            },
+            "dosa with sambar": {
+              image: breakfastDosaSambarImage,
+              label: "Dosa with sambar",
+            },
+            "idli with sambar": {
+              image: breakfastIdliSambarImage,
+              label: "Idli with sambar",
+            },
+            "appam with kadala curry": {
+              image: breakfastAppamKadalaImage,
+              label: "Appam with kadala curry",
+            },
+            "kanji with payar": {
+              image: breakfastKanjiPayarImage,
+              label: "Kanji with payar",
+            },
+          }
+          const snackVisuals = {
+            unniyappam: {
+              image: keralaUnniyappamImage,
+              label: "Unniyappam",
+            },
+            "steamed kozhukatta": {
+              image: keralaKozhukattaImage,
+              label: "Kozhukatta",
+            },
+            "roasted banana and nuts": {
+              image: snackRoastedBananaNutsImage,
+              label: "Roasted banana and nuts",
+            },
+            "pazham pori": {
+              image: snackPazhamPoriImage,
+              label: "Pazham pori",
+            },
+            "parippu vada": {
+              image: snackParippuVadaImage,
+              label: "Parippu vada",
+            },
+            "kerala-style samosa": {
+              image: snackSamosaImage,
+              label: "Kerala-style samosa",
+            },
+          }
+          const snackText = `${ideaTitle} ${idea.foodIdea || ""}`.toLowerCase()
+          const snackVisual =
+            snackVisuals[ideaTitle] ||
+            (/\bunniyappam\b/.test(snackText)
+              ? snackVisuals.unniyappam
+              : /\b(kozhukatta|kozukkata|kozhukattai)\b/.test(snackText)
+                ? snackVisuals["steamed kozhukatta"]
+                : /\bpazham pori\b/.test(snackText)
+                  ? snackVisuals["pazham pori"]
+                  : /\bparippu vada\b/.test(snackText)
+                    ? snackVisuals["parippu vada"]
+                    : /\bsamosa\b/.test(snackText)
+                      ? snackVisuals["kerala-style samosa"]
+                      : /\broasted banana\b/.test(snackText) &&
+                          /\b(nuts?|peanuts?)\b/.test(snackText)
+                        ? snackVisuals["roasted banana and nuts"]
+                        : null)
+          const visual =
+            meal.title.toLowerCase() === "breakfast" &&
+            breakfastVisuals[ideaTitle]
+              ? breakfastVisuals[ideaTitle]
+              : meal.title.toLowerCase() === "snack"
+                ? snackVisual || {}
+              : meal.title.toLowerCase() === "lunch"
+                ? {}
+                : meal.title.toLowerCase() === "dinner"
+                  ? {}
+                : getRecipeVisual({
+                  Name: idea.foodIdea || idea.title,
+                  Ingredients: idea.summary || "",
+                  })
 
-            <span>{idea}</span>
-          </li>
-        ))}
+          return (
+            <li
+              key={`${idea.title}-${idea.foodIdea}`}
+              className="flex gap-3 text-sm leading-6 text-on-surface"
+            >
+              <span className="material-symbols-outlined mt-0.5 text-[18px] text-tertiary">
+                check_circle
+              </span>
+
+              <button
+                type="button"
+                onClick={() => onOpenIdea(meal, idea)}
+                className="flex min-w-0 flex-1 items-start gap-3 rounded-xl text-left hover:text-tertiary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tertiary"
+                aria-label={`Open details for ${idea.foodIdea}`}
+              >
+                {visual.image && (
+                  <img
+                    src={visual.image}
+                    alt={visual.label}
+                    className="h-16 w-16 shrink-0 rounded-lg object-cover"
+                    style={{ objectPosition: visual.imagePosition || "center" }}
+                  />
+                )}
+                <span className="min-w-0">
+                  <strong className="block font-semibold">{idea.title}</strong>
+                  {idea.foodIdea && (
+                    <span className="block">{idea.foodIdea}</span>
+                  )}
+                  {idea.summary && (
+                    <span className="mt-1 block text-xs leading-5 text-on-surface-variant">
+                      {idea.summary}
+                    </span>
+                  )}
+                  <span className="mt-1 inline-block text-xs font-semibold text-tertiary">
+                    View recipe or idea details
+                  </span>
+                </span>
+              </button>
+            </li>
+          )
+        })}
       </ul>
     </article>
   )
@@ -193,26 +871,47 @@ function RecipeCard({
   onAddToPlanner,
   onAddIngredients,
   onOpen,
+  onDelete,
 }) {
   const visual = getRecipeVisual(recipe)
 
   return (
     <article className="rounded-3xl border border-[#e8e2cf] bg-white p-6 shadow-sm">
       <div
-        role="img"
-        aria-label={`Illustration for ${recipe.Name}: ${visual.label}`}
-        className="relative mb-5 flex h-36 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-primary-container/70 via-white to-secondary-container"
+        role="group"
+        aria-label={`Food photo for ${recipe.Name}`}
+        className="relative mb-5 flex h-48 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-primary-container/70 via-white to-secondary-container"
       >
         {visual.image && (
           <img
             src={visual.image}
             alt={visual.label}
             className="absolute inset-0 h-full w-full object-cover"
+            style={{ objectPosition: visual.imagePosition || "center" }}
           />
         )}
         <span className="absolute bottom-3 left-3 rounded-full border border-white/70 bg-white/80 px-3 py-1 text-[10px] font-semibold tracking-wide text-on-surface-variant backdrop-blur-sm">
           {visual.label}
         </span>
+        {visual.credit && visual.source && (
+          <a
+            href={visual.source}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={`${visual.credit}; view photo license`}
+            className="absolute bottom-3 right-3 max-w-[70%] truncate rounded-full border border-white/70 bg-white/90 px-2.5 py-1 text-[9px] font-medium text-on-surface-variant backdrop-blur-sm hover:bg-white"
+          >
+            {visual.credit}
+          </a>
+        )}
+        {!visual.image && (
+          <div className="flex flex-col items-center gap-2 text-on-surface-variant">
+            <span className="material-symbols-outlined text-4xl" aria-hidden="true">
+              restaurant
+            </span>
+            <span className="text-xs font-medium">{visual.label}</span>
+          </div>
+        )}
       </div>
 
       <div className="mb-4 flex items-center justify-between gap-3">
@@ -310,6 +1009,19 @@ function RecipeCard({
           </span>
           Shopping list
         </button>
+
+        {isPersonal && (
+          <button
+            type="button"
+            onClick={() => onDelete(recipe)}
+            className="inline-flex items-center gap-2 rounded-xl border border-[#d9a18f] px-4 py-2.5 text-sm font-semibold text-[#9b4937] hover:bg-[#fff4ef]"
+          >
+            <span className="material-symbols-outlined text-[18px]">
+              delete
+            </span>
+            Delete recipe
+          </button>
+        )}
       </div>
     </article>
   )
@@ -325,6 +1037,7 @@ export default function Diet() {
   const [meals, setMeals] = useState([])
   const [mealsLoading, setMealsLoading] = useState(true)
   const [mealsError, setMealsError] = useState("")
+  const [mealSearch, setMealSearch] = useState("")
 
   // ---------------------------------------------------------
   // RECIPES
@@ -347,6 +1060,7 @@ export default function Diet() {
   const [recipeAssistantError, setRecipeAssistantError] = useState("")
 
   const [selectedRecipe, setSelectedRecipe] = useState(null)
+  const [recipeDetailsError, setRecipeDetailsError] = useState("")
   const [currentUserId] = useState(getCurrentUserId)
 
   // ---------------------------------------------------------
@@ -375,6 +1089,7 @@ export default function Diet() {
     Instructions: "",
     CookingTime: "",
     Notes: "",
+    ImageData: "",
     IsFavorite: 0,
     IsPublic: 0,
   }
@@ -397,6 +1112,7 @@ export default function Diet() {
     useState("Breakfast")
   const [selectedPlannerRecipe, setSelectedPlannerRecipe] =
     useState("")
+  const [plannerRecipeSearch, setPlannerRecipeSearch] = useState("")
   const [plannerLoading, setPlannerLoading] = useState(false)
   const [plannerError, setPlannerError] = useState("")
 
@@ -419,6 +1135,15 @@ export default function Diet() {
   const [shoppingLoading, setShoppingLoading] =
     useState(false)
   const [shoppingError, setShoppingError] = useState("")
+
+  // ---------------------------------------------------------
+  // WELLNESS HABITS
+  // ---------------------------------------------------------
+
+  const [wellnessHabits, setWellnessHabits] = useState(
+    getStoredWellnessHabits,
+  )
+  const [wellnessHabitsError, setWellnessHabitsError] = useState("")
 
   // ---------------------------------------------------------
   // HYDRATION
@@ -458,6 +1183,7 @@ export default function Diet() {
 
         const data = await response.json()
 
+        const seenSummaries = new Set()
         const grouped = data.reduce((groups, item) => {
           const type = item.MealType
 
@@ -472,7 +1198,7 @@ export default function Diet() {
                     : type === "Dinner"
                       ? "Evening"
                       : "Anytime",
-              title: item.Title,
+              title: type,
               icon:
                 type === "Breakfast"
                   ? "wb_twilight"
@@ -481,13 +1207,64 @@ export default function Diet() {
                     : type === "Dinner"
                       ? "bedtime"
                       : "nutrition",
-              summary: item.Summary,
+              summary:
+                type === "Breakfast"
+                  ? "A mix of familiar and traditional ways to start the day."
+                  : type === "Lunch"
+                    ? "Build a satisfying plate with grains, vegetables, and protein foods."
+                    : type === "Dinner"
+                      ? "Flexible evening meal ideas to suit your appetite."
+                      : "Small meal and tea-time ideas to enjoy when you are hungry.",
               ideas: [],
             }
           }
 
           if (item.FoodIdea) {
-            groups[type].ideas.push(item.FoodIdea)
+            const foodIdea = String(item.FoodIdea).trim()
+            const normalizedFoodIdea = foodIdea.toLowerCase()
+            const storedTitle = String(item.Title || "").trim()
+            const hasSpecificTitle =
+              storedTitle &&
+              storedTitle.toLowerCase() !== type.toLowerCase()
+            const isDuplicate = groups[type].ideas.some(
+              (idea) =>
+                idea.foodIdea.trim().toLowerCase() === normalizedFoodIdea ||
+                (hasSpecificTitle &&
+                  idea.title.toLowerCase() === storedTitle.toLowerCase()),
+            )
+
+            if (!isDuplicate) {
+              const summary = String(item.Summary || "").trim()
+              const normalizedSummary = `${type}:${summary.toLowerCase()}`
+              const displaySummary =
+                summary && !seenSummaries.has(normalizedSummary)
+
+              if (summary) {
+                seenSummaries.add(normalizedSummary)
+              }
+
+              const normalizedIdeaTitle =
+                /\boats?\b/.test(normalizedFoodIdea) &&
+                /\b(fruit|fruits|seed|seeds|berry|berries)\b/.test(
+                  normalizedFoodIdea,
+                )
+                  ? "Oats with fruit and seeds"
+                  : /\b(egg|eggs|tofu)\b/.test(normalizedFoodIdea) &&
+                      /\b(vegetable|vegetables|veggies)\b/.test(
+                        normalizedFoodIdea,
+                      )
+                    ? "Eggs or tofu with vegetables"
+                    : foodIdea
+
+              groups[type].ideas.push({
+                title: hasSpecificTitle ? storedTitle : normalizedIdeaTitle,
+                foodIdea:
+                  hasSpecificTitle || normalizedIdeaTitle !== foodIdea
+                    ? foodIdea
+                    : "",
+                summary: displaySummary ? summary : "",
+              })
+            }
           }
 
           return groups
@@ -503,6 +1280,33 @@ export default function Diet() {
 
     loadMeals()
   }, [])
+
+  const filteredMeals = useMemo(() => {
+    const search = mealSearch.trim().toLowerCase()
+    if (!search) {
+      return meals
+    }
+
+    return meals
+      .map((meal) => {
+        const matchesMealType = meal.title.toLowerCase().includes(search)
+        return {
+          ...meal,
+          ideas: matchesMealType
+            ? meal.ideas
+            : meal.ideas.filter((idea) =>
+                `${idea.title} ${idea.foodIdea} ${idea.summary}`
+                  .toLowerCase()
+                  .includes(search),
+              ),
+        }
+      })
+      .filter(
+        (meal) =>
+          meal.title.toLowerCase().includes(search) ||
+          meal.ideas.length > 0,
+      )
+  }, [meals, mealSearch])
 
   // ---------------------------------------------------------
   // LOAD RECIPES
@@ -794,6 +1598,40 @@ export default function Diet() {
         entriesByMeal[type].length > 0,
     ).length
 
+  const dailyHabits = [
+    { id: "nourishing-meal", label: "Enjoyed a meal that felt nourishing", icon: "restaurant" },
+    { id: "movement-break", label: "Made time for a movement or stretch break", icon: "directions_walk" },
+    { id: "rest-break", label: "Took a moment to pause and recharge", icon: "self_improvement" },
+  ]
+  const checkedDailyHabits = wellnessHabits[selectedDate] || {}
+  const completedHabitCount = dailyHabits.filter(
+    (habit) => checkedDailyHabits[habit.id],
+  ).length
+
+  function toggleWellnessHabit(habitId) {
+    const nextForDate = {
+      ...checkedDailyHabits,
+      [habitId]: !checkedDailyHabits[habitId],
+    }
+    const nextHabits = {
+      ...wellnessHabits,
+      [selectedDate]: nextForDate,
+    }
+
+    setWellnessHabitsError("")
+    try {
+      localStorage.setItem(
+        getWellnessHabitsKey(),
+        JSON.stringify(nextHabits),
+      )
+      setWellnessHabits(nextHabits)
+    } catch {
+      setWellnessHabitsError(
+        "Your check-in could not be saved in this browser. Please check your storage settings and try again.",
+      )
+    }
+  }
+
   // ---------------------------------------------------------
   // FILTERED RECIPES
   // ---------------------------------------------------------
@@ -811,7 +1649,7 @@ export default function Diet() {
       const type = String(
         recipe.MealType || "",
       )
-      const recipeText = `${name} ${ingredients} ${
+      const recipeText = `${name} ${ingredients} ${type} ${
         recipe.Instructions || ""
       }`.toLowerCase()
       const cookingMinutes = Number(
@@ -820,9 +1658,7 @@ export default function Diet() {
 
       const matchesSearch =
         !search ||
-        name.toLowerCase().includes(search) ||
-        ingredients.toLowerCase().includes(search) ||
-        type.toLowerCase().includes(search)
+        recipeText.includes(search)
 
       const matchesMealType =
         recipeMealType === "All" ||
@@ -886,6 +1722,121 @@ export default function Diet() {
     pantry,
   ])
 
+  const filteredKeralaRecipes = useMemo(() => {
+    const search = recipeSearch.trim().toLowerCase()
+
+    return keralaRecipeDetails.filter((recipe) => {
+      const searchable = `${recipe.Name} ${recipe.SearchTerms} ${
+        recipe.Ingredients
+      } ${recipe.Instructions}`.toLowerCase()
+      const minutes = Number(recipe.CookingTime.match(/\d+/)?.[0])
+      const isVegetarian =
+        !/\b(meat|beef|pork|chicken|turkey|fish|seafood|lamb|bacon|ham)\b/.test(
+          searchable,
+        )
+      const matchesSpecialFilter =
+        recipeSpecialFilter === "All" ||
+        (recipeSpecialFilter === "Vegetarian" && isVegetarian) ||
+        (recipeSpecialFilter === "Quick" && minutes <= 20) ||
+        (recipeSpecialFilter === "No-cook" &&
+          /\b(no[- ]cook|no cooking|uncooked)\b/.test(searchable))
+
+      return (
+        !showFavoritesOnly &&
+        (!search || searchable.includes(search)) &&
+        (recipeMealType === "All" ||
+          recipe.MealType === recipeMealType) &&
+        matchesSpecialFilter
+      )
+    })
+  }, [
+    recipeSearch,
+    recipeMealType,
+    recipeSpecialFilter,
+    showFavoritesOnly,
+  ])
+
+  function openRecipeDetails(recipe) {
+    setRecipeDetailsError("")
+    setSelectedRecipe(recipe)
+    window.setTimeout(() => {
+      document
+        .getElementById("recipe-details-panel")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" })
+    }, 0)
+  }
+
+  async function openMealIdea(meal, idea) {
+    const normalizeWords = (value) =>
+      String(value || "")
+        .toLowerCase()
+        .match(/[a-z0-9]+/g)
+        ?.join(" ") || ""
+    const suggestionText = normalizeWords(
+      `${idea.title || ""} ${idea.foodIdea || ""}`,
+    )
+    const includesDishName = (text, dishName) =>
+      ` ${normalizeWords(text)} `.includes(
+        ` ${normalizeWords(dishName)} `,
+      )
+    const localRecipe = [
+      ...keralaRecipeDetails,
+      ...mealSuggestionRecipeDetails,
+    ]
+      .flatMap((recipe) =>
+        recipe.SearchTerms.split("|")
+          .filter((alias) => includesDishName(suggestionText, alias))
+          .map((alias) => ({
+            recipe,
+            aliasLength: normalizeWords(alias).length,
+          })),
+      )
+      .sort((left, right) => right.aliasLength - left.aliasLength)[0]
+      ?.recipe
+
+    if (localRecipe) {
+      openRecipeDetails(localRecipe)
+      return
+    }
+
+    const savedRecipe = recipes.find((recipe) =>
+      includesDishName(suggestionText, recipe.Name),
+    )
+
+    if (savedRecipe) {
+      openRecipeDetails(savedRecipe)
+      return
+    }
+
+    try {
+      setRecipeDetailsError("")
+      const response = await fetch(`${API_BASE_URL}/recipes/assistant`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...authHeaders(),
+        },
+        body: JSON.stringify({
+          prompt: `Give me the complete recipe for "${idea.title}". Meal: ${meal.title}. Food description: ${idea.foodIdea || idea.title}.`,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Could not load recipe details for this meal.")
+      }
+
+      const recipe = await response.json()
+      if (!recipe.Name || !recipe.Ingredients || !recipe.Instructions) {
+        throw new Error("Recipe details are unavailable for this meal.")
+      }
+
+      openRecipeDetails(recipe)
+    } catch (error) {
+      setSelectedRecipe(null)
+      setRecipeDetailsError(error.message)
+    }
+  }
+
   // ---------------------------------------------------------
   // PLANNER
   // ---------------------------------------------------------
@@ -894,6 +1845,24 @@ export default function Diet() {
     plannerWeekStart,
     plannerDay,
   )
+
+  const plannerRecipeOptions = useMemo(() => {
+    const uniqueRecipes = new Map()
+    ;[...recipes, ...keralaRecipeDetails, ...mealSuggestionRecipeDetails].forEach(
+      (recipe) => {
+        const nameKey = normalizePantryIngredient(recipe.Name)
+        if (nameKey && !uniqueRecipes.has(nameKey)) {
+          uniqueRecipes.set(nameKey, {
+            ...recipe,
+            PlannerOptionID: Number.isInteger(Number(recipe.RecipeID))
+              ? `recipe-${recipe.RecipeID}`
+              : `local-${nameKey}`,
+          })
+        }
+      },
+    )
+    return [...uniqueRecipes.values()]
+  }, [recipes])
 
   const plannerRecipes = useMemo(() => {
     return planner
@@ -922,21 +1891,54 @@ export default function Diet() {
       return []
     }
 
-    return recipes
-      .map((recipe) => {
-      const ingredients = String(
-        recipe.Ingredients || "",
-      ).toLowerCase()
-        const matchCount = pantry.filter((item) =>
-          ingredients.includes(
-            String(item.ItemName || "").trim().toLowerCase(),
-          ),
-        ).length
-        return { recipe, matchCount }
-      })
-      .filter((item) => item.matchCount > 0)
-      .sort((a, b) => b.matchCount - a.matchCount)
-      .map((item) => item.recipe)
+    const uniqueRecipes = new Map()
+    ;[...recipes, ...keralaRecipeDetails, ...mealSuggestionRecipeDetails].forEach(
+      (recipe) => {
+        const key = normalizePantryIngredient(recipe.Name)
+        if (key && !uniqueRecipes.has(key)) {
+          uniqueRecipes.set(key, recipe)
+        }
+      },
+    )
+
+    const matches = [...uniqueRecipes.values()].map((recipe) => {
+      const ingredients = splitRecipeIngredients(recipe.Ingredients)
+      const availableIngredients = ingredients.filter((ingredient) =>
+        pantryIngredientMatches(ingredient, pantry),
+      )
+      const missingIngredients = ingredients.filter(
+        (ingredient) => !pantryIngredientMatches(ingredient, pantry),
+      )
+      const closeMatches = getClosePantryIngredientMatches(
+        ingredients,
+        pantry,
+      )
+
+      return {
+        recipe,
+        ingredients,
+        availableIngredients,
+        missingIngredients,
+        closeMatches,
+        matchCount: availableIngredients.length,
+        missingCount: missingIngredients.length,
+      }
+    })
+    const matchingRecipes = matches.filter((item) => item.matchCount > 0)
+    const suggestions = matchingRecipes.length
+      ? matchingRecipes
+      : matches.filter((item) => item.closeMatches.length > 0)
+
+    return suggestions
+      .sort(
+        (a, b) =>
+          b.matchCount - a.matchCount ||
+          b.closeMatches.length - a.closeMatches.length ||
+          a.missingCount - b.missingCount ||
+          a.ingredients.length - b.ingredients.length ||
+          a.recipe.Name.localeCompare(b.recipe.Name),
+      )
+      .slice(0, 5)
   }, [recipes, pantry])
 
   // ---------------------------------------------------------
@@ -1035,9 +2037,15 @@ export default function Diet() {
 
   const smartSuggestion = useMemo(() => {
     if (weekEntries.length < 3) {
+      const firstIdea = meals[0]?.ideas?.[0]
+      const firstIdeaText =
+        typeof firstIdea === "string"
+          ? firstIdea
+          : firstIdea?.foodIdea || firstIdea?.title
+
       return {
         personalized: false,
-        text: meals[0]?.ideas?.[0] ||
+        text: firstIdeaText ||
           "Try a simple meal with a grain, vegetables, and a protein food.",
       }
     }
@@ -1296,6 +2304,10 @@ export default function Diet() {
           savedRecipe,
           ...current,
         ])
+        if (recipeAssistantResult) {
+          setRecipeAssistantResult(null)
+          setRecipeAssistantPrompt("")
+        }
       }
 
       setNewRecipe(emptyRecipe)
@@ -1351,49 +2363,28 @@ export default function Diet() {
     }
   }
 
-  async function saveGeneratedRecipe() {
+  function saveGeneratedRecipe() {
     if (!recipeAssistantResult) {
       return
     }
 
-    try {
-      setRecipeAssistantError("")
-      setRecipeAssistantLoading(true)
-      const response = await fetch(
-        `${API_BASE_URL}/recipes`,
-        {
-          method: "POST",
-          headers: {
-            ...authHeaders(),
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            Name: recipeAssistantResult.Name,
-            MealType: recipeAssistantResult.MealType,
-            Ingredients: recipeAssistantResult.Ingredients,
-            Instructions: recipeAssistantResult.Instructions,
-            CookingTime: recipeAssistantResult.CookingTime || "",
-            Notes: recipeAssistantResult.Notes || "",
-            IsFavorite: 0,
-            IsPublic: 0,
-          }),
-        },
-      )
-
-      if (!response.ok) {
-        const detail = await response.json().catch(() => ({}))
-        throw new Error(detail.detail || "Could not save the recipe.")
-      }
-
-      const savedRecipe = await response.json()
-      setRecipes((current) => [savedRecipe, ...current])
-      setRecipeAssistantResult(null)
-      setRecipeAssistantPrompt("")
-    } catch (error) {
-      setRecipeAssistantError(error.message)
-    } finally {
-      setRecipeAssistantLoading(false)
-    }
+    setRecipeAssistantError("")
+    setEditingRecipe(null)
+    setNewRecipe({
+      ...emptyRecipe,
+      Name: recipeAssistantResult.Name || "",
+      MealType: recipeAssistantResult.MealType || "Breakfast",
+      Ingredients: recipeAssistantResult.Ingredients || "",
+      Instructions: recipeAssistantResult.Instructions || "",
+      CookingTime: recipeAssistantResult.CookingTime || "",
+      Notes: recipeAssistantResult.Notes || "",
+      ImageData: "",
+    })
+    setRecipeFormError("")
+    setRecipeFormOpen(true)
+    document
+      .getElementById("recipe-form")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" })
   }
 
   // ---------------------------------------------------------
@@ -1414,6 +2405,7 @@ export default function Diet() {
       CookingTime:
         recipe.CookingTime || "",
       Notes: recipe.Notes || "",
+      ImageData: recipe.ImageData || "",
       IsFavorite: recipe.IsFavorite || 0,
       IsPublic: recipe.IsPublic || 0,
     })
@@ -1493,11 +2485,11 @@ export default function Diet() {
   // ADD TO PLANNER
   // ---------------------------------------------------------
 
-  async function addToPlanner(recipeId) {
+  async function addToPlanner(recipeOptionId) {
     try {
       setPlannerError("")
-      const recipe = recipes.find(
-        (item) => item.RecipeID === recipeId,
+      let recipe = plannerRecipeOptions.find(
+        (item) => item.PlannerOptionID === recipeOptionId,
       )
 
       if (!recipe) {
@@ -1515,6 +2507,34 @@ export default function Diet() {
         throw new Error(
           `${plannerMealType} already has a recipe planned for ${planDate}.`,
         )
+      }
+
+      if (!Number.isInteger(Number(recipe.RecipeID))) {
+        const recipeResponse = await fetch(`${API_BASE_URL}/recipes`, {
+          method: "POST",
+          headers: {
+            ...authHeaders(),
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            Name: recipe.Name,
+            MealType: recipe.MealType,
+            Ingredients: recipe.Ingredients,
+            Instructions: recipe.Instructions,
+            CookingTime: recipe.CookingTime || "",
+            Notes: recipe.Notes || "",
+          }),
+        })
+
+        if (!recipeResponse.ok) {
+          const detail = await recipeResponse.json().catch(() => ({}))
+          throw new Error(
+            detail.detail || `Could not add ${recipe.Name} to your recipes.`,
+          )
+        }
+
+        recipe = await recipeResponse.json()
+        setRecipes((current) => [...current, recipe])
       }
 
       const response = await fetch(
@@ -1765,6 +2785,7 @@ export default function Diet() {
     }
 
     try {
+      setPantryLoading(true)
       setPantryError("")
 
       const response = await fetch(
@@ -1793,19 +2814,26 @@ export default function Diet() {
 
       const created = await response.json()
 
-      setPantry((current) => [
-        ...current,
-        created,
-      ])
+      setPantry((current) =>
+        current.some(
+          (item) => item.PantryItemID === created.PantryItemID,
+        )
+          ? current
+          : [...current, created],
+      )
 
       setPantryInput("")
     } catch (error) {
       setPantryError(error.message)
+    } finally {
+      setPantryLoading(false)
     }
   }
 
   async function removePantryItem(id) {
     try {
+      setPantryLoading(true)
+      setPantryError("")
       const response = await fetch(
         `${API_BASE_URL}/pantry/${id}`,
         {
@@ -1828,6 +2856,8 @@ export default function Diet() {
       )
     } catch (error) {
       setPantryError(error.message)
+    } finally {
+      setPantryLoading(false)
     }
   }
 
@@ -2581,7 +3611,7 @@ export default function Diet() {
                 setRecipeAssistantPrompt(event.target.value)
               }
               rows={2}
-              placeholder="I have oats, banana, milk and almonds..."
+              placeholder="Try: Kerala breakfast with puttu, or palappam with egg curry..."
               className="w-full rounded-xl border border-[#e8e2cf] bg-white px-4 py-3"
             />
             <p className="mt-2 text-xs text-[#77776d]">
@@ -2620,7 +3650,7 @@ export default function Diet() {
                   onClick={saveGeneratedRecipe}
                   className="mt-3 rounded-xl border border-[#535845] px-4 py-2 text-sm font-semibold text-[#535845] disabled:opacity-60"
                 >
-                  Save to personal recipes
+                  Add photo and save recipe
                 </button>
               </div>
             )}
@@ -2650,6 +3680,7 @@ export default function Diet() {
 
           {recipeFormOpen && (
             <form
+              id="recipe-form"
               onSubmit={saveRecipe}
               className="mb-6 rounded-3xl border border-[#e8e2cf] bg-white p-6 shadow-sm"
             >
@@ -2674,6 +3705,79 @@ export default function Diet() {
               )}
 
               <div className="grid gap-4 md:grid-cols-2">
+                <div className="rounded-xl border border-[#e8e2cf] p-4 md:col-span-2">
+                  <label
+                    htmlFor="recipe-image"
+                    className="mb-2 block text-sm font-semibold text-[#535845]"
+                  >
+                    Add your recipe photo (optional)
+                  </label>
+                  <input
+                    id="recipe-image"
+                    type="file"
+                    accept="image/*"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0]
+                      if (!file) {
+                        return
+                      }
+                      if (!file.type.startsWith("image/")) {
+                        setRecipeFormError("Choose an image file.")
+                        event.target.value = ""
+                        return
+                      }
+                      if (file.size > 5 * 1024 * 1024) {
+                        setRecipeFormError("Recipe photos must be 5 MB or smaller.")
+                        event.target.value = ""
+                        return
+                      }
+
+                      const reader = new FileReader()
+                      reader.onload = () => {
+                        if (typeof reader.result === "string") {
+                          setNewRecipe((current) => ({
+                            ...current,
+                            ImageData: reader.result,
+                          }))
+                          setRecipeFormError("")
+                        } else {
+                          setRecipeFormError("Could not read that recipe photo.")
+                        }
+                      }
+                      reader.onerror = () => {
+                        setRecipeFormError("Could not read that recipe photo.")
+                      }
+                      reader.readAsDataURL(file)
+                    }}
+                    className="block w-full text-sm text-[#626258] file:mr-3 file:rounded-lg file:border-0 file:bg-[#f3efdf] file:px-3 file:py-2 file:font-semibold file:text-[#535845]"
+                  />
+                  <p className="mt-2 text-xs text-[#77776d]">
+                    Pick a photo from your device, or leave this blank. No
+                    image is assigned automatically to personal recipes.
+                  </p>
+                  {newRecipe.ImageData && (
+                    <div className="mt-4 flex flex-wrap items-center gap-3">
+                      <img
+                        src={newRecipe.ImageData}
+                        alt="Recipe photo preview"
+                        className="h-20 w-20 rounded-xl object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setNewRecipe((current) => ({
+                            ...current,
+                            ImageData: "",
+                          }))
+                        }
+                        className="rounded-lg border border-[#e8e2cf] px-3 py-2 text-sm font-semibold text-[#535845]"
+                      >
+                        Remove photo
+                      </button>
+                    </div>
+                  )}
+                </div>
+
                 <input
                   required
                   value={newRecipe.Name}
@@ -2770,6 +3874,7 @@ export default function Diet() {
                   placeholder="Notes"
                   className="rounded-xl border border-[#e8e2cf] px-4 py-3"
                 />
+
               </div>
 
               <div className="mt-5 flex flex-wrap gap-3">
@@ -2815,7 +3920,8 @@ export default function Diet() {
           )}
 
           {!recipesLoading &&
-            filteredRecipes.length === 0 && (
+            filteredRecipes.length === 0 &&
+            filteredKeralaRecipes.length === 0 && (
               <p className="rounded-2xl border border-[#e8e2cf] bg-white px-5 py-4 text-sm text-[#77776d]">
                 No recipes match your search or filters.
               </p>
@@ -2845,19 +3951,103 @@ export default function Diet() {
                         addRecipeIngredients
                       }
                       onOpen={
-                        setSelectedRecipe
+                        openRecipeDetails
+                      }
+                      onDelete={
+                        deleteRecipe
                       }
                     />
                   ),
                 )}
               </div>
             )}
+
+          {!recipesLoading && filteredKeralaRecipes.length > 0 && (
+            <div className="mt-6">
+              <h3 className="mb-4 font-['Playfair_Display'] text-2xl font-semibold">
+                Kerala recipe details
+              </h3>
+              <div className="grid gap-5 lg:grid-cols-2">
+                {filteredKeralaRecipes.map((recipe) => {
+                  const visual = getRecipeVisual(recipe)
+
+                  return (
+                    <article
+                      key={recipe.RecipeID}
+                      className="overflow-hidden rounded-3xl border border-[#e8e2cf] bg-white shadow-sm"
+                    >
+                      {visual.image ? (
+                        <img
+                          src={visual.image}
+                          alt={visual.label}
+                          className="h-52 w-full object-cover"
+                          style={{ objectPosition: visual.imagePosition || "center" }}
+                        />
+                      ) : (
+                        <div className="flex h-32 items-center justify-center bg-[#faf7f0] text-sm text-[#77776d]">
+                          No verified dish photo available
+                        </div>
+                      )}
+                      <div className="p-6">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-[#77776d]">
+                          {recipe.MealType} · {recipe.CookingTime}
+                        </p>
+                        <h4 className="mt-2 font-['Playfair_Display'] text-2xl font-semibold">
+                          {recipe.Name}
+                        </h4>
+                        {visual.credit && visual.source && (
+                          <p className="mt-2 text-xs text-[#77776d]">
+                            {visual.credit} ·{" "}
+                            <a
+                              href={visual.source}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="underline"
+                            >
+                              source
+                            </a>
+                          </p>
+                        )}
+                        <h5 className="mt-5 font-semibold">Ingredients</h5>
+                        <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-[#626258]">
+                          {recipe.Ingredients}
+                        </p>
+                        <h5 className="mt-4 font-semibold">Instructions</h5>
+                        <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-[#626258]">
+                          {recipe.Instructions}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => openRecipeDetails(recipe)}
+                          className="mt-5 rounded-xl bg-[#535845] px-4 py-2.5 font-semibold text-white"
+                        >
+                          Open recipe details
+                        </button>
+                      </div>
+                    </article>
+                  )
+                })}
+              </div>
+            </div>
+          )}
         </section>
 
         {/* RECIPE DETAIL */}
 
+        {recipeDetailsError && (
+          <p
+            role="alert"
+            className="mb-6 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-800"
+          >
+            {recipeDetailsError}
+          </p>
+        )}
+
         {selectedRecipe && (
-          <section className="mb-12 rounded-3xl bg-[#535845] p-6 text-white shadow-sm md:p-8">
+          <section
+            id="recipe-details-panel"
+            className="mb-12 scroll-mt-6 rounded-3xl bg-[#535845] p-6 text-white shadow-sm md:p-8"
+          >
             <div className="flex items-start justify-between gap-5">
               <div>
                 <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-[#e5dfc8]">
@@ -2910,6 +4100,12 @@ export default function Diet() {
                 </p>
               </div>
             </div>
+
+            {selectedRecipe.Notes && (
+              <p className="mt-5 text-sm leading-6 text-[#e5dfc8]">
+                {selectedRecipe.Notes}
+              </p>
+            )}
 
             {Number(selectedRecipe.UserID) === currentUserId && (
               <div className="mt-6 flex flex-wrap gap-3">
@@ -3013,37 +4209,50 @@ export default function Diet() {
         </select>
       </label>
 
-      <label className="flex flex-col gap-2 text-sm font-semibold">
-  Recipe
-
-  <select
-    value={selectedPlannerRecipe}
-    onChange={(event) =>
-      setSelectedPlannerRecipe(event.target.value)
-    }
-    className="rounded-xl border border-[#e8e2cf] bg-white px-4 py-3 font-normal outline-none focus:ring-2 focus:ring-[#535845]/30"
-  >
-    <option value="">Select a recipe</option>
-
-    {recipes.map((recipe) => (
-      <option
-        key={recipe.RecipeID}
-        value={recipe.RecipeID}
-      >
-        {recipe.Name}
-      </option>
-    ))}
-  </select>
-</label>
+      <div className="flex flex-col gap-2 text-sm font-semibold">
+        <label htmlFor="planner-recipe-search">Find a recipe</label>
+        <input
+          id="planner-recipe-search"
+          type="search"
+          value={plannerRecipeSearch}
+          onChange={(event) =>
+            setPlannerRecipeSearch(event.target.value)
+          }
+          placeholder="Search Kerala dishes or ingredients..."
+          className="rounded-xl border border-[#e8e2cf] bg-white px-4 py-3 font-normal outline-none focus:ring-2 focus:ring-[#535845]/30"
+        />
+        <select
+          aria-label="Select recipe to plan"
+          value={selectedPlannerRecipe}
+          onChange={(event) =>
+            setSelectedPlannerRecipe(event.target.value)
+          }
+          className="rounded-xl border border-[#e8e2cf] bg-white px-4 py-3 font-normal outline-none focus:ring-2 focus:ring-[#535845]/30"
+        >
+          <option value="">Select a recipe</option>
+          {plannerRecipeOptions
+            .filter((recipe) =>
+              `${recipe.Name || ""} ${recipe.Ingredients || ""}`
+                .toLowerCase()
+                .includes(plannerRecipeSearch.trim().toLowerCase()),
+            )
+            .map((recipe) => (
+              <option
+                key={recipe.PlannerOptionID}
+                value={recipe.PlannerOptionID}
+              >
+                {recipe.Name} · {recipe.MealType}
+              </option>
+            ))}
+        </select>
+      </div>
     </div>
 
     <button
       type="button"
       disabled={!selectedPlannerRecipe}
       onClick={() =>
-        addToPlanner(
-          Number(selectedPlannerRecipe),
-        )
+        addToPlanner(selectedPlannerRecipe)
       }
       className="mt-4 inline-flex items-center justify-center gap-2 rounded-xl bg-[#535845] px-5 py-3 font-semibold text-white transition-colors hover:bg-[#444937] disabled:cursor-not-allowed disabled:opacity-50"
     >
@@ -3155,7 +4364,7 @@ export default function Diet() {
                     event.target.value,
                   )
                 }
-                placeholder="e.g. oats"
+                placeholder="e.g. matta rice, coconut, curry leaves"
                 className="min-w-0 flex-1 rounded-xl border border-[#e8e2cf] px-4 py-3"
               />
 
@@ -3167,6 +4376,30 @@ export default function Diet() {
                 Add
               </button>
             </form>
+
+            <p className="mb-2 text-xs font-semibold text-[#77776d]">
+              Kerala pantry ideas (select to fill the input)
+            </p>
+            <div className="mb-4 flex flex-wrap gap-2">
+              {[
+                "Matta rice",
+                "Rice flour",
+                "Black chickpeas",
+                "Coconut",
+                "Curry leaves",
+                "Green gram",
+                "Kudampuli",
+              ].map((item) => (
+                <button
+                  key={item}
+                  type="button"
+                  onClick={() => setPantryInput(item)}
+                  className="rounded-full border border-[#e8e2cf] px-3 py-1.5 text-xs font-semibold text-[#535845] hover:bg-[#f3efdf]"
+                >
+                  {item}
+                </button>
+              ))}
+            </div>
 
             <div className="mb-4 flex flex-wrap gap-2">
               {pantry.map(
@@ -3187,38 +4420,96 @@ export default function Diet() {
               )}
             </div>
 
+            {pantry.length === 0 && !pantryLoading && (
+              <p className="rounded-xl bg-[#faf7f0] p-3 text-sm text-[#77776d]">
+                Add pantry ingredients to see recipes you can make now and
+                recipes that need only a few more ingredients.
+              </p>
+            )}
+
             {pantry.length > 0 && (
               <div>
                 <p className="mb-2 text-sm font-semibold">
-                  Matching recipes
+                  {pantryMatches.some((match) => match.matchCount > 0)
+                    ? "Meal ideas using your pantry"
+                    : "Closest recipes to your pantry"}
                 </p>
 
-                {pantryMatches.length ? (
+                {pantryLoading || recipesLoading ? (
+                  <p role="status" className="text-sm text-[#77776d]">
+                    Checking your pantry against available recipes...
+                  </p>
+                ) : pantryError || recipesError ? (
+                  <p role="alert" className="text-sm text-[#9b4937]">
+                    {pantryError || recipesError}
+                  </p>
+                ) : pantryMatches.length ? (
                   <div className="space-y-2">
                     {pantryMatches
-                      .slice(0, 5)
-                      .map(
-                        (recipe) => (
-                          <button
-                            key={
-                              recipe.RecipeID
-                            }
-                            type="button"
-                            onClick={() =>
-                              setSelectedRecipe(
-                                recipe,
-                              )
-                            }
-                            className="block w-full rounded-xl bg-[#faf7f0] p-3 text-left text-sm hover:bg-[#f3efdf]"
-                          >
-                            {recipe.Name}
-                          </button>
-                        ),
-                      )}
+                      .map((match) => (
+                        <article
+                          key={
+                            match.recipe.RecipeID ||
+                            normalizePantryIngredient(match.recipe.Name)
+                          }
+                          className="rounded-xl bg-[#faf7f0] p-3"
+                        >
+                          <div className="flex flex-wrap items-start justify-between gap-2">
+                            <div>
+                              <p className="font-semibold text-[#535845]">
+                                {match.recipe.Name}
+                              </p>
+                              <p className="mt-1 text-xs text-[#77776d]">
+                                {match.recipe.MealType}
+                                {match.recipe.CookingTime
+                                  ? ` · ${match.recipe.CookingTime}`
+                                  : ""}
+                                {match.matchCount > 0
+                                  ? ` · ${match.matchCount} ingredient${match.matchCount === 1 ? "" : "s"} available`
+                                  : " · No direct pantry match"}
+                              </p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => openRecipeDetails(match.recipe)}
+                              className="rounded-lg border border-[#d9d3c1] px-3 py-2 text-xs font-semibold text-[#535845] hover:bg-white"
+                            >
+                              View full recipe
+                            </button>
+                          </div>
+                          <div className="mt-3 grid gap-2 text-xs sm:grid-cols-2">
+                            <p className="text-[#535845]">
+                              <span className="font-semibold">
+                                {match.matchCount > 0
+                                  ? "Available:"
+                                  : "Closest ingredient name:"}
+                              </span>{" "}
+                              {match.matchCount > 0
+                                ? match.availableIngredients.join(", ")
+                                : match.closeMatches
+                                    .map(
+                                      (item) =>
+                                        `${item.pantryName} ≈ ${item.ingredient}`,
+                                    )
+                                    .join(", ")}
+                            </p>
+                            <p className="text-[#77776d]">
+                              <span className="font-semibold">
+                                Missing ingredients:
+                              </span>{" "}
+                              {match.missingIngredients.length
+                                ? match.missingIngredients.join(", ")
+                                : "None"}
+                            </p>
+                          </div>
+                        </article>
+                      ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-[#77776d]">
-                    No recipes currently match your pantry.
+                  <p className="rounded-xl bg-[#faf7f0] p-3 text-sm text-[#77776d]">
+                    {recipes.length
+                      ? "No recipes use these pantry ingredients yet. Try another ingredient or add a recipe with these ingredients."
+                      : "No recipes are available yet. Add recipes in the Recipe Collection and pantry suggestions will appear here."}
                   </p>
                 )}
               </div>
@@ -3437,6 +4728,17 @@ export default function Diet() {
             )}
           </div>
 
+          <label className="mb-5 block max-w-xl text-sm font-semibold text-[#535845]">
+            Search meal ideas
+            <input
+              type="search"
+              value={mealSearch}
+              onChange={(event) => setMealSearch(event.target.value)}
+              placeholder="Search puttu, fish curry, banana, or a meal type..."
+              className="mt-2 w-full rounded-xl border border-[#e8e2cf] bg-white px-4 py-3 font-normal"
+            />
+          </label>
+
           {mealsLoading && (
             <p className="mb-4 text-sm text-[#77776d]">
               Loading meal suggestions...
@@ -3451,19 +4753,22 @@ export default function Diet() {
 
           {!mealsLoading &&
             !mealsError &&
-            meals.length === 0 && (
+            filteredMeals.length === 0 && (
               <p className="rounded-2xl border border-[#e8e2cf] bg-white p-4 text-sm text-[#77776d]">
-                No meal suggestions are available yet.
+                {meals.length
+                  ? "No meal ideas match your search."
+                  : "No meal suggestions are available yet."}
               </p>
             )}
 
           <div className="grid gap-5 lg:grid-cols-3">
-            {meals.map(
+            {filteredMeals.map(
               (meal, index) => (
                 <MealCard
                   key={meal.id}
                   meal={meal}
                   index={index}
+                  onOpenIdea={openMealIdea}
                 />
               ),
             )}
@@ -3539,40 +4844,62 @@ export default function Diet() {
           </div>
         </section>
 
-        {/* ROUTINE */}
+        {/* WELLNESS CHECK-IN */}
 
-        <section>
-          <div className="mb-6">
-            <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-tertiary">
-              A sample daily flow
+        <section className="rounded-3xl border border-outline-variant bg-white p-6 soft-shadow md:p-8">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-tertiary">
+                Daily check-in
+              </p>
+              <h2 className="font-['Playfair_Display'] text-3xl font-semibold text-plum-deep">
+                Small wins, your way
+              </h2>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-on-surface-variant">
+                Mark any habits that felt good today. Your check-ins are saved
+                by date in this browser and are optional—there is no perfect
+                score to reach.
+              </p>
+            </div>
+            <p className="shrink-0 rounded-full bg-secondary-container px-4 py-2 text-sm font-semibold text-on-secondary-container">
+              {completedHabitCount} of {dailyHabits.length} checked
             </p>
-            <h2
-              id="routine-heading"
-              className="font-['Playfair_Display'] text-3xl font-semibold text-plum-deep"
-            >
-              A routine that bends with your day
-            </h2>
           </div>
 
-          <div className="grid gap-3 md:grid-cols-2">
-            {routine.map((step, index) => (
-              <article
-                key={step.time}
-                className="flex gap-4 rounded-2xl border border-outline-variant bg-white p-5 soft-shadow"
+          <div className="mt-6 grid gap-3 md:grid-cols-3">
+            {dailyHabits.map((habit) => (
+              <label
+                key={habit.id}
+                className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition-colors ${
+                  checkedDailyHabits[habit.id]
+                    ? "border-secondary bg-secondary-container/60"
+                    : "border-outline-variant bg-surface-container/50 hover:bg-surface-container"
+                }`}
               >
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary-container text-primary">
-                  <span className="material-symbols-outlined">{step.icon}</span>
+                <input
+                  type="checkbox"
+                  checked={Boolean(checkedDailyHabits[habit.id])}
+                  onChange={() => toggleWellnessHabit(habit.id)}
+                  className="mt-1 h-4 w-4 accent-[#535845]"
+                />
+                <span className="material-symbols-outlined text-secondary">
+                  {habit.icon}
                 </span>
-                <div>
-                  <p className="mb-1 text-xs font-bold uppercase tracking-[0.12em] text-on-surface-variant">
-                    {step.time} · {String(index + 1).padStart(2, "0")}
-                  </p>
-                  <h3 className="mb-1 font-semibold">{step.title}</h3>
-                  <p className="text-sm leading-6 text-on-surface-variant">{step.description}</p>
-                </div>
-              </article>
+                <span className="text-sm font-semibold leading-5">
+                  {habit.label}
+                </span>
+              </label>
             ))}
           </div>
+
+          {wellnessHabitsError && (
+            <p
+              role="alert"
+              className="mt-4 rounded-xl border border-risk-high/30 bg-tertiary-container px-4 py-3 text-sm text-on-tertiary-container"
+            >
+              {wellnessHabitsError}
+            </p>
+          )}
         </section>
 
         <aside className="mt-10 rounded-2xl border border-secondary/30 bg-secondary-container p-5 text-sm leading-6 text-on-secondary-container">

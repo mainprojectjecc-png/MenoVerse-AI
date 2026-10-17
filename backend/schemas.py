@@ -205,6 +205,7 @@ class RecipeBase(BaseModel):
     Instructions: str
     CookingTime: str | None = None
     Notes: str | None = None
+    ImageData: str | None = Field(None, max_length=7_000_000)
     IsFavorite: int = 0
     IsPublic: int = 0
 
@@ -220,6 +221,7 @@ class RecipeUpdate(BaseModel):
     Instructions: str | None = None
     CookingTime: str | None = None
     Notes: str | None = None
+    ImageData: str | None = Field(None, max_length=7_000_000)
     IsFavorite: int | None = None
     IsPublic: int | None = None
 

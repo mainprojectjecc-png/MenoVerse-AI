@@ -90,6 +90,28 @@ def ensure_diet_log_portion_column():
         raise
 
 
+def ensure_recipe_image_column():
+    try:
+        with engine.begin() as connection:
+            exists = connection.execute(
+                text(
+                    "SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS "
+                    "WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = 'Recipes' "
+                    "AND COLUMN_NAME = 'ImageData'"
+                )
+            ).first()
+            if not exists:
+                connection.execute(
+                    text(
+                        "ALTER TABLE dbo.Recipes "
+                        "ADD ImageData NVARCHAR(MAX) NULL"
+                    )
+                )
+    except Exception as error:
+        print(f"Recipes ImageData schema check failed: {error}")
+        raise
+
+
 def get_db():
     db = SessionLocal()
     try:

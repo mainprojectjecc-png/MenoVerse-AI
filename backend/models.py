@@ -150,6 +150,7 @@ class Recipe(Base):
     Instructions = Column("Instructions", Text, nullable=False)
     CookingTime = Column("CookingTime", String, nullable=True)
     Notes = Column("Notes", Text, nullable=True)
+    ImageData = Column("ImageData", Text, nullable=True)
     IsFavorite = Column("IsFavorite", Integer, default=0)
     IsPublic = Column("IsPublic", Integer, default=0)
 
