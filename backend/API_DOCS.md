@@ -56,7 +56,10 @@ unavailable until all settings are valid. The backend creates the
 
 GET /users
 
-Returns a list of registered users without passwords.
+Returns all registered user profiles (without passwords) to any authenticated
+user. This endpoint is not restricted to an administrator; do not expose it
+outside a trusted development environment without adding an authorization
+policy.
 
 Requires a valid JWT access token.
 
@@ -115,13 +118,26 @@ Deletes a symptom entry.
 Requires a valid JWT access token and ownership of the symptom record.
 
 Risk Assessment
-POST /risk
+POST /riskassessment
 
-Stores an AI-generated risk result.
+Stores a risk assessment supplied by the caller. This endpoint does not run
+the prediction model or create a recommendation; use `POST /predict` for an
+assessment generated from questionnaire responses.
 
-Body: { "UserID", "RiskScore", "RiskLevel", "Explanation" }
+Body:
 
-Requires a valid JWT access token. The UserID is taken from the authenticated user.
+```json
+{
+  "UserID": 1,
+  "RiskScore": 0.75,
+  "RiskLevel": "High",
+  "Explanation": "Example explanation"
+}
+```
+
+All fields are required by the request schema. The handler replaces `UserID`
+with the authenticated user's ID before saving. Requires a valid JWT access
+token.
 
 GET /risk/{user_id}
 
@@ -129,13 +145,15 @@ Returns all risk assessments for the authenticated user.
 
 Requires a valid JWT access token. Users cannot access another user's risk records.
 
-PUT /risk/{risk_id}
+PUT /riskassessment/{risk_id}
 
 Updates an existing risk assessment.
 
+Body: the same required fields as `POST /riskassessment`. The handler does not
+change the record's owner; it updates the other submitted assessment fields.
 Requires a valid JWT access token and ownership of the risk record.
 
-DELETE /risk/{risk_id}
+DELETE /riskassessment/{risk_id}
 
 Deletes a risk assessment.
 
@@ -170,9 +188,13 @@ Requires a valid JWT access token and ownership of the recommendation record.
 
 Notes
 Protected endpoints require a valid JWT access token.
-Users can only access and modify their own user-specific records.
+User-specific record endpoints check ownership before returning or changing a
+record. `GET /users` is an exception: it currently returns all user profiles
+to any authenticated user.
 Cross-user access attempts return 403 Forbidden.
-UserID values submitted when creating protected records are replaced with the authenticated user's UserID.
+Some create handlers replace a submitted `UserID` with the authenticated
+user's ID; others validate that the submitted ID matches the signed-in user.
+See the individual endpoint descriptions.
 All endpoints validate input automatically. Invalid inputs return 422 errors.
 Passwords are hashed with bcrypt before storage.
 Full interactive testing is available at /docs (Swagger UI).
