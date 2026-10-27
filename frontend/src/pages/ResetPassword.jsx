@@ -7,6 +7,8 @@ export default function ResetPassword() {
   const [token] = useState(() => searchParams.get("token") || "")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState("")
   const [error, setError] = useState("")
@@ -78,29 +80,55 @@ export default function ResetPassword() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <label className="block">
               <span className="sr-only">New password</span>
-              <input
-                autoComplete="new-password"
-                className="w-full rounded-xl bg-surface-container px-4 py-4 text-[15px] outline-none focus:ring-2 focus:ring-primary/30"
-                minLength={6}
-                onChange={(event) => setPassword(event.target.value)}
-                placeholder="New password"
-                required
-                type="password"
-                value={password}
-              />
+              <div className="relative">
+                <input
+                  autoComplete="new-password"
+                  className="w-full rounded-xl bg-surface-container px-4 py-4 pr-12 text-[15px] outline-none focus:ring-2 focus:ring-primary/30"
+                  minLength={6}
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder="New password"
+                  required
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                />
+                <button
+                  aria-label={showPassword ? "Hide new password" : "Show new password"}
+                  aria-pressed={showPassword}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-on-surface-variant hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  onClick={() => setShowPassword((visible) => !visible)}
+                  type="button"
+                >
+                  <span className="material-symbols-outlined" aria-hidden="true">
+                    {showPassword ? "visibility_off" : "visibility"}
+                  </span>
+                </button>
+              </div>
             </label>
             <label className="block">
               <span className="sr-only">Confirm new password</span>
-              <input
-                autoComplete="new-password"
-                className="w-full rounded-xl bg-surface-container px-4 py-4 text-[15px] outline-none focus:ring-2 focus:ring-primary/30"
-                minLength={6}
-                onChange={(event) => setConfirmPassword(event.target.value)}
-                placeholder="Confirm new password"
-                required
-                type="password"
-                value={confirmPassword}
-              />
+              <div className="relative">
+                <input
+                  autoComplete="new-password"
+                  className="w-full rounded-xl bg-surface-container px-4 py-4 pr-12 text-[15px] outline-none focus:ring-2 focus:ring-primary/30"
+                  minLength={6}
+                  onChange={(event) => setConfirmPassword(event.target.value)}
+                  placeholder="Confirm new password"
+                  required
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={confirmPassword}
+                />
+                <button
+                  aria-label={showConfirmPassword ? "Hide confirmation password" : "Show confirmation password"}
+                  aria-pressed={showConfirmPassword}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-on-surface-variant hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  onClick={() => setShowConfirmPassword((visible) => !visible)}
+                  type="button"
+                >
+                  <span className="material-symbols-outlined" aria-hidden="true">
+                    {showConfirmPassword ? "visibility_off" : "visibility"}
+                  </span>
+                </button>
+              </div>
             </label>
             {error && (
               <p role="alert" className="text-center text-[14px] text-risk-high">

@@ -17,9 +17,11 @@ export default function ForgotPassword() {
       const response = await api.post("/password-reset/request", { Email: email })
       setMessage(response.data.message)
     } catch (requestError) {
+      const detail = requestError.response?.data?.detail
       setError(
-        requestError.response?.data?.detail ||
-          "Password reset is temporarily unavailable. Please try again later.",
+        detail && !detail.toLowerCase().includes("not configured")
+          ? detail
+          : "Password reset is temporarily unavailable. Please try again later.",
       )
     } finally {
       setLoading(false)

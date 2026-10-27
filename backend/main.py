@@ -1,4 +1,5 @@
 import json
+import logging
 from datetime import date, datetime, timedelta, timezone
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -611,22 +612,22 @@ def request_password_reset(
     request: PasswordResetRequest,
     db: Session = Depends(get_db),
 ):
+    response = {
+        "message": "If an account with that email exists, a password reset link has been sent."
+    }
     try:
         configuration = validate_password_reset_configuration()
-    except PasswordResetConfigurationError as exc:
-        raise HTTPException(
-            status_code=503,
-            detail="Password reset email is not configured. Please contact the administrator.",
-        ) from exc
+    except PasswordResetConfigurationError:
+        logging.warning(
+            "Password reset email configuration is missing; returning a safe generic response instead of failing the request."
+        )
+        return response
     normalized_email = str(request.Email).strip().lower()
     user = (
         db.query(User)
         .filter(func.lower(func.trim(User.Email)) == normalized_email)
         .first()
     )
-    response = {
-        "message": "If an account with that email exists, a password reset link has been sent."
-    }
     if user is None:
         return response
 
