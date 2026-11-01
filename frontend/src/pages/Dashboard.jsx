@@ -227,7 +227,7 @@ function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background pb-24 text-on-surface lg:pb-10">
-      <main className="mx-auto max-w-[1360px] px-4 py-6 sm:px-7 sm:py-8 xl:px-10">
+      <main className="mx-auto max-w-[1600px] px-4 py-6 sm:px-7 sm:py-8 lg:px-8 xl:px-10">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4 sm:mb-7">
           <div>
             <p className="mb-2 inline-flex items-center gap-2 text-xs font-semibold tracking-wide text-on-surface-variant">
@@ -279,7 +279,7 @@ function Dashboard() {
           </div>
         )}
 
-        <section aria-label="Wellness summary" className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <section aria-label="Wellness summary" className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <Link
             to="/cycle"
             className="group rounded-2xl border border-outline-variant/50 bg-white p-4 shadow-[0_12px_32px_-26px_rgba(43,21,56,0.38)] transition hover:-translate-y-0.5 hover:border-tertiary/35 hover:shadow-md sm:p-5"
@@ -320,7 +320,7 @@ function Dashboard() {
 
           <Link
             to="/community"
-            className="group rounded-2xl border border-outline-variant/50 bg-gradient-to-br from-white to-[#f7eff8] p-4 shadow-[0_12px_32px_-26px_rgba(43,21,56,0.38)] transition hover:-translate-y-0.5 hover:border-secondary/30 hover:shadow-md sm:col-span-2 sm:p-5 xl:col-span-1"
+            className="group rounded-2xl border border-outline-variant/50 bg-gradient-to-br from-white to-[#f7eff8] p-4 shadow-[0_12px_32px_-26px_rgba(43,21,56,0.38)] transition hover:-translate-y-0.5 hover:border-secondary/30 hover:shadow-md sm:col-span-2 sm:p-5 lg:col-span-1"
           >
             <div className="flex items-start justify-between gap-3">
               <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary/10 text-secondary">

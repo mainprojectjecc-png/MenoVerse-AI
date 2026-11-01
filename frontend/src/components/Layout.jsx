@@ -16,7 +16,9 @@ const menuLinks = [
 ]
 
 export default function Layout() {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(
+    () => window.matchMedia("(min-width: 1024px) and (max-width: 1279px)").matches,
+  )
   const [menuOpen, setMenuOpen] = useState(false)
   const location = useLocation()
   const isDesktop = window.matchMedia("(min-width: 1024px)").matches
